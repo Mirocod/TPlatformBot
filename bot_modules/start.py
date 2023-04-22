@@ -4,7 +4,7 @@
 # Стартовое меню
 
 from bot_sys import log, config, keyboard
-from bot_modules import profile
+from bot_modules import profile, projects
 
 from aiogram.dispatcher import Dispatcher
 
@@ -23,8 +23,8 @@ start_menu_button_name = "☰ Главное меню"
 # Работа с кнопками
 
 def GetStartKeyboardButtons(a_UserAccess):
-    profile_button_names = profile.GetButtonNames(a_UserAccess)
-    return keyboard.MakeKeyboard([profile_button_names])
+    mods = [profile, projects]
+    return keyboard.MakeKeyboardForMods(mods, a_UserAccess)
 
 # ---------------------------------------------------------
 # Обработка сообщений
@@ -40,13 +40,13 @@ async def StartMenu(a_Message):
 # ---------------------------------------------------------
 # API
 
-# Доступные кнопки
+# Инициализация БД
 def GetInitBDCommands():
     return None
 
 # Имена доступных кнопок
 def GetButtonNames(a_UserAccess):
-    return start_menu_button_name
+    return [start_menu_button_name]
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):

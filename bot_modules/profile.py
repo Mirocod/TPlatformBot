@@ -36,9 +36,9 @@ user_profile_button_name = "📰 Профиль"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetProfileKeyboardButtons(a_UserAccess):
-    start_button_names = start.GetButtonNames(a_UserAccess)
-    return keyboard.MakeKeyboard([start_button_names])
+def GetStartKeyboardButtons(a_UserAccess):
+    mods = [start]
+    return keyboard.MakeKeyboardForMods(mods, a_UserAccess)
 
 # ---------------------------------------------------------
 # Обработка сообщений
@@ -50,7 +50,7 @@ async def ProfileOpen(a_Message):
     msg = profile_message
     if not user_info is None:
         msg = msg.replace('@user_id', str(user_info[0])).replace('@user_name', str(user_info[1]))
-    await bot.send_message(user_id, msg, reply_markup = GetProfileKeyboardButtons(None))
+    await bot.send_message(user_id, msg, reply_markup = GetStartKeyboardButtons(None))
 
 # ---------------------------------------------------------
 # Работа с базой данных пользователей
@@ -78,13 +78,13 @@ def GetUserInfo(a_UserID):
 # ---------------------------------------------------------
 # API
 
-# Доступные кнопки
+# Инициализация БД
 def GetInitBDCommands():
     return [init_bd_cmd]
 
 # Доступные кнопки
 def GetButtonNames(a_UserAccess):
-    return user_profile_button_name
+    return [user_profile_button_name]
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
