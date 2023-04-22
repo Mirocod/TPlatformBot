@@ -9,7 +9,7 @@ from aiogram.utils import executor
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import sqlite3
-from botsys import config, log
+from bot_sys import config, log
 
 storage = MemoryStorage()
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)

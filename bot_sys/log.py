@@ -13,7 +13,7 @@
 # Файл лога
 g_log_file_name = 'log.txt'
 
-from botsys import config
+from bot_sys import config
 import colorama
 import datetime
 colorama.init()
