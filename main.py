@@ -9,14 +9,24 @@ from aiogram.utils import executor
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import sqlite3
-from bot_sys import config, log
-from bot_modules import user
+from bot_sys import config, log, bot_bd
+from bot_modules import profile, start
 
 storage = MemoryStorage()
-bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
-dp = Dispatcher(bot, storage=storage)
+bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
+dp = Dispatcher(bot, storage = storage)
 
-user.RegisterHandlers(dp)
+mods = [profile, start]
+
+init_bd_cmd = []
+for m in mods:
+    m.RegisterHandlers(dp)
+    c = m.GetInitBDCommands()
+    if not c is None:
+        init_bd_cmd += c
+
+# Первичаня инициализация базы данных
+bot_bd.BDExecute(init_bd_cmd)
 
 if __name__ == '__main__':
     os.system('clear')

@@ -14,32 +14,29 @@ def GetBDFileName():
 # Функции работы с базой
 
 # ---------------------------------------------------------
-# Первичаня иницилизация базы данных
 
-# Открываем БД, если её нет, то создаём
-db = sqlite3.connect(GetBDFileName())
-cursor = db.cursor()
+def BDExecute(a_Commands):
+    db = sqlite3.connect(GetBDFileName())
+    cursor = db.cursor()
+    for cmd in a_Commands:
+        print(cmd)
+        cursor.execute(cmd)
+    db.commit()
+    cursor.close()
+    db.close()
 
-# Таблица пользователей
-cursor.execute("""CREATE TABLE IF NOT EXISTS users(
-    user_id INTEGER,
-    userName TEXT,
-    UNIQUE(user_id)
-);""")
-
+'''
 # Таблица групп пользователей
-cursor.execute("""CREATE TABLE IF NOT EXISTS group1(
+cursor.execute("""CREATE TABLE IF NOT EXISTS group(
     group_id INTEGER,
     groupName TEXT,
     UNIQUE(group_id)
 );""")
 
 # Таблица соответствия пользователей и групп пользователей
-cursor.execute("""CREATE TABLE IF NOT EXISTS groups_users1(
+cursor.execute("""CREATE TABLE IF NOT EXISTS groups_users(
     user_id INTEGER,
     group_id INTEGER
 );""")
+'''
 
-db.commit()
-cursor.close()
-db.close()
