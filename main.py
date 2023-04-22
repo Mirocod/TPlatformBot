@@ -10,10 +10,13 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import sqlite3
 from bot_sys import config, log
+from bot_modules import user
 
 storage = MemoryStorage()
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot, storage=storage)
+
+user.RegisterHandlers(dp)
 
 if __name__ == '__main__':
     os.system('clear')
