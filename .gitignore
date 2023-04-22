@@ -1,0 +1,4 @@
+config_telegram_bot_api_token
+config_root_ids
+__pycache__
+log.txt
