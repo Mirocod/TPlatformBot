@@ -25,13 +25,15 @@ def MakeKeyboard(a_ButtonList):
 def MakeKeyboardForMods(a_ModList, a_UserAccess):
     names = GetButtons(a_ModList, a_UserAccess)
     return MakeKeyboard(names)
+    buttons = GetButtons(a_ModList, a_UserAccess)
+    return MakeKeyboard(buttons)
 
 class Button:
     def __init__(self, a_Label, a_CallBackData):
         self.label = a_Label
         self.callback_data = a_CallBackData
 
-def MakeInlineKeyboard(a_ButtonList, a_CallBackPrefix):
-    inline_keyboard = InlineKeyboardMarkup(resize_keyboard=True, row_width=2)
+def MakeInlineKeyboard(a_ButtonList, a_CallBackPrefix): # class Button
+    inline_keyboard = InlineKeyboardMarkup(resize_keyboard = True, row_width = 2)
     for b in a_ButtonList:
-          inline_keyboard.insert(types.InlineKeyboardButton(text=b.label, callback_data=f'{a_CallBackPrefix}{b.callback_data}'))
+          inline_keyboard.insert(types.InlineKeyboardButton(text = b.label, callback_data = f'{a_CallBackPrefix}{b.callback_data}'))
