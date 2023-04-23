@@ -22,6 +22,9 @@ def MakeKeyboard(a_ButtonList):
 
     return key
 
+def MakeKeyboardRemove():
+    return types.ReplyKeyboardRemove()
+
 def MakeKeyboardForMods(a_ModList, a_UserAccess):
     names = GetButtons(a_ModList, a_UserAccess)
     return MakeKeyboard(names)
@@ -34,6 +37,8 @@ class Button:
         self.callback_data = a_CallBackData
 
 def MakeInlineKeyboard(a_ButtonList, a_CallBackPrefix): # class Button
-    inline_keyboard = InlineKeyboardMarkup(resize_keyboard = True, row_width = 2)
+    inline_keyboard = InlineKeyboardMarkup()
     for b in a_ButtonList:
-          inline_keyboard.insert(types.InlineKeyboardButton(text = b.label, callback_data = f'{a_CallBackPrefix}{b.callback_data}'))
+        inline_keyboard.insert(types.InlineKeyboardButton(text = b.label, callback_data = f'{a_CallBackPrefix}{b.callback_data}'))
+    return inline_keyboard
+
