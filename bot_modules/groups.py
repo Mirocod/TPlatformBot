@@ -30,6 +30,7 @@ init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS user_groups(
     group_id INTEGER,
     UNIQUE(user_id, group_id)
 );""",
+"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('groups', 'other=-');"
 ]
 
 # ---------------------------------------------------------
@@ -53,19 +54,26 @@ request_start_message = '''
 6. `INSERT INTO user_in_groups(user_id, group_id) VALUES(USERID, GROUPID)` - добавление пользователя USERID в группу с GROUPID
 '''
 
+help_message = '''
+Существует две БД для работы с группами
+`user_groups (group_id, groupName)` - содержит названия групп
+`user_in_groups(user_id, group_id)` - содержит соответсвия ID пользователей и групп
+ '''
+
 request_cancel_message = '''
 Запрос к БД отменён
 '''
 
 user_group_button_name = "📰 Группы пользователей"
-sql_request_button_name = "📰 Запрос к БД"
+sql_request_button_name = "📰 Запрос к БД для редактирования групп"
+help_button_name = "📰 Информация по группам"
 canсel_button_name = "📰 Отменить"
 
 # ---------------------------------------------------------
 # Работа с кнопками
 
 def GetEditGroupKeyboardButtons(a_UserAccess):
-    cur_buttons = [sql_request_button_name]
+    cur_buttons = [sql_request_button_name, help_button_name]
     mods = [start]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods, a_UserAccess) + cur_buttons)
 
@@ -86,10 +94,18 @@ async def RequestToBDCancel(a_Message : types.message, state : FSMContext):
     await state.finish()
     await a_Message.answer(request_cancel_message, reply_markup = GetEditGroupKeyboardButtons(user_access))
 
-async def RequestToBDStart(a_Message : types.message):
-    user_access = access.GetUserAccess(a_Message.from_user.id)
-    await FSMRequestToBD.sqlRequest.set()
-    await a_Message.answer(request_start_message, reply_markup = GetCancelKeyboardButtons(user_access), parse_mode='Markdown')
+def HelpTemplate(a_HelpMessage, a_GetButtonsFunc):
+    async def Help(a_Message : types.message):
+        user_access = access.GetUserAccess(a_Message.from_user.id)
+        await a_Message.answer(a_HelpMessage, reply_markup = a_GetButtonsFunc(user_access)) #, parse_mode='Markdown')
+    return Help
+
+def RequestToBDTemplate(a_StartMessage):
+    async def RequestToBDStart(a_Message : types.message):
+        user_access = access.GetUserAccess(a_Message.from_user.id)
+        await FSMRequestToBD.sqlRequest.set()
+        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(user_access), parse_mode='Markdown')
+    return RequestToBDStart
 
 async def RequestToBD(a_Message : types.message, state : FSMContext):
     user_access = access.GetUserAccess(a_Message.from_user.id)
@@ -108,9 +124,13 @@ async def RequestToBD(a_Message : types.message, state : FSMContext):
 def SQLRequestToBD(a_Request : str):
     db = sqlite3.connect(bot_bd.GetBDFileName())
     cursor = db.cursor()
-    cursor.execute(a_Request)
-    result = cursor.fetchall()
-    db.commit()
+    result = []
+    try:
+        cursor.execute(a_Request)
+        result = cursor.fetchall()
+        db.commit()
+    except sqlite3.Error as e:
+            result = "Ошибка sqlite3:" + str(e)
     cursor.close()
     db.close()
     return result
@@ -188,6 +208,7 @@ def GetButtonNames(a_UserAccess):
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(GroupStart, text = user_group_button_name)
-    dp.register_message_handler(RequestToBDStart, text = sql_request_button_name)
+    dp.register_message_handler(RequestToBDTemplate(request_start_message), text = sql_request_button_name)
+    dp.register_message_handler(HelpTemplate(help_message, GetEditGroupKeyboardButtons), text = help_button_name)
     dp.register_message_handler(RequestToBDCancel, text = canсel_button_name, state = FSMRequestToBD.sqlRequest)
     dp.register_message_handler(RequestToBD, state = FSMRequestToBD.sqlRequest)

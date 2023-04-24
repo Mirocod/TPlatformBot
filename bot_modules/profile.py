@@ -19,7 +19,9 @@ init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS users(
     user_id INTEGER,
     userName TEXT,
     UNIQUE(user_id)
-);"""]
+);""",
+"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('profile', 'other=+');"
+]
 
 # ---------------------------------------------------------
 # Сообщения

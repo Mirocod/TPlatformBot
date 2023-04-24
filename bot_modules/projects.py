@@ -31,7 +31,9 @@ init_bd_cmds = ['''CREATE TABLE IF NOT EXISTS projects(
     projectName TEXT,
     projectDesc TEXT,
     projectID INTEGER PRIMARY KEY
-)''']
+)''',
+"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('project', 'other=va');"
+]
 
 # ---------------------------------------------------------
 # Сообщения
