@@ -113,7 +113,7 @@ async def RequestToBD(a_Message : types.message, state : FSMContext):
     async with state.proxy() as prjData:
         sql_request = a_Message.text
         log.Success(f'Сделан запрос [{sql_request}] пользователем {a_Message.from_user.id}.')
-        result = SQLRequestToBD(sql_request)
+        result = bot_bd.SQLRequestToBDCommit(sql_request)
         log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
     await state.finish()
     await a_Message.answer(str(result), reply_markup = GetEditGroupKeyboardButtons(user_access))
@@ -121,78 +121,11 @@ async def RequestToBD(a_Message : types.message, state : FSMContext):
 # ---------------------------------------------------------
 # Работа с базой данных групп
 
-def SQLRequestToBD(a_Request : str):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    result = []
-    try:
-        cursor.execute(a_Request)
-        result = cursor.fetchall()
-        db.commit()
-    except sqlite3.Error as e:
-            result = "Ошибка sqlite3:" + str(e)
-    cursor.close()
-    db.close()
-    return result
-
 def GetGroupIDForUser(a_UserID):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    groups = cursor.execute('SELECT group_id FROM user_in_groups WHERE user_id = ?', (a_UserID)).fetchall()
-    cursor.close()
-    db.close()
-    return groups
+    return bot_bd.SQLRequestToBD1('SELECT group_id FROM user_in_groups WHERE user_id = ?', a_UserID)
 
 def GetGroupNamesForUser(a_UserID):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    groups = cursor.execute('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', (a_UserID)).fetchall()
-    cursor.close()
-    db.close()
-    print(groups)
-    return groups
-
-def GetGroupList():
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    groups = cursor.execute('SELECT * FROM user_groups').fetchall()
-    cursor.close()
-    db.close()
-    return groups
-
-def GetGroup(a_GroupID):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    group = cursor.execute('SELECT * FROM user_groups WHERE groupID = ?', ([a_GroupID])).fetchall()
-    cursor.close()
-    db.close()
-    return group
-
-def AddGroup(a_Name):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    cursor.execute('INSERT INTO user_groups(groupName) VALUES(?)', (a_prjName))
-    db.commit()
-    cursor.close()
-    db.close()
-    return
-
-def EditGroup(a_GroupID, a_Name):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    cursor.execute('UPDATE user_groups SET groupName = ? WHERE groupID = ?', (a_prjPhoto, a_Name))
-    db.commit()
-    cursor.close()
-    db.close()
-    return
-
-def DelGroup(a_GroupID):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    cursor.execute('DELETE FROM user_groups WHERE groupID = ?', ([a_GroupID]))
-    db.commit()
-    db.close()
-    return
+    return bot_bd.SQLRequestToBD1('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', a_UserID)
 
 # ---------------------------------------------------------
 # API

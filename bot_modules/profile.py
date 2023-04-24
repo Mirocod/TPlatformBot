@@ -59,20 +59,12 @@ async def ProfileOpen(a_Message):
 
 # Добавление пользователя, если он уже есть, то игнорируем
 def AddUser(a_UserID, a_UserName):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    cursor.execute("INSERT OR IGNORE INTO users (user_id, userName) VALUES (?, ?);", (a_UserID, a_UserName));
-    db.commit()
-    cursor.close()
-    db.close()
+    bot_bd.SQLRequestToBD2Commit("INSERT OR IGNORE INTO users (user_id, userName) VALUES (?, ?);", a_UserID, a_UserName)
 
 # Добавление пользователя, если он уже есть, то игнорируем
 def GetUserInfo(a_UserID):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    user_info = cursor.execute('SELECT * FROM users WHERE user_id = ?', ([a_UserID])).fetchall()
-    cursor.close()
-    db.close()
+    user_info = bot_bd.SQLRequestToBD1('SELECT * FROM users WHERE user_id = ?', [a_UserID])
+    print(user_info, str(user_info))
     if len(user_info) != 0:
         return user_info[0]
     return None

@@ -26,14 +26,18 @@ class FSMEditProject(StatesGroup):
 
 # ---------------------------------------------------------
 # БД
-init_bd_cmds = ['''CREATE TABLE IF NOT EXISTS projects(
+table_name = 'projects'
+module_name = 'projects'
+
+init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     projectPhoto TEXT,
     projectName TEXT,
     projectDesc TEXT,
     projectID INTEGER PRIMARY KEY
 )''',
-"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('project', 'other=va');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=va');"
 ]
+
 
 # ---------------------------------------------------------
 # Сообщения
@@ -322,12 +326,7 @@ async def prjDelete(a_CallbackQuery : types.CallbackQuery):
 # Работа с базой данных проектов
 
 def GetProjectList():
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    projects = cursor.execute('SELECT * FROM projects').fetchall()
-    cursor.close()
-    db.close()
-    return projects
+    return bot_bd.SelectBDTemplate(table_name)()
 
 def GetProject(a_ProjectID):
     db = sqlite3.connect(bot_bd.GetBDFileName())

@@ -15,12 +15,15 @@ bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML
 
 # ---------------------------------------------------------
 # БД
-init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS module_access(
+table_name = 'module_access'
+module_name = 'access'
+
+init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
     modName TEXT,
     modAccess TEXT,
     UNIQUE(modName)
 );""",
-"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('access', 'other=-');"
+f"INSERT OR IGNORE INTO {table_name} (modName, modAccess) VALUES ('{module_name}', 'other=-');"
 ]
 
 # ---------------------------------------------------------
@@ -37,6 +40,8 @@ request_start_message = '''
 
 Можете воспользоваться следующими шаблонами:
 1. `SELECT * FROM users` - Все пользователи
+2. `SELECT * FROM module_access` - Все права к модулям
+3. `UPDATE module_access SET modAccess = 'NEWACCESS' WHERE modName = 'MODNAME'` - Задать новые права NEWACCESS для модуля MODNAME
 '''
 
 help_message = '''
@@ -69,6 +74,8 @@ async def AccessStart(a_Message):
 # ---------------------------------------------------------
 # Работа с базой данных 
 
+def GetModAccessList():
+    return bot_db.SelectBDTemplate(table_name)()
 
 # ---------------------------------------------------------
 # API
