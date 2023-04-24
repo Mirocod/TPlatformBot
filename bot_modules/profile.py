@@ -15,11 +15,11 @@ bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML
 
 # ---------------------------------------------------------
 # БД
-init_bd_cmd = """CREATE TABLE IF NOT EXISTS users(
+init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS users(
     user_id INTEGER,
     userName TEXT,
     UNIQUE(user_id)
-);"""
+);"""]
 
 # ---------------------------------------------------------
 # Сообщения
@@ -80,7 +80,7 @@ def GetUserInfo(a_UserID):
 
 # Инициализация БД
 def GetInitBDCommands():
-    return [init_bd_cmd]
+    return init_bd_cmds
 
 # Доступные кнопки
 def GetButtonNames(a_UserAccess):

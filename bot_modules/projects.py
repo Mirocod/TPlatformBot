@@ -4,7 +4,7 @@
 # Проекты
 
 from bot_sys import bot_bd, log, config, keyboard
-from bot_modules import start
+from bot_modules import start, access
 from aiogram import Bot, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -26,12 +26,12 @@ class FSMEditProject(StatesGroup):
 
 # ---------------------------------------------------------
 # БД
-init_bd_cmd = '''CREATE TABLE IF NOT EXISTS projects(
+init_bd_cmds = ['''CREATE TABLE IF NOT EXISTS projects(
     projectPhoto TEXT,
     projectName TEXT,
     projectDesc TEXT,
     projectID INTEGER PRIMARY KEY
-)'''
+)''']
 
 # ---------------------------------------------------------
 # Сообщения
@@ -157,15 +157,12 @@ def GetProjectsListKeyboardButtons(a_UserAccess, a_Prefix):
         projects_button_list += [keyboard.Button(str(t[1]), t[3])]
     return keyboard.MakeInlineKeyboard(projects_button_list, a_Prefix)
 
-def GetUserAccess(a_UserID):
-    return None
-
 # ---------------------------------------------------------
 # Обработка сообщений
 
 # Отображение всех проектов 
 async def ProjectsOpen(a_Message : types.message):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     await bot.send_message(a_Message.from_user.id, base_project_message, reply_markup = GetEditProjectKeyboardButtons(user_access))
     await bot.send_message(a_Message.from_user.id, select_project_message, reply_markup = GetProjectsListKeyboardButtons(user_access, select_project_callback_prefix))
 
@@ -181,7 +178,7 @@ def GetProjectData(a_ProjectID):
 
 async def ShowProject(a_CallbackQuery : types.CallbackQuery):
     project_id = str(a_CallbackQuery.data).replace(select_project_callback_prefix, '')
-    user_access = GetUserAccess(a_CallbackQuery.from_user.id)
+    user_access = access.GetUserAccess(a_CallbackQuery.from_user.id)
     msg, photo_id, name, desc = GetProjectData(project_id)
     if msg != '':
         await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_access))
@@ -196,17 +193,17 @@ async def ShowProject(a_CallbackQuery : types.CallbackQuery):
 # Создание нового проекта 
 
 async def ProjectCreateCancel(a_Message : types.message, state : FSMContext):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     await state.finish()
     await a_Message.answer(project_cancel_create_message, reply_markup = GetEditProjectKeyboardButtons(user_access))
 
 async def ProjectCreate(a_Message : types.message):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     await FSMCreateProject.prjPhoto.set()
     await a_Message.answer(project_create_message_1, reply_markup = GetSkipAndCancelKeyboardButtons(user_access))
 
 async def PhotoLoad(a_Message : types.message, state : FSMContext, a_FileID):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     async with state.proxy() as prjData:
         prjData['photo'] = a_FileID
     await FSMCreateProject.next()
@@ -219,14 +216,14 @@ async def ProjectPhotoSkip(a_Message : types.message, state : FSMContext):
     await PhotoLoad(a_Message, state, 0)
 
 async def ProjectNameLoad(a_Message : types.message, state : FSMContext):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     async with state.proxy() as prjData:
         prjData['name'] = a_Message.text
     await FSMCreateProject.next()
     await a_Message.answer(project_create_message_3, reply_markup = GetCancelKeyboardButtons(user_access))
 
 async def ProjectDescLoad(a_Message : types.message, state : FSMContext):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     async with state.proxy() as prjData:
         prjData['desc'] = a_Message.text
         prjPhoto = prjData['photo']
@@ -240,16 +237,16 @@ async def ProjectDescLoad(a_Message : types.message, state : FSMContext):
 # Редактирование проекта 
 
 async def ProjectSelectForEdit(a_Message : types.message):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     await bot.send_message(a_Message.from_user.id, project_select_to_edit_message, reply_markup = GetProjectsListKeyboardButtons(user_access, select_to_edit_project_callback_prefix))
 
 async def ProjectEditCancel(a_Message : types.message, state : FSMContext):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     await state.finish()
     await a_Message.answer(project_cancel_edit_message, reply_markup = GetEditProjectKeyboardButtons(user_access))
 
 async def ProjectEdit(a_CallbackQuery : types.CallbackQuery, state : FSMContext):
-    user_access = GetUserAccess(a_CallbackQuery.from_user.id)
+    user_access = access.GetUserAccess(a_CallbackQuery.from_user.id)
     await FSMEditProject.prjID.set()
     prjID = str(a_CallbackQuery.data).replace(select_to_edit_project_callback_prefix, '')
     async with state.proxy() as prjData:
@@ -258,7 +255,7 @@ async def ProjectEdit(a_CallbackQuery : types.CallbackQuery, state : FSMContext)
     await bot.send_message(a_CallbackQuery.from_user.id, project_edit_message_1, reply_markup = GetSkipAndCancelKeyboardButtons(user_access))
 
 async def PhotoEditLoad(a_Message : types.message, state : FSMContext, a_FileID):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     project_id = 0
     async with state.proxy() as prjData:
         prjData['photo'] = a_FileID
@@ -284,7 +281,7 @@ async def ProjectEditPhotoSkip(a_Message : types.message, state : FSMContext):
     await PhotoEditLoad(a_Message, state, photo_id)
 
 async def EditNameSkip(a_Message : types.message, state : FSMContext, a_Name):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     async with state.proxy() as prjData:
         prjData['name'] = a_Name
     await FSMEditProject.next()
@@ -294,7 +291,7 @@ async def ProjectEditNameLoad(a_Message : types.message, state : FSMContext):
     await EditNameSkip(a_Message, state, a_Message.text)
 
 async def ProjectEditDescLoad(a_Message : types.message, state : FSMContext):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     async with state.proxy() as prjData:
         prjData['desc'] = a_Message.text
         project_id = prjData['prjID']
@@ -309,11 +306,11 @@ async def ProjectEditDescLoad(a_Message : types.message, state : FSMContext):
 # Удаление проекта 
 
 async def ProjectDelete(a_Message : types.message):
-    user_access = GetUserAccess(a_Message.from_user.id)
+    user_access = access.GetUserAccess(a_Message.from_user.id)
     await bot.send_message(a_Message.from_user.id, project_select_to_delete_message, reply_markup = GetProjectsListKeyboardButtons(user_access, delete_project_callback_prefix))
 
 async def prjDelete(a_CallbackQuery : types.CallbackQuery):
-    user_access = GetUserAccess(a_CallbackQuery.from_user.id)
+    user_access = access.GetUserAccess(a_CallbackQuery.from_user.id)
     projectID = str(a_CallbackQuery.data).replace(delete_project_callback_prefix, '')
     DelProject(projectID)
     log.Success(f'Проект №{projectID} был удалён пользователем {a_CallbackQuery.from_user.id}.')
@@ -369,7 +366,7 @@ def DelProject(a_ProjectID):
 
 # Инициализация БД
 def GetInitBDCommands():
-    return [init_bd_cmd]
+    return init_bd_cmds
 
 # Доступные кнопки
 def GetButtonNames(a_UserAccess):
