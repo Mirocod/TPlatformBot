@@ -3,33 +3,39 @@
 
 # Работа с кнопками и клавиатурой
 
+from bot_sys import user_access
 from aiogram import types, Bot, Dispatcher
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-def GetButtons(a_ModList, a_UserAccess):
-    names = []
-    for m in a_ModList:
-        n = m.GetButtonNames(a_UserAccess)
-        if not n is None or len(n) != 0:
-            names += n
-    return names
+class ButtonWithAccess:
+    def __init__(self, a_Label, a_AccessMode : user_access.AccessMode, a_AccessString):
+        self.label = a_Label
+        self.access_mode = a_AccessMode
+        self.access_string = a_AccessString
 
-def MakeKeyboard(a_ButtonList):
+def GetButtons(a_ModList):
+    buttons = []
+    for m in a_ModList:
+        b = m.GetModuleButtons()
+        if not b is None or len(b) != 0:
+            buttons += b
+    return buttons
+
+def MakeKeyboard(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     key = types.ReplyKeyboardMarkup(resize_keyboard = True)
     for b in a_ButtonList:
-        k = types.KeyboardButton(b)
-        key.add(k)
+        if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
+            k = types.KeyboardButton(b.label)
+            key.add(k)
 
     return key
 
 def MakeKeyboardRemove():
     return types.ReplyKeyboardRemove()
 
-def MakeKeyboardForMods(a_ModList, a_UserAccess):
-    names = GetButtons(a_ModList, a_UserAccess)
-    return MakeKeyboard(names)
-    buttons = GetButtons(a_ModList, a_UserAccess)
-    return MakeKeyboard(buttons)
+def MakeKeyboardForMods(a_ModList, a_UserGroups):
+    buttons = GetButtons(a_ModList)
+    return MakeKeyboard(buttons, a_UserGroups)
 
 class Button:
     def __init__(self, a_Label, a_CallBackData):

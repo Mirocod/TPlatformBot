@@ -3,7 +3,7 @@
 
 # Группы пользователей
 
-from bot_sys import bot_bd, log, config, keyboard
+from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, access
 from aiogram import Bot, types
 from aiogram.dispatcher import FSMContext
@@ -20,6 +20,8 @@ class FSMRequestToBD(StatesGroup):
 
 # ---------------------------------------------------------
 # БД
+module_name = 'groups'
+
 init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS user_groups(
     group_id INTEGER PRIMARY KEY NOT NULL,
     groupName TEXT,
@@ -30,7 +32,7 @@ init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS user_groups(
     group_id INTEGER,
     UNIQUE(user_id, group_id)
 );""",
-"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('groups', 'other=-');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=-');"
 ]
 
 # ---------------------------------------------------------
@@ -72,13 +74,19 @@ canсel_button_name = "📰 Отменить"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetEditGroupKeyboardButtons(a_UserAccess):
-    cur_buttons = [sql_request_button_name, help_button_name]
+def GetEditGroupKeyboardButtons(a_UserGroups):
+    cur_buttons = [
+        keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.EDIT, GetAccess()), 
+        keyboard.ButtonWithAccess(help_button_name, user_access.AccessMode.VIEW, GetAccess())
+    ]
     mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods, a_UserAccess) + cur_buttons)
+    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
-def GetCancelKeyboardButtons(a_UserAccess):
-    return keyboard.MakeKeyboard([canсel_button_name])
+def GetCancelKeyboardButtons(a_UserGroups):
+    cur_buttons = [
+        keyboard.ButtonWithAccess(canсel_button_name, user_access.AccessMode.VIEW, GetAccess())
+    ]
+    return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
 
 # ---------------------------------------------------------
 # Обработка сообщений
@@ -86,29 +94,33 @@ def GetCancelKeyboardButtons(a_UserAccess):
 # Приветствие
 async def GroupStart(a_Message):
     user_id = str(a_Message.from_user.id)
-    user_access = access.GetUserAccess(a_Message.from_user.id)
-    await bot.send_message(user_id, group_start_message, reply_markup = GetEditGroupKeyboardButtons(user_access))
+    user_groups = GetUserGroupData(user_id)
+    await bot.send_message(user_id, group_start_message, reply_markup = GetEditGroupKeyboardButtons(user_groups))
 
 async def RequestToBDCancel(a_Message : types.message, state : FSMContext):
-    user_access = access.GetUserAccess(a_Message.from_user.id)
+    user_id = str(a_Message.from_user.id)
+    user_groups = GetUserGroupData(user_id)
     await state.finish()
-    await a_Message.answer(request_cancel_message, reply_markup = GetEditGroupKeyboardButtons(user_access))
+    await a_Message.answer(request_cancel_message, reply_markup = GetEditGroupKeyboardButtons(user_groups))
 
 def HelpTemplate(a_HelpMessage, a_GetButtonsFunc):
     async def Help(a_Message : types.message):
-        user_access = access.GetUserAccess(a_Message.from_user.id)
-        await a_Message.answer(a_HelpMessage, reply_markup = a_GetButtonsFunc(user_access)) #, parse_mode='Markdown')
+        user_id = str(a_Message.from_user.id)
+        user_groups = GetUserGroupData(user_id)
+        await a_Message.answer(a_HelpMessage, reply_markup = a_GetButtonsFunc(user_groups)) #, parse_mode='Markdown')
     return Help
 
 def RequestToBDTemplate(a_StartMessage):
     async def RequestToBDStart(a_Message : types.message):
-        user_access = access.GetUserAccess(a_Message.from_user.id)
+        user_id = str(a_Message.from_user.id)
+        user_groups = GetUserGroupData(user_id)
         await FSMRequestToBD.sqlRequest.set()
-        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(user_access), parse_mode='Markdown')
+        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(user_groups), parse_mode='Markdown')
     return RequestToBDStart
 
 async def RequestToBD(a_Message : types.message, state : FSMContext):
-    user_access = access.GetUserAccess(a_Message.from_user.id)
+    user_id = str(a_Message.from_user.id)
+    user_groups = GetUserGroupData(user_id)
     result = ''
     async with state.proxy() as prjData:
         sql_request = a_Message.text
@@ -116,16 +128,21 @@ async def RequestToBD(a_Message : types.message, state : FSMContext):
         result = bot_bd.SQLRequestToBDCommit(sql_request)
         log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
     await state.finish()
-    await a_Message.answer(str(result), reply_markup = GetEditGroupKeyboardButtons(user_access))
+    await a_Message.answer(str(result), reply_markup = GetEditGroupKeyboardButtons(user_groups))
 
 # ---------------------------------------------------------
 # Работа с базой данных групп
 
 def GetGroupIDForUser(a_UserID):
-    return bot_bd.SQLRequestToBD1('SELECT group_id FROM user_in_groups WHERE user_id = ?', a_UserID)
+    return bot_bd.SQLRequestToBD1('SELECT group_id FROM user_in_groups WHERE user_id = ?', [a_UserID])
 
 def GetGroupNamesForUser(a_UserID):
-    return bot_bd.SQLRequestToBD1('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', a_UserID)
+    return bot_bd.SQLRequestToBD1('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', [a_UserID])
+
+def GetUserGroupData(a_UserID):
+    r = GetGroupNamesForUser(a_UserID)
+    print(r)
+    return user_access.UserGroups(a_UserID, r)
 
 # ---------------------------------------------------------
 # API
@@ -134,9 +151,12 @@ def GetGroupNamesForUser(a_UserID):
 def GetInitBDCommands():
     return init_bd_cmds
 
+def GetAccess():
+    return access.GetAccessForModule(module_name)
+
 # Доступные кнопки
-def GetButtonNames(a_UserAccess):
-    return [user_group_button_name]
+def GetModuleButtons():
+    return [keyboard.ButtonWithAccess(user_group_button_name, user_access.AccessMode.VIEW, GetAccess())]
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):

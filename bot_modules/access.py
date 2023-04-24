@@ -58,10 +58,13 @@ help_button_name = "📰 Информация по редактированию 
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetEditAccessKeyboardButtons(a_UserAccess):
-    cur_buttons = [sql_request_button_name, help_button_name]
+def GetEditAccessKeyboardButtons(a_UserGroups):
+    cur_buttons = [
+        keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.EDIT, GetAccess()),
+        keyboard.ButtonWithAccess(help_button_name, user_access.AccessMode.VIEW, GetAccess())
+    ]
     mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods, a_UserAccess) + cur_buttons)
+    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons)
 
 # ---------------------------------------------------------
 # Обработка сообщений
@@ -69,13 +72,20 @@ def GetEditAccessKeyboardButtons(a_UserAccess):
 # Приветствие
 async def AccessStart(a_Message):
     user_id = str(a_Message.from_user.id)
-    user_access = GetUserAccess(a_Message.from_user.id)
-    await bot.send_message(user_id, access_start_message, reply_markup = GetEditAccessKeyboardButtons(user_access))
+    user_groups = groups.GetUserGroupData(user_id)
+    await bot.send_message(user_id, access_start_message, reply_markup = GetEditAccessKeyboardButtons(user_groups))
 # ---------------------------------------------------------
 # Работа с базой данных 
 
-def GetModAccessList():
-    return bot_db.SelectBDTemplate(table_name)()
+def GetModuleAccessList():
+    return bot_bd.SelectBDTemplate(table_name)()
+
+def GetAccessForModule(a_ModuleName):
+    alist = GetModuleAccessList()
+    for i in alist:
+        if i[0] == a_ModuleName:
+            return i[1]
+    return ''
 
 # ---------------------------------------------------------
 # API
@@ -87,9 +97,12 @@ def GetUserAccess(a_UserID):
 def GetInitBDCommands():
     return init_bd_cmds
 
+def GetAccess():
+    return GetAccessForModule(module_name)
+
 # Доступные кнопки
-def GetButtonNames(a_UserAccess):
-    return [access_button_name]
+def GetModuleButtons():
+    return [keyboard.ButtonWithAccess(access_button_name, user_access.AccessMode.VIEW, GetAccess())]
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):

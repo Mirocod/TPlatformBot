@@ -3,15 +3,17 @@
 
 # Стартовое меню
 
-from bot_sys import log, config, keyboard
+from bot_sys import log, config, keyboard, user_access
 from bot_modules import profile, projects, groups, access
 
 from aiogram.dispatcher import Dispatcher
 
 # ---------------------------------------------------------
 # БД
+module_name = 'start'
+
 init_bd_cmds = [
-"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('start', 'other=+');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=+');"
 ]
 
 # ---------------------------------------------------------
@@ -28,9 +30,9 @@ start_menu_button_name = "☰ Главное меню"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetStartKeyboardButtons(a_UserAccess):
+def GetStartKeyboardButtons(a_UserGroups):
     mods = [profile, projects, groups, access]
-    return keyboard.MakeKeyboardForMods(mods, a_UserAccess)
+    return keyboard.MakeKeyboardForMods(mods, a_UserGroups)
 
 # ---------------------------------------------------------
 # Обработка сообщений
@@ -38,11 +40,11 @@ def GetStartKeyboardButtons(a_UserAccess):
 # Первичное привестивие
 async def StartMenu(a_Message):
     user_id = int(a_Message.from_user.id)
-    user_access = access.GetUserAccess(user_id)
+    user_group = groups.GetUserGroupData(user_id)
     user_name = str(a_Message.from_user.username)
     profile.AddUser(user_id, user_name)
     log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте')
-    await a_Message.answer(start_message, reply_markup=GetStartKeyboardButtons(user_access), parse_mode='HTML')
+    await a_Message.answer(start_message, reply_markup=GetStartKeyboardButtons(user_group), parse_mode='HTML')
 
 # ---------------------------------------------------------
 # API
@@ -51,9 +53,12 @@ async def StartMenu(a_Message):
 def GetInitBDCommands():
     return init_bd_cmds
 
+def GetAccess():
+    return access.GetAccessForModule(module_name)
+
 # Имена доступных кнопок
-def GetButtonNames(a_UserAccess):
-    return [start_menu_button_name]
+def GetModuleButtons():
+    return [keyboard.ButtonWithAccess(start_menu_button_name, user_access.AccessMode.VIEW, GetAccess())]
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
