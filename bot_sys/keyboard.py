@@ -21,13 +21,19 @@ def GetButtons(a_ModList):
             buttons += b
     return buttons
 
+import math
+
+def Chunks(a_List, a_ChunkSize):
+    for i in range(0, len(a_List), a_ChunkSize):
+        yield a_List[i: i + a_ChunkSize]
+
 def MakeKeyboard(a_ButtonList : [ButtonWithAccess], a_UserGroups):
-    key = types.ReplyKeyboardMarkup(resize_keyboard = True)
+    buttons = []
     for b in a_ButtonList:
         if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
-            k = types.KeyboardButton(b.label)
-            key.add(k)
-
+            buttons += [types.KeyboardButton(b.label)]
+    step = max(int(math.sqrt(len(buttons)) // 1), 1)
+    key = types.ReplyKeyboardMarkup(keyboard=Chunks(buttons, step), resize_keyboard = True)
     return key
 
 def MakeKeyboardRemove():
@@ -42,9 +48,11 @@ class Button:
         self.label = a_Label
         self.callback_data = a_CallBackData
 
-def MakeInlineKeyboard(a_ButtonList, a_CallBackPrefix): # class Button
-    inline_keyboard = InlineKeyboardMarkup()
+def MakeInlineKeyboard(a_ButtonList : [Button], a_CallBackPrefix : str): 
+    buttons = []
     for b in a_ButtonList:
-        inline_keyboard.insert(types.InlineKeyboardButton(text = b.label, callback_data = f'{a_CallBackPrefix}{b.callback_data}'))
+        buttons += [types.InlineKeyboardButton(text = b.label, callback_data = f'{a_CallBackPrefix}{b.callback_data}')]
+    step = max(int(math.sqrt(len(buttons)) // 1), 1)
+    inline_keyboard = InlineKeyboardMarkup(inline_keyboard=Chunks(buttons, step))
     return inline_keyboard
 

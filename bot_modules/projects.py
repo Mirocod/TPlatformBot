@@ -181,9 +181,9 @@ def GetProjectsListKeyboardButtons(a_UserGroups, a_Prefix):
 # Отображение всех проектов 
 async def ProjectsOpen(a_Message : types.message):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
-    await bot.send_message(a_Message.from_user.id, base_project_message, reply_markup = GetEditProjectKeyboardButtons(user_group))
-    await bot.send_message(a_Message.from_user.id, select_project_message, reply_markup = GetProjectsListKeyboardButtons(user_group, select_project_callback_prefix))
+    user_groups = groups.GetUserGroupData(user_id)
+    await bot.send_message(a_Message.from_user.id, base_project_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
+    await bot.send_message(a_Message.from_user.id, select_project_message, reply_markup = GetProjectsListKeyboardButtons(user_groups, select_project_callback_prefix))
 
 def GetProjectData(a_ProjectID):
     project = GetProject(a_ProjectID)
@@ -198,39 +198,39 @@ def GetProjectData(a_ProjectID):
 async def ShowProject(a_CallbackQuery : types.CallbackQuery):
     project_id = str(a_CallbackQuery.data).replace(select_project_callback_prefix, '')
     user_id = str(a_CallbackQuery.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     msg, photo_id, name, desc = GetProjectData(project_id)
     if msg != '':
-        await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_group))
+        await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
         return
 
     msg = project_open_message.replace('@proj_name', name).replace('@proj_desk', desc)
     if photo_id == '0':
-        await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_group))
+        await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
     else:
-        await bot.send_photo(a_CallbackQuery.from_user.id, photo_id, msg, reply_markup = GetEditProjectKeyboardButtons(user_group))
+        await bot.send_photo(a_CallbackQuery.from_user.id, photo_id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
 
 # Создание нового проекта 
 
 async def ProjectCreateCancel(a_Message : types.message, state : FSMContext):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     await state.finish()
-    await a_Message.answer(project_cancel_create_message, reply_markup = GetEditProjectKeyboardButtons(user_group))
+    await a_Message.answer(project_cancel_create_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
 
 async def ProjectCreate(a_Message : types.message):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     await FSMCreateProject.prjPhoto.set()
-    await a_Message.answer(project_create_message_1, reply_markup = GetSkipAndCancelKeyboardButtons(user_group))
+    await a_Message.answer(project_create_message_1, reply_markup = GetSkipAndCancelKeyboardButtons(user_groups))
 
 async def PhotoLoad(a_Message : types.message, state : FSMContext, a_FileID):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     async with state.proxy() as prjData:
         prjData['photo'] = a_FileID
     await FSMCreateProject.next()
-    await a_Message.answer(project_create_message_2, reply_markup = GetCancelKeyboardButtons(user_group))
+    await a_Message.answer(project_create_message_2, reply_markup = GetCancelKeyboardButtons(user_groups))
 
 async def ProjectPhotoLoad(a_Message : types.message, state : FSMContext):
     await PhotoLoad(a_Message, state, a_Message.photo[0].file_id)
@@ -240,15 +240,15 @@ async def ProjectPhotoSkip(a_Message : types.message, state : FSMContext):
 
 async def ProjectNameLoad(a_Message : types.message, state : FSMContext):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     async with state.proxy() as prjData:
         prjData['name'] = a_Message.text
     await FSMCreateProject.next()
-    await a_Message.answer(project_create_message_3, reply_markup = GetCancelKeyboardButtons(user_group))
+    await a_Message.answer(project_create_message_3, reply_markup = GetCancelKeyboardButtons(user_groups))
 
 async def ProjectDescLoad(a_Message : types.message, state : FSMContext):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     async with state.proxy() as prjData:
         prjData['desc'] = a_Message.text
         prjPhoto = prjData['photo']
@@ -257,34 +257,34 @@ async def ProjectDescLoad(a_Message : types.message, state : FSMContext):
         AddProject(prjPhoto, prjName, prjDesc)
         log.Success(f'Добавлен проект {prjName} пользователем {a_Message.from_user.id}.')
     await state.finish()
-    await a_Message.answer(project_success_create_message, reply_markup = GetEditProjectKeyboardButtons(user_group))
+    await a_Message.answer(project_success_create_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
 
 # Редактирование проекта 
 
 async def ProjectSelectForEdit(a_Message : types.message):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
-    await bot.send_message(a_Message.from_user.id, project_select_to_edit_message, reply_markup = GetProjectsListKeyboardButtons(user_group, select_to_edit_project_callback_prefix))
+    user_groups = groups.GetUserGroupData(user_id)
+    await bot.send_message(a_Message.from_user.id, project_select_to_edit_message, reply_markup = GetProjectsListKeyboardButtons(user_groups, select_to_edit_project_callback_prefix))
 
 async def ProjectEditCancel(a_Message : types.message, state : FSMContext):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     await state.finish()
-    await a_Message.answer(project_cancel_edit_message, reply_markup = GetEditProjectKeyboardButtons(user_group))
+    await a_Message.answer(project_cancel_edit_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
 
 async def ProjectEdit(a_CallbackQuery : types.CallbackQuery, state : FSMContext):
     user_id = str(a_CallbackQuery.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     await FSMEditProject.prjID.set()
     prjID = str(a_CallbackQuery.data).replace(select_to_edit_project_callback_prefix, '')
     async with state.proxy() as prjData:
         prjData['prjID'] = prjID
     await FSMEditProject.next()
-    await bot.send_message(a_CallbackQuery.from_user.id, project_edit_message_1, reply_markup = GetSkipAndCancelKeyboardButtons(user_group))
+    await bot.send_message(a_CallbackQuery.from_user.id, project_edit_message_1, reply_markup = GetSkipAndCancelKeyboardButtons(user_groups))
 
 async def PhotoEditLoad(a_Message : types.message, state : FSMContext, a_FileID):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     project_id = 0
     async with state.proxy() as prjData:
         prjData['photo'] = a_FileID
@@ -292,9 +292,9 @@ async def PhotoEditLoad(a_Message : types.message, state : FSMContext, a_FileID)
     await FSMEditProject.next()
     msg, photo_id, name, desc = GetProjectData(project_id)
     if msg != '':
-        await bot.send_message(a_Message.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_group))
+        await bot.send_message(a_Message.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
         return
-    await a_Message.answer(project_edit_message_2.replace('@proj_name', name), reply_markup = GetSkipAndCancelKeyboardButtons(user_group))
+    await a_Message.answer(project_edit_message_2.replace('@proj_name', name), reply_markup = GetSkipAndCancelKeyboardButtons(user_groups))
 
 async def ProjectEditPhotoLoad(a_Message : types.message, state : FSMContext):
     await PhotoEditLoad(a_Message, state, a_Message.photo[0].file_id)
@@ -305,24 +305,24 @@ async def ProjectEditPhotoSkip(a_Message : types.message, state : FSMContext):
         project_id = prjData['prjID']
     msg, photo_id, name, desc = GetProjectData(project_id)
     if msg != '':
-        await bot.send_message(a_Message.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_group))
+        await bot.send_message(a_Message.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
         return
     await PhotoEditLoad(a_Message, state, photo_id)
 
 async def EditNameSkip(a_Message : types.message, state : FSMContext, a_Name):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     async with state.proxy() as prjData:
         prjData['name'] = a_Name
     await FSMEditProject.next()
-    await a_Message.answer(project_edit_message_3, reply_markup = GetSkipAndCancelKeyboardButtons(user_group))
+    await a_Message.answer(project_edit_message_3, reply_markup = GetSkipAndCancelKeyboardButtons(user_groups))
 
 async def ProjectEditNameLoad(a_Message : types.message, state : FSMContext):
     await EditNameSkip(a_Message, state, a_Message.text)
 
 async def ProjectEditDescLoad(a_Message : types.message, state : FSMContext):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     async with state.proxy() as prjData:
         prjData['desc'] = a_Message.text
         project_id = prjData['prjID']
@@ -332,22 +332,22 @@ async def ProjectEditDescLoad(a_Message : types.message, state : FSMContext):
         EditProject(project_id, prjPhoto, prjName, prjDesc)
         log.Success(f'Изменён проект {prjName} пользователем {a_Message.from_user.id}.')
     await state.finish()
-    await a_Message.answer(project_success_edit_message, reply_markup = GetEditProjectKeyboardButtons(user_group))
+    await a_Message.answer(project_success_edit_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
 
 # Удаление проекта 
 
 async def ProjectDelete(a_Message : types.message):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
-    await bot.send_message(a_Message.from_user.id, project_select_to_delete_message, reply_markup = GetProjectsListKeyboardButtons(user_group, delete_project_callback_prefix))
+    user_groups = groups.GetUserGroupData(user_id)
+    await bot.send_message(a_Message.from_user.id, project_select_to_delete_message, reply_markup = GetProjectsListKeyboardButtons(user_groups, delete_project_callback_prefix))
 
 async def prjDelete(a_CallbackQuery : types.CallbackQuery):
     user_id = str(a_CallbackQuery.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
     projectID = str(a_CallbackQuery.data).replace(delete_project_callback_prefix, '')
     DelProject(projectID)
     log.Success(f'Проект №{projectID} был удалён пользователем {a_CallbackQuery.from_user.id}.')
-    await bot.send_message(a_CallbackQuery.from_user.id, project_success_delete_message, reply_markup = GetEditProjectKeyboardButtons(user_group))
+    await bot.send_message(a_CallbackQuery.from_user.id, project_success_delete_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
 
 # ---------------------------------------------------------
 # Работа с базой данных проектов

@@ -50,12 +50,15 @@ def GetStartKeyboardButtons(a_UserGroups):
 # Отображение профиля пользователя
 async def ProfileOpen(a_Message):
     user_id = str(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups= groups.GetUserGroupData(user_id)
+    if not user_access.CheckAccessString(GetAccess(), user_groups, user_access.AccessMode.VIEW):
+        return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetStartKeyboardButtons(user_groups))
+
     user_info = GetUserInfo(user_id)
     msg = profile_message
     if not user_info is None:
         msg = msg.replace('@user_id', str(user_info[0])).replace('@user_name', str(user_info[1]))
-    await bot.send_message(user_id, msg, reply_markup = GetStartKeyboardButtons(user_group))
+    await bot.send_message(user_id, msg, reply_markup = GetStartKeyboardButtons(user_groups))
 
 # ---------------------------------------------------------
 # Работа с базой данных пользователей

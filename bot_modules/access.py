@@ -6,12 +6,17 @@
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, groups
 from aiogram import Bot, types
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
 
 import sqlite3
 
 from aiogram.dispatcher import Dispatcher
 
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
+
+class FSMRequestToBD(StatesGroup):
+    sqlRequest = State()
 
 # ---------------------------------------------------------
 # БД
@@ -51,6 +56,10 @@ help_message = '''
 modAccess - строка
 ''' + user_access.user_access_readme
 
+access_denied_message = '''
+Доступ запрещён!
+''' 
+
 access_button_name = "📰 Доступ пользователей"
 sql_request_button_name = "📰 Запрос к БД для редактирования доступа"
 help_button_name = "📰 Информация по редактированию доступа"
@@ -64,7 +73,7 @@ def GetEditAccessKeyboardButtons(a_UserGroups):
         keyboard.ButtonWithAccess(help_button_name, user_access.AccessMode.VIEW, GetAccess())
     ]
     mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons)
+    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
 # ---------------------------------------------------------
 # Обработка сообщений
@@ -73,6 +82,8 @@ def GetEditAccessKeyboardButtons(a_UserGroups):
 async def AccessStart(a_Message):
     user_id = str(a_Message.from_user.id)
     user_groups = groups.GetUserGroupData(user_id)
+    if not user_access.CheckAccessString(GetAccess(), user_groups, user_access.AccessMode.VIEW):
+        return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetEditAccessKeyboardButtons(user_groups))
     await bot.send_message(user_id, access_start_message, reply_markup = GetEditAccessKeyboardButtons(user_groups))
 # ---------------------------------------------------------
 # Работа с базой данных 
@@ -90,9 +101,6 @@ def GetAccessForModule(a_ModuleName):
 # ---------------------------------------------------------
 # API
 
-def GetUserAccess(a_UserID):
-    return None
-
 # Инициализация БД
 def GetInitBDCommands():
     return init_bd_cmds
@@ -107,5 +115,9 @@ def GetModuleButtons():
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(AccessStart, text = access_button_name)
-    dp.register_message_handler(groups.RequestToBDTemplate(request_start_message), text = sql_request_button_name)
-    dp.register_message_handler(groups.HelpTemplate(help_message, GetEditAccessKeyboardButtons), text = help_button_name)
+
+    dp.register_message_handler(groups.RequestToBDTemplate(request_start_message, GetAccess, FSMRequestToBD), text = sql_request_button_name)
+    dp.register_message_handler(groups.RequestToBDCancelTemplate(GetEditAccessKeyboardButtons, GetAccess), text = groups.canсel_button_name, state = FSMRequestToBD.sqlRequest)
+    dp.register_message_handler(groups.RequestToBDFinishTemplate(GetEditAccessKeyboardButtons, GetAccess), state = FSMRequestToBD.sqlRequest)
+
+    dp.register_message_handler(groups.HelpTemplate(help_message, GetEditAccessKeyboardButtons, GetAccess), text = help_button_name)

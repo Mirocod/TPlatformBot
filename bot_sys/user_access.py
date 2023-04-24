@@ -36,7 +36,7 @@ class AccessMode(Enum):
 
 class UserGroups:
     def __init__(self, a_UserID : str, a_GroupNamesList : [str]):
-        self.user_id = a_UserID
+        self.user_id = str(a_UserID)
         self.group_names_list = a_GroupNamesList
 
 # ---------------------------------------------------------
@@ -65,6 +65,9 @@ def CheckAccessString(a_AccessValue : str, a_UserGroups : UserGroups, a_AccessMo
     return False
 
 def Test():
+    assert '1234' in ['123', '1234']
+    assert not '1234' in ['123', '12345']
+
     for am in AccessMode.ADD, AccessMode.DELETE, AccessMode.EDIT, AccessMode.VIEW, AccessMode.ACCEES_EDIT:
         assert CheckAccessString('1234=+', UserGroups('1234', []), am)
         assert not CheckAccessString('1234=-', UserGroups('1234', []), am)

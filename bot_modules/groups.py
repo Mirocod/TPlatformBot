@@ -82,9 +82,9 @@ def GetEditGroupKeyboardButtons(a_UserGroups):
     mods = [start]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
-def GetCancelKeyboardButtons(a_UserGroups):
+def GetCancelKeyboardButtons(a_UserGroups, a_AccessFunc):
     cur_buttons = [
-        keyboard.ButtonWithAccess(canсel_button_name, user_access.AccessMode.VIEW, GetAccess())
+        keyboard.ButtonWithAccess(canсel_button_name, user_access.AccessMode.VIEW, a_AccessFunc())
     ]
     return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
 
@@ -95,40 +95,55 @@ def GetCancelKeyboardButtons(a_UserGroups):
 async def GroupStart(a_Message):
     user_id = str(a_Message.from_user.id)
     user_groups = GetUserGroupData(user_id)
+    if not user_access.CheckAccessString(GetAccess(), user_groups, user_access.AccessMode.VIEW):
+        return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetEditGroupKeyboardButtons(user_groups))
+
     await bot.send_message(user_id, group_start_message, reply_markup = GetEditGroupKeyboardButtons(user_groups))
 
-async def RequestToBDCancel(a_Message : types.message, state : FSMContext):
-    user_id = str(a_Message.from_user.id)
-    user_groups = GetUserGroupData(user_id)
-    await state.finish()
-    await a_Message.answer(request_cancel_message, reply_markup = GetEditGroupKeyboardButtons(user_groups))
+def RequestToBDCancelTemplate(a_GetButtonsFunc, a_AccessFunc):
+    async def RequestToBDCancel(a_Message : types.message, state : FSMContext):
+        user_id = str(a_Message.from_user.id)
+        user_groups = GetUserGroupData(user_id)
+        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, user_access.AccessMode.VIEW):
+            return await bot.send_message(user_id, access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
+        await state.finish()
+        await a_Message.answer(request_cancel_message, reply_markup = a_GetButtonsFunc(user_groups))
+    return RequestToBDCancel
 
-def HelpTemplate(a_HelpMessage, a_GetButtonsFunc):
+def HelpTemplate(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc):
     async def Help(a_Message : types.message):
         user_id = str(a_Message.from_user.id)
         user_groups = GetUserGroupData(user_id)
+        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, user_access.AccessMode.VIEW):
+            return await bot.send_message(user_id, access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
         await a_Message.answer(a_HelpMessage, reply_markup = a_GetButtonsFunc(user_groups)) #, parse_mode='Markdown')
     return Help
 
-def RequestToBDTemplate(a_StartMessage):
+def RequestToBDTemplate(a_StartMessage, a_AccessFunc, a_FSM):
     async def RequestToBDStart(a_Message : types.message):
         user_id = str(a_Message.from_user.id)
         user_groups = GetUserGroupData(user_id)
-        await FSMRequestToBD.sqlRequest.set()
-        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(user_groups), parse_mode='Markdown')
+        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, user_access.AccessMode.EDIT):
+            return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetCancelKeyboardButtons(user_groups, a_AccessFunc))
+        await a_FSM.sqlRequest.set()
+        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(user_groups, a_AccessFunc), parse_mode='Markdown')
     return RequestToBDStart
 
-async def RequestToBD(a_Message : types.message, state : FSMContext):
-    user_id = str(a_Message.from_user.id)
-    user_groups = GetUserGroupData(user_id)
-    result = ''
-    async with state.proxy() as prjData:
-        sql_request = a_Message.text
-        log.Success(f'Сделан запрос [{sql_request}] пользователем {a_Message.from_user.id}.')
-        result = bot_bd.SQLRequestToBDCommit(sql_request)
-        log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
-    await state.finish()
-    await a_Message.answer(str(result), reply_markup = GetEditGroupKeyboardButtons(user_groups))
+def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc):
+    async def RequestToBDFinish(a_Message : types.message, state : FSMContext):
+        user_id = str(a_Message.from_user.id)
+        user_groups = GetUserGroupData(user_id)
+        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, user_access.AccessMode.EDIT):
+            return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetEditGroupKeyboardButtons(user_groups))
+        result = ''
+        async with state.proxy() as prjData:
+            sql_request = a_Message.text
+            log.Success(f'Сделан запрос [{sql_request}] пользователем {a_Message.from_user.id}.')
+            result = bot_bd.SQLRequestToBDCommit(sql_request)
+            log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
+        await state.finish()
+        await a_Message.answer(str(result), reply_markup = a_GetButtonsFunc(user_groups))
+    return RequestToBDFinish
 
 # ---------------------------------------------------------
 # Работа с базой данных групп
@@ -141,8 +156,10 @@ def GetGroupNamesForUser(a_UserID):
 
 def GetUserGroupData(a_UserID):
     r = GetGroupNamesForUser(a_UserID)
-    print(r)
-    return user_access.UserGroups(a_UserID, r)
+    groups = []
+    for i in r:
+        groups += [i[0]]
+    return user_access.UserGroups(a_UserID, groups)
 
 # ---------------------------------------------------------
 # API
@@ -161,7 +178,8 @@ def GetModuleButtons():
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(GroupStart, text = user_group_button_name)
-    dp.register_message_handler(RequestToBDTemplate(request_start_message), text = sql_request_button_name)
-    dp.register_message_handler(HelpTemplate(help_message, GetEditGroupKeyboardButtons), text = help_button_name)
-    dp.register_message_handler(RequestToBDCancel, text = canсel_button_name, state = FSMRequestToBD.sqlRequest)
-    dp.register_message_handler(RequestToBD, state = FSMRequestToBD.sqlRequest)
+    dp.register_message_handler(HelpTemplate(help_message, GetEditGroupKeyboardButtons, GetAccess), text = help_button_name)
+
+    dp.register_message_handler(RequestToBDTemplate(request_start_message, GetAccess, FSMRequestToBD), text = sql_request_button_name)
+    dp.register_message_handler(RequestToBDCancelTemplate(GetEditGroupKeyboardButtons, GetAccess), text = canсel_button_name, state = FSMRequestToBD.sqlRequest)
+    dp.register_message_handler(RequestToBDFinishTemplate(GetEditGroupKeyboardButtons, GetAccess), state = FSMRequestToBD.sqlRequest)

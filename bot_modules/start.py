@@ -40,11 +40,14 @@ def GetStartKeyboardButtons(a_UserGroups):
 # Первичное привестивие
 async def StartMenu(a_Message):
     user_id = int(a_Message.from_user.id)
-    user_group = groups.GetUserGroupData(user_id)
+    user_groups = groups.GetUserGroupData(user_id)
+    if not user_access.CheckAccessString(GetAccess(), user_groups, user_access.AccessMode.VIEW):
+        return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetStartKeyboardButtons(user_groups))
+
     user_name = str(a_Message.from_user.username)
     profile.AddUser(user_id, user_name)
     log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте')
-    await a_Message.answer(start_message, reply_markup=GetStartKeyboardButtons(user_group), parse_mode='HTML')
+    await a_Message.answer(start_message, reply_markup=GetStartKeyboardButtons(user_groups), parse_mode='HTML')
 
 # ---------------------------------------------------------
 # API
