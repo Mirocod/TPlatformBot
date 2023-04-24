@@ -9,7 +9,7 @@ from aiogram.utils import executor
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import sqlite3
-from bot_sys import config, log, bot_bd
+from bot_sys import config, log, bot_bd, user_access
 from bot_modules import profile, start, projects
 
 storage = MemoryStorage()
@@ -24,6 +24,10 @@ for m in mods:
     c = m.GetInitBDCommands()
     if not c is None:
         init_bd_cmd += c
+
+test_mods = [user_access]
+for m in test_mods:
+    m.Test()
 
 # Первичаня инициализация базы данных
 bot_bd.BDExecute(init_bd_cmd)
