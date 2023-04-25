@@ -15,7 +15,7 @@ from aiogram.dispatcher import Dispatcher
 
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
 
-class FSMRequestToBD(StatesGroup):
+class FSMRequestToBDAccess(StatesGroup):
     sqlRequest = State()
 
 # ---------------------------------------------------------
@@ -116,8 +116,8 @@ def GetModuleButtons():
 def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(AccessStart, text = access_button_name)
 
-    dp.register_message_handler(groups.RequestToBDTemplate(request_start_message, GetAccess, FSMRequestToBD), text = sql_request_button_name)
-    dp.register_message_handler(groups.RequestToBDCancelTemplate(GetEditAccessKeyboardButtons, GetAccess), text = groups.canсel_button_name, state = FSMRequestToBD.sqlRequest)
-    dp.register_message_handler(groups.RequestToBDFinishTemplate(GetEditAccessKeyboardButtons, GetAccess), state = FSMRequestToBD.sqlRequest)
+    dp.register_message_handler(groups.RequestToBDTemplate(request_start_message, GetAccess, FSMRequestToBDAccess), text = sql_request_button_name)
+    dp.register_message_handler(groups.RequestToBDCancelTemplate(GetEditAccessKeyboardButtons, GetAccess), text = groups.canсel_button_name, state = FSMRequestToBDAccess.sqlRequest)
+    dp.register_message_handler(groups.RequestToBDFinishTemplate(GetEditAccessKeyboardButtons, GetAccess), state = FSMRequestToBDAccess.sqlRequest)
 
     dp.register_message_handler(groups.HelpTemplate(help_message, GetEditAccessKeyboardButtons, GetAccess), text = help_button_name)

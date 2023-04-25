@@ -139,8 +139,12 @@ def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc):
         async with state.proxy() as prjData:
             sql_request = a_Message.text
             log.Success(f'Сделан запрос [{sql_request}] пользователем {a_Message.from_user.id}.')
-            result = bot_bd.SQLRequestToBDCommit(sql_request)
-            log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
+            result, error = bot_bd.SQLRequestToBD(sql_request, commit = True, return_error = True)
+            if not error is None:
+                log.Error(f'Ошибка при выполнении запроса [{sql_request}] от пользователя {a_Message.from_user.id} ответ следующий [{str(error)}].')
+                result = str(error)
+            else:
+                log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
         await state.finish()
         await a_Message.answer(str(result), reply_markup = a_GetButtonsFunc(user_groups))
     return RequestToBDFinish
@@ -149,16 +153,18 @@ def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc):
 # Работа с базой данных групп
 
 def GetGroupIDForUser(a_UserID):
-    return bot_bd.SQLRequestToBD1('SELECT group_id FROM user_in_groups WHERE user_id = ?', [a_UserID])
+    return bot_bd.SQLRequestToBD('SELECT group_id FROM user_in_groups WHERE user_id = ?', param = [a_UserID])
 
 def GetGroupNamesForUser(a_UserID):
-    return bot_bd.SQLRequestToBD1('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', [a_UserID])
+    return bot_bd.SQLRequestToBD('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', param = [a_UserID])
 
 def GetUserGroupData(a_UserID):
     r = GetGroupNamesForUser(a_UserID)
     groups = []
     for i in r:
-        groups += [i[0]]
+        if len(i) > 0:
+            groups += [i[0]]
+    print(groups)
     return user_access.UserGroups(a_UserID, groups)
 
 # ---------------------------------------------------------
