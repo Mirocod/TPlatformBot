@@ -7,8 +7,6 @@ from bot_sys import log, config, user_access
 from bot_modules import access, groups
 from aiogram import Bot, types
 
-import sqlite3
-
 from aiogram.dispatcher import Dispatcher
 
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
