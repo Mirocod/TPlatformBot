@@ -29,7 +29,7 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name
 # Сообщения
 
 profile_message = '''
-<b>Профиль:</b>
+<b>📰 Профиль:</b> 
 
 <b>ID:</b> @user_id
 <b>Имя:</b> @user_name

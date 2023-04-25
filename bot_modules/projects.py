@@ -51,7 +51,7 @@ select_project_message = '''
 '''
 
 error_find_proj_message = '''
-Ошибка, проект с ID @project_id не найден
+❌ Ошибка, проект с ID @project_id не найден
 '''
 
 project_open_message = '''
@@ -79,11 +79,11 @@ project_create_message_3 = '''
 Введите описание проекта:
 '''
 
-project_cancel_create_message = 'Создание проекта отменено'
+project_cancel_create_message = '🚫 Создание проекта отменено'
 
-project_success_create_message = 'Проект успешно добавлен!'
-project_success_delete_message = 'Проект успешно удалён!'
-project_success_edit_message = 'Проект успешно отредактирован!'
+project_success_create_message = '✅ Проект успешно добавлен!'
+project_success_delete_message = '✅ Проект успешно удалён!'
+project_success_edit_message = '✅ Проект успешно отредактирован!'
 
 project_create_message_0= '''
 Редактирование проекта.
@@ -116,7 +116,7 @@ project_edit_message_3 = '''
 Введите новое описание проекта:
 '''
 
-project_cancel_edit_message = 'Редактирование проекта отменено'
+project_cancel_edit_message = '🚫 Редактирование проекта отменено'
 
 project_select_to_edit_message = '''
 Выберите проект, который вы хотите отредактировать.
@@ -128,13 +128,13 @@ project_select_to_delete_message = '''
 Все задачи и потребности в этом проекте так же будут удалены!
 '''
 
-projects_button_name = "📰 Проекты"
-list_project_button_name = "📰 Список проектов"
-add_project_button_name = "📰 Добавить проект"
-del_project_button_name = "📰 Удалить проект"
-edit_project_button_name = "📰 Редактировать проект"
-projects_canсel_button_name = "📰 Отменить"
-projects_skip_button_name = "📰 Пропустить"
+projects_button_name = "🟥 Проекты"
+list_project_button_name = "📃 Список проектов"
+add_project_button_name = "✅ Добавить проект"
+del_project_button_name = "❌ Удалить проект"
+edit_project_button_name = "🛠 Редактировать проект"
+projects_canсel_button_name = "🚫 Отменить"
+projects_skip_button_name = "⏩ Пропустить"
 
 
 # Префиксы
