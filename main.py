@@ -10,13 +10,13 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import sqlite3
 from bot_sys import config, log, bot_bd, user_access
-from bot_modules import profile, start, projects, groups, access
+from bot_modules import profile, start, projects, groups, access, backup
 
 storage = MemoryStorage()
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
 dp = Dispatcher(bot, storage = storage)
 
-mods = [access, profile, start, projects, groups]
+mods = [access, profile, start, projects, groups, backup]
 
 init_bd_cmd = []
 for m in mods:
