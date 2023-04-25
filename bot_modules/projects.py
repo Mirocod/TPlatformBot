@@ -5,6 +5,8 @@
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, access, groups
+from template import bd_item_view, simple_message
+
 from aiogram import Bot, types
 
 from aiogram.dispatcher import FSMContext
@@ -27,14 +29,17 @@ class FSMEditProject(StatesGroup):
 
 # ---------------------------------------------------------
 # БД
-table_name = 'projects'
 module_name = 'projects'
+
+table_name = 'projects'
+key_name = 'projectID'
 
 init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     projectPhoto TEXT,
     projectName TEXT,
     projectDesc TEXT,
-    projectID INTEGER PRIMARY KEY
+    projectAccess TEXT,
+    {key_name} INTEGER PRIMARY KEY
 )''',
 f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=va');"
 ]
@@ -44,7 +49,7 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name
 # Сообщения
 
 base_project_message = '''
-<b>🛒 Проекты</b>
+<b>🟥 Проекты</b>
 
 '''
 select_project_message = '''
@@ -52,7 +57,7 @@ select_project_message = '''
 '''
 
 error_find_proj_message = '''
-❌ Ошибка, проект с ID @project_id не найден
+❌ Ошибка, проект не найден
 '''
 
 project_open_message = '''
@@ -179,13 +184,30 @@ def GetProjectsListKeyboardButtons(a_UserGroups, a_Prefix):
 # ---------------------------------------------------------
 # Обработка сообщений
 
-# Отображение всех проектов 
+def GetButtonNameAndKeyValueAndAccess(a_Item):
+    # projectName projectID projectAccess
+    return a_Item[1], a_Item[4], a_Item[3]
+
+async def ShowProject(a_CallbackQuery : types.CallbackQuery, a_Item):
+    if (len(a_Item) < 3):
+        return error_find_proj_message, None
+
+    photo_id = a_Item[0]
+    name =  a_Item[1]
+    desc = a_Item[2]
+    msg = project_open_message.replace('@proj_name', name).replace('@proj_desk', desc)
+    return msg, photo_id
+
+select_handler = 0
+# стартовое сообщение
 async def ProjectsOpen(a_Message : types.message):
     user_id = str(a_Message.from_user.id)
     user_groups = groups.GetUserGroupData(user_id)
-    await bot.send_message(a_Message.from_user.id, base_project_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
-    await bot.send_message(a_Message.from_user.id, select_project_message, reply_markup = GetProjectsListKeyboardButtons(user_groups, select_project_callback_prefix))
+    await a_Message.answer(base_project_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
+    await select_handler(a_Message)
+    return None
 
+# Создание нового проекта 
 def GetProjectData(a_ProjectID):
     project = GetProject(a_ProjectID)
     if len(project) < 1:
@@ -195,23 +217,6 @@ def GetProjectData(a_ProjectID):
 
     p = project[0]
     return '', p[0], p[1], p[2]
-
-async def ShowProject(a_CallbackQuery : types.CallbackQuery):
-    project_id = str(a_CallbackQuery.data).replace(select_project_callback_prefix, '')
-    user_id = str(a_CallbackQuery.from_user.id)
-    user_groups = groups.GetUserGroupData(user_id)
-    msg, photo_id, name, desc = GetProjectData(project_id)
-    if msg != '':
-        await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
-        return
-
-    msg = project_open_message.replace('@proj_name', name).replace('@proj_desk', desc)
-    if photo_id == '0':
-        await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
-    else:
-        await bot.send_photo(a_CallbackQuery.from_user.id, photo_id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
-
-# Создание нового проекта 
 
 async def ProjectCreateCancel(a_Message : types.message, state : FSMContext):
     user_id = str(a_Message.from_user.id)
@@ -406,10 +411,11 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-# Список проектов
-    dp.register_message_handler(ProjectsOpen, text = projects_button_name)
-    dp.register_message_handler(ProjectsOpen, text = list_project_button_name)
-    dp.register_callback_query_handler(ShowProject, lambda x: x.data.startswith(select_project_callback_prefix))
+    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, GetEditProjectKeyboardButtons, GetAccess), text = projects_button_name)
+
+    global select_handler
+    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowProject, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetEditProjectKeyboardButtons)
+
 # Добавление проекта
     dp.register_message_handler(ProjectCreate, text = add_project_button_name)
     dp.register_message_handler(ProjectPhotoSkip, text = projects_skip_button_name, state = FSMCreateProject.prjPhoto)

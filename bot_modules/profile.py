@@ -49,7 +49,7 @@ async def ProfileOpen(a_Message):
     msg = profile_message
     if not user_info is None:
         msg = msg.replace('@user_id', str(user_info[0])).replace('@user_name', str(user_info[1]))
-    return msg
+    return msg, None
 
 # ---------------------------------------------------------
 # Работа с базой данных пользователей
