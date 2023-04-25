@@ -5,6 +5,7 @@
 
 from bot_sys import log, config, keyboard, user_access
 from bot_modules import profile, projects, groups, access, backup
+from template import simple_message
 
 from aiogram.dispatcher import Dispatcher
 
@@ -38,15 +39,11 @@ def GetStartKeyboardButtons(a_UserGroups):
 
 # Первичное привестивие
 async def StartMenu(a_Message):
-    user_id = int(a_Message.from_user.id)
-    user_groups = groups.GetUserGroupData(user_id)
-    if not user_access.CheckAccessString(GetAccess(), user_groups, user_access.AccessMode.VIEW):
-        return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetStartKeyboardButtons(user_groups))
-
+    user_id = str(a_Message.from_user.id)
     user_name = str(a_Message.from_user.username)
     profile.AddUser(user_id, user_name)
     log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте')
-    await a_Message.answer(start_message, reply_markup=GetStartKeyboardButtons(user_groups), parse_mode='HTML')
+    return start_message
 
 # ---------------------------------------------------------
 # API
@@ -64,7 +61,7 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(StartMenu, commands = ['start'])
-    dp.register_message_handler(StartMenu, text = start_menu_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplate(StartMenu, GetStartKeyboardButtons, GetAccess), commands = ['start'])
+    dp.register_message_handler(simple_message.SimpleMessageTemplate(StartMenu, GetStartKeyboardButtons, GetAccess), text = start_menu_button_name)
 
 

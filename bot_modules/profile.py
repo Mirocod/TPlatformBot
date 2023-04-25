@@ -5,13 +5,10 @@
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, access, groups
-from aiogram import Bot, types
+from template import simple_message
 
-import sqlite3
-
+from aiogram import types
 from aiogram.dispatcher import Dispatcher
-
-bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
 
 # ---------------------------------------------------------
 # БД
@@ -47,18 +44,12 @@ def GetStartKeyboardButtons(a_UserGroups):
 # ---------------------------------------------------------
 # Обработка сообщений
 
-# Отображение профиля пользователя
 async def ProfileOpen(a_Message):
-    user_id = str(a_Message.from_user.id)
-    user_groups= groups.GetUserGroupData(user_id)
-    if not user_access.CheckAccessString(GetAccess(), user_groups, user_access.AccessMode.VIEW):
-        return await bot.send_message(user_id, access.access_denied_message, reply_markup = GetStartKeyboardButtons(user_groups))
-
-    user_info = GetUserInfo(user_id)
+    user_info = GetUserInfo(a_Message.from_user.id)
     msg = profile_message
     if not user_info is None:
         msg = msg.replace('@user_id', str(user_info[0])).replace('@user_name', str(user_info[1]))
-    await bot.send_message(user_id, msg, reply_markup = GetStartKeyboardButtons(user_groups))
+    return msg
 
 # ---------------------------------------------------------
 # Работа с базой данных пользователей
@@ -67,7 +58,6 @@ async def ProfileOpen(a_Message):
 def AddUser(a_UserID, a_UserName):
     bot_bd.SQLRequestToBD("INSERT OR IGNORE INTO users (user_id, userName) VALUES (?, ?);", commit=True, param = (a_UserID, a_UserName))
 
-# Добавление пользователя, если он уже есть, то игнорируем
 def GetUserInfo(a_UserID):
     user_info = bot_bd.SQLRequestToBD('SELECT * FROM users WHERE user_id = ?', param = [a_UserID])
     print(user_info, str(user_info))
@@ -91,4 +81,4 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(ProfileOpen, text = user_profile_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProfileOpen, GetStartKeyboardButtons, GetAccess), text = user_profile_button_name)
