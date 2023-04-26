@@ -18,7 +18,6 @@ class WorkFuncResult():
 
 def InfoMessageTemplate(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     async def GetMessage(a_Message : types.message):
-        print(a_HelpMessage)
         return WorkFuncResult(a_HelpMessage)
 
     return SimpleMessageTemplate(GetMessage, a_GetButtonsFunc, a_AccessFunc, access_mode)

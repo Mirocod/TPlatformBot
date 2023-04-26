@@ -5,7 +5,7 @@
 
 from bot_sys import user_access, bot_bd, keyboard
 from bot_modules import access, groups
-from template import simple_message, bd_item_select
+from template import simple_message, bd_item_select, bd_item_delete
 
 from aiogram import types
 
@@ -18,19 +18,7 @@ class TableListParam():
 '''
 
 def ShowBDItemTemplate(a_TableName, a_KeyName, a_WorkFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.VIEW):
-    async def ShowBDItem(a_CallbackQuery : types.CallbackQuery):
-        user_id = str(a_CallbackQuery.from_user.id)
-        user_groups = groups.GetUserGroupData(user_id)
-        item_id = str(a_CallbackQuery.data).replace(a_Prefix, '')
-        item = bd_item_select.GetBDItemsTemplate(a_TableName, a_KeyName)(item_id)
-        if len(item) < 1:
-            msg = f'Элемент {item_id} не найден в таблице {a_TableName}'
-            log.Error(msg)
-            await bot.send_message(a_CallbackQuery.from_user.id, msg, reply_markup = a_ButtonFunc(user_groups))
-            return None, None
-
-        return await a_WorkFunc(a_CallbackQuery, item[0])
-    return simple_message.SimpleMessageTemplate(ShowBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
+    return bd_item_delete.DeleteBDItemTemplate(a_TableName, a_KeyName, a_WorkFunc, None, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode = access_mode, delete = False)
 
 def SelectAndShowBDItemRegisterHandlers(dp, a_RequestButtonName, a_TableName : str, a_KeyName, a_ShowItemWorkFunc, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.VIEW):
     a_Prefix = f'select_{a_TableName}_{a_KeyName}:'

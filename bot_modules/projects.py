@@ -5,7 +5,7 @@
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, access, groups
-from template import bd_item_view, simple_message
+from template import bd_item_view, simple_message, bd_item_delete
 
 from aiogram import Bot, types
 
@@ -189,7 +189,7 @@ def GetButtonNameAndKeyValueAndAccess(a_Item):
     return a_Item[1], a_Item[4], a_Item[3]
 
 async def ShowProject(a_CallbackQuery : types.CallbackQuery, a_Item):
-    if (len(a_Item) < 3):
+    if (len(a_Item) < 4):
         return simple_message.WorkFuncResult(error_find_proj_message)
 
     photo_id = a_Item[0]
@@ -343,18 +343,15 @@ async def ProjectEditDescLoad(a_Message : types.message, state : FSMContext):
 
 # Удаление проекта 
 
-async def ProjectDelete(a_Message : types.message):
-    user_id = str(a_Message.from_user.id)
-    user_groups = groups.GetUserGroupData(user_id)
-    await bot.send_message(a_Message.from_user.id, project_select_to_delete_message, reply_markup = GetProjectsListKeyboardButtons(user_groups, delete_project_callback_prefix))
+async def ProjectPreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
+    if (len(a_Item) < 4):
+        return simple_message.WorkFuncResult(error_find_proj_message)
+    access = a_Item[3]
+    return simple_message.WorkFuncResult('', None, item_access = access)
 
-async def prjDelete(a_CallbackQuery : types.CallbackQuery):
-    user_id = str(a_CallbackQuery.from_user.id)
-    user_groups = groups.GetUserGroupData(user_id)
-    projectID = str(a_CallbackQuery.data).replace(delete_project_callback_prefix, '')
-    DelProject(projectID)
-    log.Success(f'Проект №{projectID} был удалён пользователем {a_CallbackQuery.from_user.id}.')
-    await bot.send_message(a_CallbackQuery.from_user.id, project_success_delete_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
+async def ProjectPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
+    log.Success(f'Проект №{a_ItemID} был удалён пользователем {a_CallbackQuery.from_user.id}.')
+    return simple_message.WorkFuncResult(project_success_delete_message)
 
 # ---------------------------------------------------------
 # Работа с базой данных проектов
@@ -417,6 +414,8 @@ def RegisterHandlers(dp : Dispatcher):
     global select_handler
     select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowProject, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetEditProjectKeyboardButtons)
 
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetEditProjectKeyboardButtons)
+
 # Добавление проекта
     dp.register_message_handler(ProjectCreate, text = add_project_button_name)
     dp.register_message_handler(ProjectPhotoSkip, text = projects_skip_button_name, state = FSMCreateProject.prjPhoto)
@@ -437,5 +436,3 @@ def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(ProjectEditNameLoad, state = FSMEditProject.prjName)
     dp.register_message_handler(ProjectEditDescLoad, state = FSMEditProject.prjDesc)
 # Удаление проекта
-    dp.register_message_handler(ProjectDelete, text = del_project_button_name)
-    dp.register_callback_query_handler(prjDelete, lambda x: x.data.startswith(delete_project_callback_prefix))

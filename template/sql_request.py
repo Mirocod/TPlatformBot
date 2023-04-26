@@ -11,7 +11,7 @@ from aiogram.dispatcher import FSMContext
 
 canсel_button_name = "🚫 Отменить"
 
-request_cancel_message = '''
+cancel_message = '''
 🚫 Запрос к БД отменён
 '''
 
@@ -41,7 +41,7 @@ def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc, a_AccessMode):
         async with state.proxy() as prjData:
             if a_Message.text == canсel_button_name:
                 await state.finish()
-                return await a_Message.answer(request_cancel_message, reply_markup = a_GetButtonsFunc(user_groups))
+                return await a_Message.answer(cancel_message, reply_markup = a_GetButtonsFunc(user_groups))
 
             sql_request = a_Message.text
             log.Success(f'Сделан запрос [{sql_request}] пользователем {a_Message.from_user.id}.')
