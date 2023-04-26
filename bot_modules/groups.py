@@ -28,7 +28,7 @@ init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS user_groups(
     group_id INTEGER,
     UNIQUE(user_id, group_id)
 );""",
-f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=-');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
 ]
 
 # ---------------------------------------------------------
@@ -57,10 +57,6 @@ help_message = '''
 `user_groups (group_id, groupName)` - содержит названия групп
 `user_in_groups(user_id, group_id)` - содержит соответсвия ID пользователей и групп
  '''
-
-request_cancel_message = '''
-Запрос к БД отменён
-'''
 
 user_group_button_name = "‍️️▦ Группы пользователей"
 sql_request_button_name = "⛃ Запрос к БД для редактирования групп"

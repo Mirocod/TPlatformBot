@@ -41,7 +41,7 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     projectAccess TEXT,
     {key_name} INTEGER PRIMARY KEY
 )''',
-f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=va');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=va', '{user_access.user_access_group_all}=va');"
 ]
 
 
@@ -190,13 +190,14 @@ def GetButtonNameAndKeyValueAndAccess(a_Item):
 
 async def ShowProject(a_CallbackQuery : types.CallbackQuery, a_Item):
     if (len(a_Item) < 3):
-        return error_find_proj_message, None
+        return simple_message.WorkFuncResult(error_find_proj_message)
 
     photo_id = a_Item[0]
     name =  a_Item[1]
     desc = a_Item[2]
+    access = a_Item[3]
     msg = project_open_message.replace('@proj_name', name).replace('@proj_desk', desc)
-    return msg, photo_id
+    return simple_message.WorkFuncResult(msg, photo_id = photo_id, item_access = access)
 
 select_handler = 0
 # стартовое сообщение
@@ -372,7 +373,7 @@ def GetProject(a_ProjectID):
 def AddProject(a_prjPhoto, a_prjName, a_prjDesc):
     db = sqlite3.connect(bot_bd.GetBDFileName())
     cursor = db.cursor()
-    cursor.execute('INSERT INTO projects(projectPhoto, projectName, projectDesc) VALUES(?, ?, ?)', (a_prjPhoto, a_prjName, a_prjDesc))
+    cursor.execute('INSERT INTO projects(projectPhoto, projectName, projectDesc, projectAccess) VALUES(?, ?, ?, ?)', (a_prjPhoto, a_prjName, a_prjDesc, access.GetItemDefaultAccessForModule(module_name)))
     db.commit()
     cursor.close()
     db.close()

@@ -6,7 +6,10 @@
 from enum import Enum
 from bot_sys import config
 
-user_access_readme = '''
+user_access_group_all = 'all'
+user_access_group_new = 'new'
+
+user_access_readme = f'''
 Доступ к пользователям задаётся в виде строки
 `user1=daver;user2=av;Group1=v;Group2=-;Group3=+;other=-`
 Где через ';' располагаются различные варианты доступа
@@ -21,7 +24,8 @@ DELETE = 'd' - удаление
 ACCEES_EDIT = 'r' - изменение прав доступа
 '+' - всё включено
 '-' - всё выключено
-группа 'other' - остальные
+группа '{user_access_group_new}' - новые участники (все новые участники автоматически добавляются в эту группу)
+группа '{user_access_group_all}' - все
 '''
 
 # ---------------------------------------------------------
@@ -59,7 +63,7 @@ def CheckAccessString(a_AccessValue : str, a_UserGroups : UserGroups, a_AccessMo
             continue
         name = d[0]
         access = d[1]
-        if name == a_UserGroups.user_id or name in a_UserGroups.group_names_list or name == 'other':
+        if name == a_UserGroups.user_id or name in a_UserGroups.group_names_list or name == user_access_group_all:
             if CheckAccessItem(access, a_AccessMode):
                 return True
     return False
@@ -122,45 +126,45 @@ def Test():
     assert not CheckAccessString('123=-;gr1=ea', UserGroups('1234', ['gr']), AccessMode.ACCEES_EDIT)
     assert not CheckAccessString('123=-;gr1=ad', UserGroups('1234', ['gr']), AccessMode.VIEW)
 
-    assert CheckAccessString('123=-;other=a', UserGroups('1234', []), AccessMode.ADD)
-    assert CheckAccessString('123=-;other=d', UserGroups('1234', []), AccessMode.DELETE)
-    assert CheckAccessString('123=-;other=e', UserGroups('1234', []), AccessMode.EDIT)
-    assert CheckAccessString('123=-;other=r', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
-    assert CheckAccessString('123=-;other=v', UserGroups('1234', []), AccessMode.VIEW)
-    assert CheckAccessString('123=-;other=a', UserGroups('1234', ['gr1']), AccessMode.ADD)
-    assert CheckAccessString('123=-;other=d', UserGroups('1234', ['gr1']), AccessMode.DELETE)
-    assert CheckAccessString('123=-;other=e', UserGroups('1234', ['gr1']), AccessMode.EDIT)
-    assert CheckAccessString('123=-;other=r', UserGroups('1234', ['gr1']), AccessMode.ACCEES_EDIT)
-    assert CheckAccessString('123=-;other=v', UserGroups('1234', ['gr1']), AccessMode.VIEW)
-    assert CheckAccessString('123=-;other=daver', UserGroups('1234', []), AccessMode.ADD)
-    assert CheckAccessString('123=-;other=dav', UserGroups('1234', []), AccessMode.DELETE)
-    assert CheckAccessString('123=-;other=edv', UserGroups('1234', []), AccessMode.EDIT)
-    assert CheckAccessString('123=-;other=rav', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
-    assert CheckAccessString('123=-;other=va', UserGroups('1234', []), AccessMode.VIEW)
-    assert CheckAccessString('123=-;other=avr', UserGroups('1234', ['gr1']), AccessMode.ADD)
-    assert CheckAccessString('123=-;other=daver', UserGroups('1234', ['gr1']), AccessMode.DELETE)
-    assert CheckAccessString('123=-;other=eva', UserGroups('1234', ['gr1']), AccessMode.EDIT)
-    assert CheckAccessString('123=-;other=re', UserGroups('1234', ['gr1']), AccessMode.ACCEES_EDIT)
-    assert CheckAccessString('123=-;other=vad', UserGroups('1234', ['gr1']), AccessMode.VIEW)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=a', UserGroups('1234', []), AccessMode.ADD)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=d', UserGroups('1234', []), AccessMode.DELETE)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=e', UserGroups('1234', []), AccessMode.EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=r', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=v', UserGroups('1234', []), AccessMode.VIEW)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=a', UserGroups('1234', ['gr1']), AccessMode.ADD)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=d', UserGroups('1234', ['gr1']), AccessMode.DELETE)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=e', UserGroups('1234', ['gr1']), AccessMode.EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=r', UserGroups('1234', ['gr1']), AccessMode.ACCEES_EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=v', UserGroups('1234', ['gr1']), AccessMode.VIEW)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=daver', UserGroups('1234', []), AccessMode.ADD)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=dav', UserGroups('1234', []), AccessMode.DELETE)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=edv', UserGroups('1234', []), AccessMode.EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=rav', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=va', UserGroups('1234', []), AccessMode.VIEW)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=avr', UserGroups('1234', ['gr1']), AccessMode.ADD)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=daver', UserGroups('1234', ['gr1']), AccessMode.DELETE)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=eva', UserGroups('1234', ['gr1']), AccessMode.EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=re', UserGroups('1234', ['gr1']), AccessMode.ACCEES_EDIT)
+    assert CheckAccessString(f'123=-;{user_access_group_all}=vad', UserGroups('1234', ['gr1']), AccessMode.VIEW)
 
-    assert not CheckAccessString('123=-;other=d', UserGroups('1234', []), AccessMode.ADD)
-    assert not CheckAccessString('123=-;other=a', UserGroups('1234', []), AccessMode.DELETE)
-    assert not CheckAccessString('123=-;other=r', UserGroups('1234', []), AccessMode.EDIT)
-    assert not CheckAccessString('123=-;other=v', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
-    assert not CheckAccessString('123=-;other=e', UserGroups('1234', []), AccessMode.VIEW)
-    assert not CheckAccessString('123=-;gr1=d;other=-', UserGroups('1234', ['gr']), AccessMode.ADD)
-    assert not CheckAccessString('123=-;gr1=a;other=-', UserGroups('1234', ['gr']), AccessMode.DELETE)
-    assert not CheckAccessString('123=-;gr1=v;other=-', UserGroups('1234', ['gr']), AccessMode.EDIT)
-    assert not CheckAccessString('123=-;gr1=e;other=-', UserGroups('1234', ['gr']), AccessMode.ACCEES_EDIT)
-    assert not CheckAccessString('123=-;gr1=r;other=-', UserGroups('1234', ['gr']), AccessMode.VIEW)
-    assert not CheckAccessString('123=-;other=dver', UserGroups('1234', []), AccessMode.ADD)
-    assert not CheckAccessString('123=-;other=av', UserGroups('1234', []), AccessMode.DELETE)
-    assert not CheckAccessString('123=-;other=dv', UserGroups('1234', []), AccessMode.EDIT)
-    assert not CheckAccessString('123=-;other=av', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
-    assert not CheckAccessString('123=-;other=a', UserGroups('1234', []), AccessMode.VIEW)
-    assert not CheckAccessString('123=-;other=vr', UserGroups('1234', ['gr']), AccessMode.ADD)
-    assert not CheckAccessString('123=-;other=aver', UserGroups('1234', ['gr']), AccessMode.DELETE)
-    assert not CheckAccessString('123=-;other=va', UserGroups('1234', ['gr']), AccessMode.EDIT)
-    assert not CheckAccessString('123=-;other=ea', UserGroups('1234', ['gr']), AccessMode.ACCEES_EDIT)
-    assert not CheckAccessString('123=-;other=ad', UserGroups('1234', ['gr']), AccessMode.VIEW)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=d', UserGroups('1234', []), AccessMode.ADD)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=a', UserGroups('1234', []), AccessMode.DELETE)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=r', UserGroups('1234', []), AccessMode.EDIT)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=v', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=e', UserGroups('1234', []), AccessMode.VIEW)
+    assert not CheckAccessString(f'123=-;gr1=d;{user_access_group_all}=-', UserGroups('1234', ['gr']), AccessMode.ADD)
+    assert not CheckAccessString(f'123=-;gr1=a;{user_access_group_all}=-', UserGroups('1234', ['gr']), AccessMode.DELETE)
+    assert not CheckAccessString(f'123=-;gr1=v;{user_access_group_all}=-', UserGroups('1234', ['gr']), AccessMode.EDIT)
+    assert not CheckAccessString(f'123=-;gr1=e;{user_access_group_all}=-', UserGroups('1234', ['gr']), AccessMode.ACCEES_EDIT)
+    assert not CheckAccessString(f'123=-;gr1=r;{user_access_group_all}=-', UserGroups('1234', ['gr']), AccessMode.VIEW)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=dver', UserGroups('1234', []), AccessMode.ADD)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=av', UserGroups('1234', []), AccessMode.DELETE)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=dv', UserGroups('1234', []), AccessMode.EDIT)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=av', UserGroups('1234', []), AccessMode.ACCEES_EDIT)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=a', UserGroups('1234', []), AccessMode.VIEW)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=vr', UserGroups('1234', ['gr']), AccessMode.ADD)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=aver', UserGroups('1234', ['gr']), AccessMode.DELETE)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=va', UserGroups('1234', ['gr']), AccessMode.EDIT)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=ea', UserGroups('1234', ['gr']), AccessMode.ACCEES_EDIT)
+    assert not CheckAccessString(f'123=-;{user_access_group_all}=ad', UserGroups('1234', ['gr']), AccessMode.VIEW)
 

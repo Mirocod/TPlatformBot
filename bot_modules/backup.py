@@ -20,7 +20,7 @@ bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML
 module_name = 'backup'
 
 init_bd_cmds = [
-f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=-');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
 ]
 
 # ---------------------------------------------------------

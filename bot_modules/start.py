@@ -14,7 +14,7 @@ from aiogram.dispatcher import Dispatcher
 module_name = 'start'
 
 init_bd_cmds = [
-f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=+');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=+', '{user_access.user_access_group_all}=+');"
 ]
 
 # ---------------------------------------------------------
@@ -43,7 +43,7 @@ async def StartMenu(a_Message):
     user_name = str(a_Message.from_user.username)
     profile.AddUser(user_id, user_name)
     log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте')
-    return start_message, None
+    return simple_message.WorkFuncResult(start_message)
 
 # ---------------------------------------------------------
 # API

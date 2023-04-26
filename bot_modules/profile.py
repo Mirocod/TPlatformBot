@@ -17,9 +17,10 @@ module_name = 'profile'
 init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS users(
     user_id INTEGER,
     userName TEXT,
+    userAccess TEXT,
     UNIQUE(user_id)
 );""",
-f"INSERT OR IGNORE INTO module_access (modName, modAccess) VALUES ('{module_name}', 'other=+');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=+', '{user_access.user_access_group_all}=+');"
 ]
 
 # ---------------------------------------------------------
@@ -49,14 +50,14 @@ async def ProfileOpen(a_Message):
     msg = profile_message
     if not user_info is None:
         msg = msg.replace('@user_id', str(user_info[0])).replace('@user_name', str(user_info[1]))
-    return msg, None
+    return simple_message.WorkFuncResult(msg, item_access = user_info[2])
 
 # ---------------------------------------------------------
 # Работа с базой данных пользователей
 
 # Добавление пользователя, если он уже есть, то игнорируем
 def AddUser(a_UserID, a_UserName):
-    bot_bd.SQLRequestToBD("INSERT OR IGNORE INTO users (user_id, userName) VALUES (?, ?);", commit=True, param = (a_UserID, a_UserName))
+    bot_bd.SQLRequestToBD("INSERT OR IGNORE INTO users (user_id, userName, userAccess) VALUES (?, ?, ?);", commit=True, param = (a_UserID, a_UserName, access.GetItemDefaultAccessForModule(module_name)))
 
 def GetUserInfo(a_UserID):
     user_info = bot_bd.SQLRequestToBD('SELECT * FROM users WHERE user_id = ?', param = [a_UserID])

@@ -10,9 +10,16 @@ from aiogram import types
 from aiogram import Bot
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
 
+class WorkFuncResult():
+    def __init__(self, a_StringMessage : str, photo_id = None, item_access = None):
+        self.string_message = a_StringMessage
+        self.photo_id = photo_id
+        self.item_access = item_access
+
 def InfoMessageTemplate(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     async def GetMessage(a_Message : types.message):
-        return a_HelpMessage, None
+        print(a_HelpMessage)
+        return WorkFuncResult(a_HelpMessage)
 
     return SimpleMessageTemplate(GetMessage, a_GetButtonsFunc, a_AccessFunc, access_mode)
 
@@ -22,10 +29,19 @@ def SimpleMessageTemplate(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mod
         user_groups = groups.GetUserGroupData(user_id)
         if not user_access.CheckAccessString(a_AccessFunc(), user_groups, access_mode):
             return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
-        
-        msg, photo_id = await a_WorkFunc(a_Message)
+
+        res = await a_WorkFunc(a_Message)
+        if res is None:
+            return
+
+        msg = res.string_message
         if msg is None:
             return
+
+        photo_id = res.photo_id
+
+        if not res.item_access is None and not user_access.CheckAccessString(res.item_access, user_groups, access_mode):
+            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
 
         if photo_id is None or photo_id == 0 or photo_id == '0':
             return await bot.send_message(a_Message.from_user.id, msg, reply_markup = a_GetButtonsFunc(user_groups))

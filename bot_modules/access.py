@@ -22,9 +22,10 @@ module_name = 'access'
 init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
     modName TEXT,
     modAccess TEXT,
+    itemDefaultAccess TEXT,
     UNIQUE(modName)
 );""",
-f"INSERT OR IGNORE INTO {table_name} (modName, modAccess) VALUES ('{module_name}', 'other=-');"
+f"INSERT OR IGNORE INTO {table_name} (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
 ]
 
 # ---------------------------------------------------------
@@ -88,6 +89,13 @@ def GetAccessForModule(a_ModuleName):
     for i in alist:
         if i[0] == a_ModuleName:
             return i[1]
+    return ''
+
+def GetItemDefaultAccessForModule(a_ModuleName):
+    alist = GetModuleAccessList()
+    for i in alist:
+        if i[0] == a_ModuleName:
+            return i[2]
     return ''
 
 # Инициализация БД
