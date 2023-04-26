@@ -5,23 +5,13 @@
 
 from bot_sys import user_access, bot_bd, keyboard
 from bot_modules import access, groups
-from template import simple_message
+from template import simple_message, bd_item
 
 from aiogram import types
 
-def GetAllItemsTemplate(a_TableName):
-    def GetAllItems():
-        return bot_bd.SelectBDTemplate(a_TableName)()
-    return GetAllItems
-
-def GetBDItemsTemplate(a_TableName : str, a_KeyName : str):
-    def GetBDItem(a_KeyValue):
-        return bot_bd.SQLRequestToBD(f'SELECT * FROM {a_TableName} WHERE {a_KeyName} = ?', param = ([a_KeyValue]))
-    return GetBDItem
-
 def GetBDItemsListKeyboardButtonsTemplate(a_TableName : str, a_Prefix : str, a_GetButtonNameAndKeyValueAndAccessFunc, access_mode = user_access.AccessMode.VIEW):
     def GetBDItemsListKeyboardButtons(a_UserGroups):
-        items = GetAllItemsTemplate(a_TableName)()
+        items = bd_item.GetAllItemsTemplate(a_TableName)()
         items_button_list = []
         for t in items:
             bname, key_value, access = a_GetButtonNameAndKeyValueAndAccessFunc(t)

@@ -17,19 +17,20 @@ class WorkFuncResult():
         self.item_access = item_access
 
 def InfoMessageTemplate(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
-    async def GetMessage(a_Message : types.message):
+    async def GetMessage(a_Message : types.message, state = None):
         return WorkFuncResult(a_HelpMessage)
 
     return SimpleMessageTemplate(GetMessage, a_GetButtonsFunc, a_AccessFunc, access_mode)
 
 def SimpleMessageTemplate(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
-    async def SimpleMessage(a_Message : types.message):
+    async def SimpleMessage(a_Message : types.message, state = None):
         user_id = str(a_Message.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         if not user_access.CheckAccessString(a_AccessFunc(), user_groups, access_mode):
             return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
 
-        res = await a_WorkFunc(a_Message)
+        print(a_WorkFunc)
+        res = await a_WorkFunc(a_Message, state = state)
         if res is None:
             return
 

@@ -5,7 +5,7 @@
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, access, groups
-from template import bd_item_view, simple_message, bd_item_delete
+from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit
 
 from aiogram import Bot, types
 
@@ -33,12 +33,16 @@ module_name = 'projects'
 
 table_name = 'projects'
 key_name = 'projectID'
+photo_field = 'projectPhoto'
+name_field = 'projectName'
+desc_field = 'projectDesc'
+access_field = 'projectAccess'
 
 init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
-    projectPhoto TEXT,
-    projectName TEXT,
-    projectDesc TEXT,
-    projectAccess TEXT,
+    {photo_field} TEXT,
+    {name_field} TEXT,
+    {desc_field} TEXT,
+    {access_field} TEXT,
     {key_name} INTEGER PRIMARY KEY
 )''',
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=va', '{user_access.user_access_group_all}=va');"
@@ -91,38 +95,30 @@ project_success_create_message = '✅ Проект успешно добавле
 project_success_delete_message = '✅ Проект успешно удалён!'
 project_success_edit_message = '✅ Проект успешно отредактирован!'
 
-project_create_message_0= '''
-Редактирование проекта.
+# Редактирование проекта.
 
-Пожалуйста, выберите проект:
+project_start_edit_message= '''
+Пожалуйста, выберите действие:
 '''
 
-project_edit_message_1 = '''
-Редактирование проекта. Шаг №1
-
+project_edit_photo_message = '''
 Загрузите новую обложку для проекта (Фото):
 Она будет отображаться в его описании.
 '''
 
-project_edit_message_2 = '''
-Редактирование проекта. Шаг №2
-
+project_edit_name_message = '''
 Текущее название проекта:
 @proj_name
 
 Введите новое название проекта:
 '''
 
-project_edit_message_3 = '''
-Редактирование проекта. Шаг №3
-
+project_edit_desc_message = '''
 Текущее описание проекта:
 @proj_desc
 
 Введите новое описание проекта:
 '''
-
-project_cancel_edit_message = '🚫 Редактирование проекта отменено'
 
 project_select_to_edit_message = '''
 Выберите проект, который вы хотите отредактировать.
@@ -139,19 +135,24 @@ list_project_button_name = "📃 Список проектов"
 add_project_button_name = "✅ Добавить проект"
 del_project_button_name = "❌ Удалить проект"
 edit_project_button_name = "🛠 Редактировать проект"
-projects_canсel_button_name = "🚫 Отменить"
-projects_skip_button_name = "⏩ Пропустить"
 
-
-# Префиксы
-select_project_callback_prefix = 'sel_project:'
-delete_project_callback_prefix = 'del_project:'
-select_to_edit_project_callback_prefix = 'sel_to_edit_project:'
+edit_project_photo_button_name = "🛠 Изменить изображение"
+edit_project_name_button_name = "🛠 Изменить название"
+edit_project_desc_button_name = "🛠 Изменить описание"
 
 # ---------------------------------------------------------
 # Работа с кнопками
 
 def GetEditProjectKeyboardButtons(a_UserGroups):
+    cur_buttons = [
+        keyboard.ButtonWithAccess(edit_project_photo_button_name, user_access.AccessMode.EDIT, GetAccess()),
+        keyboard.ButtonWithAccess(edit_project_name_button_name, user_access.AccessMode.EDIT, GetAccess()),
+        keyboard.ButtonWithAccess(edit_project_desc_button_name, user_access.AccessMode.EDIT, GetAccess()),
+        ]
+    mods = [start]
+    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
+
+def GetStartProjectKeyboardButtons(a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(list_project_button_name, user_access.AccessMode.VIEW, GetAccess()),
         keyboard.ButtonWithAccess(add_project_button_name, user_access.AccessMode.ADD, GetAccess()),
@@ -161,26 +162,6 @@ def GetEditProjectKeyboardButtons(a_UserGroups):
     mods = [start]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
-def GetCancelKeyboardButtons(a_UserGroups):
-    cur_buttons = [
-        keyboard.ButtonWithAccess(projects_canсel_button_name, user_access.AccessMode.VIEW, GetAccess()),
-    ]
-    return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
-
-def GetSkipAndCancelKeyboardButtons(a_UserGroups):
-    cur_buttons = [
-        keyboard.ButtonWithAccess(projects_skip_button_name, user_access.AccessMode.VIEW, GetAccess()),
-        keyboard.ButtonWithAccess(projects_canсel_button_name, user_access.AccessMode.VIEW, GetAccess()),
-    ]
-    return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
-
-def GetProjectsListKeyboardButtons(a_UserGroups, a_Prefix):
-    projects = GetProjectList()
-    projects_button_list = []
-    for t in projects:
-        projects_button_list += [keyboard.Button(str(t[1]), t[3])]
-    return keyboard.MakeInlineKeyboard(projects_button_list, a_Prefix)
-
 # ---------------------------------------------------------
 # Обработка сообщений
 
@@ -188,26 +169,29 @@ def GetButtonNameAndKeyValueAndAccess(a_Item):
     # projectName projectID projectAccess
     return a_Item[1], a_Item[4], a_Item[3]
 
-async def ShowProject(a_CallbackQuery : types.CallbackQuery, a_Item):
-    if (len(a_Item) < 4):
-        return simple_message.WorkFuncResult(error_find_proj_message)
+def ShowMessageTemplate(a_StringMessage):
+    async def ShowProject(a_CallbackQuery : types.CallbackQuery, a_Item):
+        if (len(a_Item) < 4):
+            return simple_message.WorkFuncResult(error_find_proj_message)
 
-    photo_id = a_Item[0]
-    name =  a_Item[1]
-    desc = a_Item[2]
-    access = a_Item[3]
-    msg = project_open_message.replace('@proj_name', name).replace('@proj_desk', desc)
-    return simple_message.WorkFuncResult(msg, photo_id = photo_id, item_access = access)
+        photo_id = a_Item[0]
+        name =  a_Item[1]
+        desc = a_Item[2]
+        access = a_Item[3]
+        msg = a_StringMessage.replace('@proj_name', name).replace('@proj_desk', desc)
+        print(msg)
+        return simple_message.WorkFuncResult(msg, photo_id = photo_id, item_access = access)
+    return ShowProject
 
 select_handler = 0
 # стартовое сообщение
-async def ProjectsOpen(a_Message : types.message):
+async def ProjectsOpen(a_Message : types.message, state = None):
     user_id = str(a_Message.from_user.id)
     user_groups = groups.GetUserGroupData(user_id)
-    await a_Message.answer(base_project_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
+    await a_Message.answer(base_project_message, reply_markup = GetStartProjectKeyboardButtons(user_groups))
     await select_handler(a_Message)
     return None
-
+'''
 # Создание нового проекта 
 def GetProjectData(a_ProjectID):
     project = GetProject(a_ProjectID)
@@ -340,7 +324,7 @@ async def ProjectEditDescLoad(a_Message : types.message, state : FSMContext):
         log.Success(f'Изменён проект {prjName} пользователем {a_Message.from_user.id}.')
     await state.finish()
     await a_Message.answer(project_success_edit_message, reply_markup = GetEditProjectKeyboardButtons(user_groups))
-
+'''
 # Удаление проекта 
 
 async def ProjectPreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
@@ -409,14 +393,15 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, GetEditProjectKeyboardButtons, GetAccess), text = projects_button_name)
-
+    # Список проектов
+    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, GetStartProjectKeyboardButtons, GetAccess), text = projects_button_name)
     global select_handler
-    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowProject, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetEditProjectKeyboardButtons)
+    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetStartProjectKeyboardButtons)
 
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetEditProjectKeyboardButtons)
-
-# Добавление проекта
+    # Удаление проекта
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetStartProjectKeyboardButtons)
+    '''
+    # Добавление проекта
     dp.register_message_handler(ProjectCreate, text = add_project_button_name)
     dp.register_message_handler(ProjectPhotoSkip, text = projects_skip_button_name, state = FSMCreateProject.prjPhoto)
     dp.register_message_handler(ProjectCreateCancel, text = projects_canсel_button_name, state = FSMCreateProject.prjPhoto)
@@ -424,8 +409,13 @@ def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(ProjectCreateCancel, text = projects_canсel_button_name, state = FSMCreateProject.prjDesc)
     dp.register_message_handler(ProjectPhotoLoad, content_types = ['photo'], state = FSMCreateProject.prjPhoto)
     dp.register_message_handler(ProjectNameLoad, state = FSMCreateProject.prjName)
-    dp.register_message_handler(ProjectDescLoad, state = FSMCreateProject.prjDesc)
-# Редактирование проекта
+    dp.register_message_handler(ProjectDescLoad, state = FSMCreateProject.prjDesc)'''
+    # Редактирование проекта
+    dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, GetEditProjectKeyboardButtons, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.photo)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
+'''
     dp.register_message_handler(ProjectSelectForEdit, text = edit_project_button_name)
     dp.register_callback_query_handler(ProjectEdit, lambda x: x.data.startswith(select_to_edit_project_callback_prefix))
     dp.register_message_handler(ProjectEditPhotoSkip, text = projects_skip_button_name, state = FSMEditProject.prjPhoto)
@@ -434,5 +424,4 @@ def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(ProjectEditCancel, text = projects_canсel_button_name, state = FSMEditProject.prjDesc)
     dp.register_message_handler(ProjectEditPhotoLoad, content_types = ['photo'], state = FSMEditProject.prjPhoto)
     dp.register_message_handler(ProjectEditNameLoad, state = FSMEditProject.prjName)
-    dp.register_message_handler(ProjectEditDescLoad, state = FSMEditProject.prjDesc)
-# Удаление проекта
+    dp.register_message_handler(ProjectEditDescLoad, state = FSMEditProject.prjDesc)'''

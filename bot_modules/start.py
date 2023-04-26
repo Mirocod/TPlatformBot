@@ -38,7 +38,7 @@ def GetStartKeyboardButtons(a_UserGroups):
 # Обработка сообщений
 
 # Первичное привестивие
-async def StartMenu(a_Message):
+async def StartMenu(a_Message, state = None):
     user_id = str(a_Message.from_user.id)
     user_name = str(a_Message.from_user.username)
     profile.AddUser(user_id, user_name)

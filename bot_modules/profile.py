@@ -45,7 +45,7 @@ def GetStartKeyboardButtons(a_UserGroups):
 # ---------------------------------------------------------
 # Обработка сообщений
 
-async def ProfileOpen(a_Message):
+async def ProfileOpen(a_Message, state = None):
     user_info = GetUserInfo(a_Message.from_user.id)
     msg = profile_message
     if not user_info is None:
