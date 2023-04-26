@@ -5,7 +5,7 @@
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, access, groups
-from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit
+from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
 
 from aiogram import Bot, types
 
@@ -17,9 +17,9 @@ import sqlite3
 bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
 
 class FSMCreateProject(StatesGroup):
-    prjPhoto = State()
-    prjName = State()
-    prjDesc = State()
+    name = State()
+    desc = State()
+    photo = State()
     
 class FSMEditPhotoItem(StatesGroup):
     item_id = State()
@@ -71,26 +71,26 @@ error_find_proj_message = '''
 '''
 
 project_open_message = '''
-<b>Проект:  @proj_name</b>
+<b>Проект:  #field_name</b>
 
-@proj_desk
+#field_desc
 '''
 
-project_create_message_1 = '''
-Создание проекта. Шаг №1
+project_create_message_3 = '''
+Создание проекта. Шаг №3
 
 Загрузите обложку для проекта (Фото):
 Она будет отображаться в его описании.
 '''
 
-project_create_message_2 = '''
-Создание проекта. Шаг №2
+project_create_message_1 = '''
+Создание проекта. Шаг №1
 
 Введите название проекта:
 '''
 
-project_create_message_3 = '''
-Создание проекта. Шаг №3
+project_create_message_2 = '''
+Создание проекта. Шаг №2
 
 Введите описание проекта:
 '''
@@ -114,14 +114,14 @@ project_edit_photo_message = '''
 
 project_edit_name_message = '''
 Текущее название проекта:
-@proj_name
+#field_name
 
 Введите новое название проекта:
 '''
 
 project_edit_desc_message = '''
 Текущее описание проекта:
-@proj_desc
+#field_desc
 
 Введите новое описание проекта:
 '''
@@ -184,9 +184,14 @@ def ShowMessageTemplate(a_StringMessage):
         name =  a_Item[1]
         desc = a_Item[2]
         access = a_Item[3]
-        msg = a_StringMessage.replace('@proj_name', name).replace('@proj_desk', desc)
+        msg = a_StringMessage.replace('#field_name', name).replace('#field_desc', desc)
         print(msg)
         return simple_message.WorkFuncResult(msg, photo_id = photo_id, item_access = access)
+    return ShowProject
+
+def SimpleMessageTemplate(a_StringMessage):
+    async def ShowProject(a_CallbackQuery : types.CallbackQuery):
+        return simple_message.WorkFuncResult(a_StringMessage)
     return ShowProject
 
 select_handler = 0
@@ -291,7 +296,7 @@ async def PhotoEditLoad(a_Message : types.message, state : FSMContext, a_FileID)
     if msg != '':
         await bot.send_message(a_Message.from_user.id, msg, reply_markup = GetEditProjectKeyboardButtons(user_groups))
         return
-    await a_Message.answer(project_edit_message_2.replace('@proj_name', name), reply_markup = GetSkipAndCancelKeyboardButtons(user_groups))
+    await a_Message.answer(project_edit_message_2.replace('#field_name', name), reply_markup = GetSkipAndCancelKeyboardButtons(user_groups))
 
 async def ProjectEditPhotoLoad(a_Message : types.message, state : FSMContext):
     await PhotoEditLoad(a_Message, state, a_Message.photo[0].file_id)
@@ -357,14 +362,15 @@ def GetProject(a_ProjectID):
     db.close()
     return project
 
-def AddProject(a_prjPhoto, a_prjName, a_prjDesc):
-    db = sqlite3.connect(bot_bd.GetBDFileName())
-    cursor = db.cursor()
-    cursor.execute('INSERT INTO projects(projectPhoto, projectName, projectDesc, projectAccess) VALUES(?, ?, ?, ?)', (a_prjPhoto, a_prjName, a_prjDesc, access.GetItemDefaultAccessForModule(module_name)))
-    db.commit()
-    cursor.close()
-    db.close()
-    return
+def AddBDItemFunc(a_ItemData):
+    res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}) VALUES(?, ?, ?, ?)', commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name)))
+    
+    if error:
+        log.Error(f'Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
+    else:
+        log.Success(f'Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
+    
+    return res, error
 
 def EditProject(a_ProjectID, a_prjPhoto, a_prjName, a_prjDesc):
     db = sqlite3.connect(bot_bd.GetBDFileName())
@@ -406,8 +412,10 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Удаление проекта
     bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetStartProjectKeyboardButtons)
-    '''
     # Добавление проекта
+    bd_item_add.AddBDItem3RegisterHandlers(dp, FSMCreateProject, FSMCreateProject.name, FSMCreateProject.desc, FSMCreateProject.photo, add_project_button_name, AddBDItemFunc, SimpleMessageTemplate(project_create_message_1), SimpleMessageTemplate(project_create_message_2), SimpleMessageTemplate(project_create_message_3), SimpleMessageTemplate(project_success_create_message), table_name, key_name, name_field, desc_field, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetStartProjectKeyboardButtons)
+
+    '''
     dp.register_message_handler(ProjectCreate, text = add_project_button_name)
     dp.register_message_handler(ProjectPhotoSkip, text = projects_skip_button_name, state = FSMCreateProject.prjPhoto)
     dp.register_message_handler(ProjectCreateCancel, text = projects_canсel_button_name, state = FSMCreateProject.prjPhoto)
@@ -418,16 +426,7 @@ def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(ProjectDescLoad, state = FSMCreateProject.prjDesc)'''
     # Редактирование проекта
     dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, GetEditProjectKeyboardButtons, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.photo)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
-'''
-    dp.register_message_handler(ProjectSelectForEdit, text = edit_project_button_name)
-    dp.register_callback_query_handler(ProjectEdit, lambda x: x.data.startswith(select_to_edit_project_callback_prefix))
-    dp.register_message_handler(ProjectEditPhotoSkip, text = projects_skip_button_name, state = FSMEditProject.prjPhoto)
-    dp.register_message_handler(ProjectEditCancel, text = projects_canсel_button_name, state = FSMEditProject.prjPhoto)
-    dp.register_message_handler(ProjectEditCancel, text = projects_canсel_button_name, state = FSMEditProject.prjName)
-    dp.register_message_handler(ProjectEditCancel, text = projects_canсel_button_name, state = FSMEditProject.prjDesc)
-    dp.register_message_handler(ProjectEditPhotoLoad, content_types = ['photo'], state = FSMEditProject.prjPhoto)
-    dp.register_message_handler(ProjectEditNameLoad, state = FSMEditProject.prjName)
-    dp.register_message_handler(ProjectEditDescLoad, state = FSMEditProject.prjDesc)'''
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+

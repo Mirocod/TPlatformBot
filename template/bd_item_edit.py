@@ -3,9 +3,7 @@
 
 # Редактирование элемента в БД
 
-from enum import Enum
-
-from bot_sys import user_access, bot_bd, keyboard, log
+from bot_sys import user_access, bot_bd, log
 from bot_modules import access, groups
 from template import simple_message, bd_item_select, bd_item
 
@@ -13,7 +11,6 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-canсel_button_name = "🚫 Отменить"
 
 cancel_message = '''
 🚫 Редактирование отменено
@@ -22,18 +19,6 @@ cancel_message = '''
 error_photo_type_message = '''
 🚫 Фотографий не найдено
 '''
-
-def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
-    def GetCancelKeyboardButtons(a_UserGroups):
-        cur_buttons = [
-            keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc())
-        ]
-        return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
-    return GetCancelKeyboardButtons
-
-class FieldType(Enum):
-    text = 'text'
-    photo = 'photo'
 
 def StartEditBDItemTemplate(a_FSM, a_MessageFunc, a_TableName, a_KeyName, a_FieldName, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT):
     async def StartEditBDItem(a_CallbackQuery : types.CallbackQuery, state : FSMContext):
@@ -54,15 +39,15 @@ def StartEditBDItemTemplate(a_FSM, a_MessageFunc, a_TableName, a_KeyName, a_Fiel
         return res_of_work_func
     return simple_message.SimpleMessageTemplate(StartEditBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
-def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_MessageFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT, field_type = FieldType.text):
+def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
     async def FinishEditBDItem(a_Message : types.CallbackQuery, state : FSMContext):
         user_id = str(a_Message.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         error = None
         res_of_work_func = None
         async with state.proxy() as item_data:
-            if a_Message.text == canсel_button_name:
-                print('canсel_button_name', canсel_button_name)
+            if a_Message.text == bd_item.canсel_button_name:
+                print('canсel_button_name', bd_item.canсel_button_name)
                 await state.finish()
                 return simple_message.WorkFuncResult(cancel_message)
 
@@ -74,7 +59,7 @@ def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_Messa
                 return check
 
             field_value = ''
-            if field_type == FieldType.photo:
+            if field_type == bd_item.FieldType.photo:
                 if a_Message.photo == None or len(a_Message.photo) == 0:
                     await state.finish()
                     return simple_message.WorkFuncResult(error_photo_type_message)
@@ -90,14 +75,14 @@ def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_Messa
 
     return simple_message.SimpleMessageTemplate(FinishEditBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
-def EditBDItemRegisterHandlers(dp, a_FSM, a_ButtonName, a_StartMessage, a_EditMessageFunc, a_FinishMessageFunc, a_TableName : str, a_KeyName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT, field_type = FieldType.text):
-    keyboard_cancel = GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
+def EditBDItemRegisterHandlers(dp, a_FSM, a_ButtonName, a_StartMessage, a_EditMessageFunc, a_FinishMessageFunc, a_TableName : str, a_KeyName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
+    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
     a_Prefix = f'edit_{a_TableName}_{a_KeyName}_{a_FieldName}:'
     sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_Prefix, access_mode)
     dp.register_message_handler(sel_handler, text = a_ButtonName)
     dp.register_callback_query_handler(StartEditBDItemTemplate(a_FSM, a_EditMessageFunc, a_TableName, a_KeyName, a_FieldName, a_Prefix, a_AccessFunc, keyboard_cancel, access_mode), lambda x: x.data.startswith(a_Prefix))
-    if field_type == FieldType.photo:
-        dp.register_message_handler(FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode, field_type = field_type), content_types = ['photo'], state = a_FSM.item_field)
-        dp.register_message_handler(FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode, field_type = field_type), content_types = ['text'], state = a_FSM.item_field)
+    if field_type == bd_item.FieldType.photo:
+        dp.register_message_handler(FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = field_type), content_types = ['photo'], state = a_FSM.item_field)
+        dp.register_message_handler(FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = field_type), content_types = ['text'], state = a_FSM.item_field)
     else:
-        dp.register_message_handler(FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode, field_type = field_type), state = a_FSM.item_field)
+        dp.register_message_handler(FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = field_type), state = a_FSM.item_field)

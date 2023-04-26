@@ -2,9 +2,11 @@
 # Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Работа с элементом в БД
+from enum import Enum
 
-from bot_sys import user_access, bot_bd
+from bot_sys import user_access, bot_bd, keyboard, log
 from bot_modules import groups
+from template import simple_message
 
 from aiogram import types
 
@@ -17,6 +19,29 @@ class TableListParam():
 '''
 
 item_not_found = 'Элемент {item_id} не найден в таблице {a_TableName}'
+skip_button_name = "⏩ Пропустить"
+canсel_button_name = "🚫 Отменить"
+
+class FieldType(Enum):
+    text = 'text'
+    photo = 'photo'
+
+def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
+    def GetCancelKeyboardButtons(a_UserGroups):
+        cur_buttons = [
+            keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
+        ]
+        return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
+    return GetCancelKeyboardButtons
+
+def GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
+    def GetSkipAndCancelKeyboardButtons(a_UserGroups):
+        cur_buttons = [
+            keyboard.ButtonWithAccess(skip_button_name, a_AccessMode, a_AccessFunc()),
+            keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
+        ]
+        return keyboard.MakeKeyboard(cur_buttons, a_UserGroups)
+    return GetSkipAndCancelKeyboardButtons
 
 def GetAllItemsTemplate(a_TableName):
     def GetAllItems():
