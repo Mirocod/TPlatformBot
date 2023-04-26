@@ -39,7 +39,7 @@ def EditBDItemInTableTemplate(a_TableName : str, a_KeyName : str, a_FieldName : 
     return EditBDItemInTable
 
 def CheckAccessBDItemTemplate(a_TableName, a_KeyName, a_KeyValue, a_WorkFunc, a_AccessMode : user_access.AccessMode):
-    async def CheckAccessBDItem(a_CallbackQuery : types.CallbackQuery, a_ResultWorkFunc):
+    async def CheckAccessBDItem(a_CallbackQuery : types.CallbackQuery):
         user_id = str(a_CallbackQuery.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         item_id = a_KeyValue
@@ -47,15 +47,14 @@ def CheckAccessBDItemTemplate(a_TableName, a_KeyName, a_KeyValue, a_WorkFunc, a_
         if len(item) < 1:
             msg = item_not_found.replace('{item_id}', str(item_id)).replace('{a_TableName}', a_TableName)
             log.Error(msg)
-            return simple_message.WorkFuncResult(msg)
+            return simple_message.WorkFuncResult(msg), None
 
-        a_ResultWorkFunc = await a_WorkFunc(a_CallbackQuery, item[0])
-        if a_ResultWorkFunc is None or a_ResultWorkFunc.string_message is None:
-            print('a_ResultWorkFunc', a_ResultWorkFunc)
-            return a_ResultWorkFunc
+        result_work_func = await a_WorkFunc(a_CallbackQuery, item[0])
+        if result_work_func is None or result_work_func.string_message is None:
+            return result_work_func, result_work_func
 
-        if not a_ResultWorkFunc.item_access is None and not user_access.CheckAccessString(a_ResultWorkFunc.item_access, user_groups, a_AccessMode):
-            return simple_message.WorkFuncResult(access.access_denied_message)
+        if not result_work_func.item_access is None and not user_access.CheckAccessString(result_work_func.item_access, user_groups, a_AccessMode):
+            return simple_message.WorkFuncResult(access.access_denied_message), None
 
-        return None
+        return None, result_work_func
     return CheckAccessBDItem

@@ -23,9 +23,9 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VA
 start_message = '''
 <b>Добро пожаловать!</b>
 
-Выберите возмжные действия на кнопах ниже ⌨'''
+Выберите возможные действия на кнопах ниже ⌨'''
 
-start_menu_button_name = "≣ Главное меню"
+start_menu_button_name = "☰ Главное меню"
 
 # ---------------------------------------------------------
 # Работа с кнопками

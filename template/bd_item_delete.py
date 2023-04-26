@@ -14,8 +14,7 @@ def DeleteBDItemTemplate(a_TableName, a_KeyName, a_PreDeleteWorkFunc, a_PostDele
         user_id = str(a_CallbackQuery.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         item_id = str(a_CallbackQuery.data).replace(a_Prefix, '')
-        res_of_pre_del = None
-        check = await bd_item.CheckAccessBDItemTemplate(a_TableName, a_KeyName, item_id, a_PreDeleteWorkFunc, access_mode)(a_CallbackQuery, res_of_pre_del)
+        check, res_of_pre_del = await bd_item.CheckAccessBDItemTemplate(a_TableName, a_KeyName, item_id, a_PreDeleteWorkFunc, access_mode)(a_CallbackQuery)
 
         if not check is None:
             return check

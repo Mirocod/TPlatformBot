@@ -21,17 +21,23 @@ class FSMCreateProject(StatesGroup):
     prjName = State()
     prjDesc = State()
     
-class FSMEditProject(StatesGroup):
-    prjID = State()
-    prjPhoto = State()
-    prjName = State()
-    prjDesc = State()
+class FSMEditPhotoItem(StatesGroup):
+    item_id = State()
+    item_field = State()
+
+class FSMEditNameItem(StatesGroup):
+    item_id = State()
+    item_field = State()
+
+class FSMEditDeskItem(StatesGroup):
+    item_id = State()
+    item_field = State()
 
 # ---------------------------------------------------------
 # БД
 module_name = 'projects'
 
-table_name = 'projects'
+table_name = module_name
 key_name = 'projectID'
 photo_field = 'projectPhoto'
 name_field = 'projectName'
@@ -136,15 +142,15 @@ add_project_button_name = "✅ Добавить проект"
 del_project_button_name = "❌ Удалить проект"
 edit_project_button_name = "🛠 Редактировать проект"
 
-edit_project_photo_button_name = "🛠 Изменить изображение"
-edit_project_name_button_name = "🛠 Изменить название"
-edit_project_desc_button_name = "🛠 Изменить описание"
+edit_project_photo_button_name = "☐ Изменить изображение"
+edit_project_name_button_name = "≂ Изменить название"
+edit_project_desc_button_name = "𝌴 Изменить описание"
 
 # ---------------------------------------------------------
 # Работа с кнопками
 
 def GetEditProjectKeyboardButtons(a_UserGroups):
-    cur_buttons = [
+    cur_buttons = GetModuleButtons() + [
         keyboard.ButtonWithAccess(edit_project_photo_button_name, user_access.AccessMode.EDIT, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_name_button_name, user_access.AccessMode.EDIT, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_desc_button_name, user_access.AccessMode.EDIT, GetAccess()),
@@ -412,9 +418,9 @@ def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(ProjectDescLoad, state = FSMCreateProject.prjDesc)'''
     # Редактирование проекта
     dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, GetEditProjectKeyboardButtons, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.photo)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.photo)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item_edit.FieldType.text)
 '''
     dp.register_message_handler(ProjectSelectForEdit, text = edit_project_button_name)
     dp.register_callback_query_handler(ProjectEdit, lambda x: x.data.startswith(select_to_edit_project_callback_prefix))
