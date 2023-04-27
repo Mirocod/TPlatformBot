@@ -5,28 +5,43 @@
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
 from bot_modules import start, groups
-from template import simple_message, sql_request
+from template import simple_message, sql_request, bd_item_edit, bd_item
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import Dispatcher
+from aiogram import types
 
 class FSMRequestToBDAccess(StatesGroup):
     sqlRequest = State()
 
+
+class FSMEditAccessItem(StatesGroup):
+    item_id = State()
+    item_field = State()
+
+
+class FSMEditDefaultAccessItem(StatesGroup):
+    item_id = State()
+    item_field = State()
 # ---------------------------------------------------------
 # БД
 module_name = 'access'
 
 table_name = 'module_access'
+mod_name_field = 'modName'
+moduleaccess_field = 'modAccess'
+mod_default_access_field = 'itemDefaultAccess'
+
+#TODO: Автоматическое создание init_bd_cmds, необходимо table_name, mod_name_field ... объединить в объект
 
 init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
-    modName TEXT,
-    modAccess TEXT,
-    itemDefaultAccess TEXT,
-    UNIQUE(modName)
+    {mod_name_field} TEXT,
+    {moduleaccess_field} TEXT,
+    {mod_default_access_field} TEXT,
+    UNIQUE({mod_name_field})
 );""",
-f"INSERT OR IGNORE INTO {table_name} (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');"
+f"INSERT OR IGNORE INTO {table_name} ({mod_name_field}, {moduleaccess_field}, {mod_default_access_field}) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');"
 ]
 
 # ---------------------------------------------------------
@@ -63,12 +78,42 @@ access_button_name = "⛀ Доступ пользователей"
 sql_request_button_name = "⛁ Запрос к БД для редактирования доступа"
 help_button_name = "📄 Информация по редактированию доступа"
 
+# Редактирование доступа.
+
+moduleaccess_select_to_edit_message = '''
+Выберите модуль, который вы хотите отредактировать.
+'''
+
+edit_moduleaccess_access_button_name = "◇ Изменить доступ к модулю"
+moduleaccess_edit_access_message = f'''
+Текущий доступ к модулю #{mod_name_field}:
+#{moduleaccess_field}
+
+{user_access.user_access_readme}
+
+Введите новую строку доступа:
+'''
+
+edit_moduleaccess_default_access_button_name = "◈ Изменить доступ по умолчанию к модулю "
+moduleaccess_edit_default_access_message = f'''
+Текущий доступ по умолчанию к модулю #{mod_name_field}:
+#{mod_default_access_field}
+
+{user_access.user_access_readme}
+
+Введите новую строку доступа:
+'''
+
+moduleaccess_success_edit_message = '''✅ Проект успешно отредактирован!'''
+
 # ---------------------------------------------------------
 # Работа с кнопками
 
 def GetEditAccessKeyboardButtons(a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
+        keyboard.ButtonWithAccess(edit_moduleaccess_access_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
+        keyboard.ButtonWithAccess(edit_moduleaccess_default_access_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
         keyboard.ButtonWithAccess(help_button_name, user_access.AccessMode.VIEW, GetAccess())
     ]
     mods = [start]
@@ -76,6 +121,27 @@ def GetEditAccessKeyboardButtons(a_UserGroups):
 
 # ---------------------------------------------------------
 # Обработка сообщений
+
+def GetButtonNameAndKeyValueAndAccess(a_Item):
+    # ButtonName KeyValue Access
+    return a_Item[0], a_Item[0], a_Item[1]
+
+def ShowMessageTemplate(a_StringMessage):
+    async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
+        if (len(a_Item) < 3):
+            return simple_message.WorkFuncResult(error_find_proj_message)
+
+        msg = a_StringMessage.\
+                replace(f'#{mod_name_field}', a_Item[0]).\
+                replace(f'#{moduleaccess_field}', a_Item[1]).\
+                replace(f'#{mod_default_access_field}', a_Item[2])
+        return simple_message.WorkFuncResult(msg, item_access = a_Item[1])
+    return ShowMessage
+
+def SimpleMessageTemplate(a_StringMessage):
+    async def ShowMessage(a_CallbackQuery : types.CallbackQuery):
+        return simple_message.WorkFuncResult(a_StringMessage)
+    return ShowMessage
 
 # ---------------------------------------------------------
 # Работа с базой данных 
@@ -113,7 +179,11 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.InfoMessageTemplate(access_start_message, GetEditAccessKeyboardButtons, GetAccess), text = access_button_name)
-    dp.register_message_handler(simple_message.InfoMessageTemplate(help_message, GetEditAccessKeyboardButtons, GetAccess), text = help_button_name)
+    defaul_keyboard_func = GetEditAccessKeyboardButtons
+    dp.register_message_handler(simple_message.InfoMessageTemplate(access_start_message, defaul_keyboard_func, GetAccess), text = access_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplate(help_message, defaul_keyboard_func, GetAccess), text = help_button_name)
 
-    sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBDAccess, GetEditAccessKeyboardButtons, user_access.AccessMode.ACCEES_EDIT, GetAccess)
+    sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBDAccess, defaul_keyboard_func, user_access.AccessMode.ACCEES_EDIT, GetAccess)
+
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_moduleaccess_access_button_name, moduleaccess_select_to_edit_message, ShowMessageTemplate(moduleaccess_edit_access_message), ShowMessageTemplate(moduleaccess_success_edit_message), table_name, mod_name_field, moduleaccess_field, GetButtonNameAndKeyValueAndAccess, GetAccess, defaul_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDefaultAccessItem, edit_moduleaccess_default_access_button_name, moduleaccess_select_to_edit_message, ShowMessageTemplate(moduleaccess_edit_default_access_message), ShowMessageTemplate(moduleaccess_success_edit_message), table_name, mod_name_field, mod_default_access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, defaul_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)

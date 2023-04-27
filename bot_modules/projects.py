@@ -60,11 +60,13 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VA
 # ---------------------------------------------------------
 # Сообщения
 
+projects_button_name = "🟥 Проекты"
 base_project_message = '''
 <b>🟥 Проекты</b>
 
 '''
 
+list_project_button_name = "📃 Список проектов"
 select_project_message = '''
 Пожалуйста, выберите проект:
 '''
@@ -81,6 +83,9 @@ project_open_message = f'''
 Время создания: #{create_datetime_field}
 '''
 
+# Создание проекта
+
+add_project_button_name = "✅ Добавить проект"
 project_create_name_message = '''
 Создание проекта. Шаг №1
 
@@ -101,20 +106,25 @@ project_create_photo_message = '''
 '''
 
 project_success_create_message = '''✅ Проект успешно добавлен!'''
-project_success_delete_message = '''✅ Проект успешно удалён!'''
-project_success_edit_message = '''✅ Проект успешно отредактирован!'''
 
 # Редактирование проекта.
 
+edit_project_button_name = "🛠 Редактировать проект"
 project_start_edit_message= '''
 Пожалуйста, выберите действие:
 '''
 
+project_select_to_edit_message = '''
+Выберите проект, который вы хотите отредактировать.
+'''
+
+edit_project_photo_button_name = "☐ Изменить изображение"
 project_edit_photo_message = '''
 Загрузите новую обложку для проекта (Фото):
 Она будет отображаться в его описании.
 '''
 
+edit_project_name_button_name = "≂ Изменить название"
 project_edit_name_message = f'''
 Текущее название проекта:
 #{name_field}
@@ -122,6 +132,7 @@ project_edit_name_message = f'''
 Введите новое название проекта:
 '''
 
+edit_project_desc_button_name = "𝌴 Изменить описание"
 project_edit_desc_message = f'''
 Текущее описание проекта:
 #{desc_field}
@@ -129,35 +140,27 @@ project_edit_desc_message = f'''
 Введите новое описание проекта:
 '''
 
+edit_project_access_button_name = "✋ Изменить доступ"
 project_edit_access_message = f'''
 Текущий доступ к проекту:
 #{access_field}
 
 {user_access.user_access_readme}
 
-Введите новое описание проекта:
+Введите новую строку доступа:
 '''
 
-project_select_to_edit_message = '''
-Выберите проект, который вы хотите отредактировать.
-'''
+project_success_edit_message = '''✅ Проект успешно отредактирован!'''
 
+# Удаление проекта
 
+del_project_button_name = "❌ Удалить проект"
 project_select_to_delete_message = '''
 Выберите проект, который вы хотите удалить.
 Все задачи и потребности в этом проекте так же будут удалены!
 '''
 
-projects_button_name = "🟥 Проекты"
-list_project_button_name = "📃 Список проектов"
-add_project_button_name = "✅ Добавить проект"
-del_project_button_name = "❌ Удалить проект"
-edit_project_button_name = "🛠 Редактировать проект"
-
-edit_project_photo_button_name = "☐ Изменить изображение"
-edit_project_name_button_name = "≂ Изменить название"
-edit_project_desc_button_name = "𝌴 Изменить описание"
-edit_project_access_button_name = "✋ Изменить доступ"
+project_success_delete_message = '''✅ Проект успешно удалён!'''
 
 # ---------------------------------------------------------
 # Работа с кнопками
@@ -199,23 +202,22 @@ def GetButtonNameAndKeyValueAndAccess(a_Item):
     return a_Item[1], a_Item[0], a_Item[4]
 
 def ShowMessageTemplate(a_StringMessage):
-    async def ShowProject(a_CallbackQuery : types.CallbackQuery, a_Item):
+    async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         if (len(a_Item) < 6):
             return simple_message.WorkFuncResult(error_find_proj_message)
 
-        name =  a_Item[1]
-        desc = a_Item[2]
-        photo_id = a_Item[3]
-        access = a_Item[4]
-        create_time = a_Item[5]
-        msg = a_StringMessage.replace(f'#{name_field}', name).replace(f'#{desc_field}', desc).replace(f'#{create_datetime_field}', create_time).replace(f'#{access_field}', access)
-        return simple_message.WorkFuncResult(msg, photo_id = photo_id, item_access = access)
-    return ShowProject
+        msg = a_StringMessage.\
+                replace(f'#{name_field}', a_Item[1]).\
+                replace(f'#{desc_field}', a_Item[2]).\
+                replace(f'#{create_datetime_field}', a_Item[5]).\
+                replace(f'#{access_field}', a_Item[4])
+        return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4])
+    return ShowMessage
 
 def SimpleMessageTemplate(a_StringMessage):
-    async def ShowProject(a_CallbackQuery : types.CallbackQuery):
+    async def ShowMessage(a_CallbackQuery : types.CallbackQuery):
         return simple_message.WorkFuncResult(a_StringMessage)
-    return ShowProject
+    return ShowMessage
 
 # Удаление проекта 
 
@@ -235,12 +237,12 @@ async def ProjectPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
 def AddBDItemFunc(a_ItemData):
     res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
             commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name)))
-    
+
     if error:
         log.Error(f'Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
     else:
         log.Success(f'Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
-    
+
     return res, error
 
 # ---------------------------------------------------------

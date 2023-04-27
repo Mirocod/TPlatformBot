@@ -46,7 +46,7 @@ def SQLRequestToBD(a_Request : str, commit = False, return_error = False, param 
         error = "Ошибка sqlite3:" + str(e)
     cursor.close()
     db.close()
-    if not error: log.Success(f'Выполнен запроса [{a_Request}]')
+    if not error and commit: log.Success(f'Выполнен запрос [{a_Request}]')
     if return_error:
         return result, error
     return result
