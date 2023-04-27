@@ -47,7 +47,6 @@ def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_Messa
         res_of_work_func = None
         async with state.proxy() as item_data:
             if a_Message.text == bd_item.canсel_button_name:
-                print('canсel_button_name', bd_item.canсel_button_name)
                 await state.finish()
                 return simple_message.WorkFuncResult(cancel_message)
 

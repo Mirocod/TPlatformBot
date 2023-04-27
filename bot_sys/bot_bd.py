@@ -20,7 +20,6 @@ def BDExecute(a_Commands):
     db = sqlite3.connect(GetBDFileName())
     cursor = db.cursor()
     for cmd in a_Commands:
-        print(cmd)
         cursor.execute(cmd)
     db.commit()
     cursor.close()

@@ -42,7 +42,7 @@ async def StartMenu(a_Message, state = None):
     user_id = str(a_Message.from_user.id)
     user_name = str(a_Message.from_user.username)
     profile.AddUser(user_id, user_name)
-    log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте')
+    log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте. Полные данные {a_Message.from_user}.')
     return simple_message.WorkFuncResult(start_message)
 
 # ---------------------------------------------------------
