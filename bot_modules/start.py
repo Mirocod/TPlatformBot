@@ -30,7 +30,7 @@ start_menu_button_name = "☰ Главное меню"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetStartKeyboardButtons(a_UserGroups):
+def GetStartKeyboardButtons(a_Message, a_UserGroups):
     mods = [profile, projects, groups, access, backup]
     return keyboard.MakeKeyboardForMods(mods, a_UserGroups)
 

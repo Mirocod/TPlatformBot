@@ -80,7 +80,7 @@ help_button_name = "📄 Информация по группам"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetEditGroupKeyboardButtons(a_UserGroups):
+def GetEditGroupKeyboardButtons(a_Message, a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.EDIT, GetAccess()), 
         keyboard.ButtonWithAccess(help_button_name, user_access.AccessMode.VIEW, GetAccess())

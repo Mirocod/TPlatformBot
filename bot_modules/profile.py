@@ -57,7 +57,7 @@ user_profile_button_name = "📰 Профиль"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetStartKeyboardButtons(a_UserGroups):
+def GetStartKeyboardButtons(a_Message, a_UserGroups):
     mods = [start]
     return keyboard.MakeKeyboardForMods(mods, a_UserGroups)
 

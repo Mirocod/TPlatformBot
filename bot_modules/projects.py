@@ -118,13 +118,13 @@ project_select_to_edit_message = '''
 Выберите проект, который вы хотите отредактировать.
 '''
 
-edit_project_photo_button_name = "☐ Изменить изображение"
+edit_project_photo_button_name = "☐ Изменить изображение в проекте"
 project_edit_photo_message = '''
 Загрузите новую обложку для проекта (Фото):
 Она будет отображаться в его описании.
 '''
 
-edit_project_name_button_name = "≂ Изменить название"
+edit_project_name_button_name = "≂ Изменить название в проекте"
 project_edit_name_message = f'''
 Текущее название проекта:
 #{name_field}
@@ -132,7 +132,7 @@ project_edit_name_message = f'''
 Введите новое название проекта:
 '''
 
-edit_project_desc_button_name = "𝌴 Изменить описание"
+edit_project_desc_button_name = "𝌴 Изменить описание в проекте"
 project_edit_desc_message = f'''
 Текущее описание проекта:
 #{desc_field}
@@ -140,7 +140,7 @@ project_edit_desc_message = f'''
 Введите новое описание проекта:
 '''
 
-edit_project_access_button_name = "✋ Изменить доступ"
+edit_project_access_button_name = "✋ Изменить доступ к проекту"
 project_edit_access_message = f'''
 Текущий доступ к проекту:
 #{access_field}
@@ -165,7 +165,7 @@ project_success_delete_message = '''✅ Проект успешно удалён
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetEditProjectKeyboardButtons(a_UserGroups):
+def GetEditProjectKeyboardButtons(a_Message, a_UserGroups):
     cur_buttons = GetModuleButtons() + [
         keyboard.ButtonWithAccess(edit_project_photo_button_name, user_access.AccessMode.EDIT, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_name_button_name, user_access.AccessMode.EDIT, GetAccess()),
@@ -175,7 +175,7 @@ def GetEditProjectKeyboardButtons(a_UserGroups):
     mods = [start]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
-def GetStartProjectKeyboardButtons(a_UserGroups):
+def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(list_project_button_name, user_access.AccessMode.VIEW, GetAccess()),
         keyboard.ButtonWithAccess(add_project_button_name, user_access.AccessMode.ADD, GetAccess()),
@@ -193,7 +193,7 @@ select_handler = 0
 async def ProjectsOpen(a_Message : types.message, state = None):
     user_id = str(a_Message.from_user.id)
     user_groups = groups.GetUserGroupData(user_id)
-    await a_Message.answer(base_project_message, reply_markup = GetStartProjectKeyboardButtons(user_groups))
+    await a_Message.answer(base_project_message, reply_markup = GetStartProjectKeyboardButtons(a_Message, user_groups))
     await select_handler(a_Message)
     return None
 
@@ -261,22 +261,24 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
+    defaul_keyboard_func = GetStartProjectKeyboardButtons
 
     # Список проектов
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, GetStartProjectKeyboardButtons, GetAccess), text = projects_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
     global select_handler
-    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetStartProjectKeyboardButtons)
+    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Удаление проекта
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, GetStartProjectKeyboardButtons)
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Добавление проекта
     bd_item_add.AddBDItem3RegisterHandlers(dp, FSMCreateProject, FSMCreateProject.name, FSMCreateProject.desc, FSMCreateProject.photo, add_project_button_name, AddBDItemFunc, SimpleMessageTemplate(project_create_name_message), SimpleMessageTemplate(project_create_desc_message), SimpleMessageTemplate(project_create_photo_message), SimpleMessageTemplate(project_success_create_message), table_name, key_name, name_field, desc_field, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetStartProjectKeyboardButtons)
 
+    edit_keyboard_func = GetEditProjectKeyboardButtons
     # Редактирование проекта
-    dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, GetEditProjectKeyboardButtons, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_project_access_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_access_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
+    dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_project_access_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_access_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
 

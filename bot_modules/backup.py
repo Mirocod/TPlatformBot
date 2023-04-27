@@ -51,7 +51,7 @@ backup_log_button_name = "📃 Логи"
 # ---------------------------------------------------------
 # Работа с кнопками
 
-def GetBackupKeyboardButtons(a_UserGroups):
+def GetBackupKeyboardButtons(a_Message, a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(backup_bd_button_name, user_access.AccessMode.EDIT, GetAccess()), 
         keyboard.ButtonWithAccess(backup_log_button_name, user_access.AccessMode.EDIT, GetAccess())

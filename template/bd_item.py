@@ -27,7 +27,7 @@ class FieldType(Enum):
     photo = 'photo'
 
 def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
-    def GetCancelKeyboardButtons(a_UserGroups):
+    def GetCancelKeyboardButtons(a_Message, a_UserGroups):
         cur_buttons = [
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
         ]
@@ -35,7 +35,7 @@ def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
     return GetCancelKeyboardButtons
 
 def GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
-    def GetSkipAndCancelKeyboardButtons(a_UserGroups):
+    def GetSkipAndCancelKeyboardButtons(a_Message, a_UserGroups):
         cur_buttons = [
             keyboard.ButtonWithAccess(skip_button_name, a_AccessMode, a_AccessFunc()),
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),

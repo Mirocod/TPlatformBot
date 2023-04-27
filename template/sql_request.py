@@ -15,7 +15,7 @@ cancel_message = '''
 🚫 Запрос к БД отменён
 '''
 
-def GetCancelKeyboardButtons(a_UserGroups, a_AccessFunc, a_AccessMode):
+def GetCancelKeyboardButtons(a_Message, a_UserGroups, a_AccessFunc, a_AccessMode):
     cur_buttons = [
         keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc())
     ]
@@ -26,9 +26,9 @@ def RequestToBDTemplate(a_StartMessage, a_AccessFunc, a_FSM, a_AccessMode):
         user_id = str(a_Message.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         if not user_access.CheckAccessString(a_AccessFunc(), user_groups, a_AccessMode):
-            return await a_Message.answer(access.access_denied_message, reply_markup = GetCancelKeyboardButtons(user_groups, a_AccessFunc, a_AccessMode))
+            return await a_Message.answer(access.access_denied_message, reply_markup = GetCancelKeyboardButtons(a_Message, user_groups, a_AccessFunc, a_AccessMode))
         await a_FSM.sqlRequest.set()
-        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(user_groups, a_AccessFunc, a_AccessMode), parse_mode='Markdown')
+        await a_Message.answer(a_StartMessage, reply_markup = GetCancelKeyboardButtons(a_Message, user_groups, a_AccessFunc, a_AccessMode), parse_mode='Markdown')
     return RequestToBDStart
 
 def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc, a_AccessMode):
@@ -36,12 +36,12 @@ def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc, a_AccessMode):
         user_id = str(a_Message.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         if not user_access.CheckAccessString(a_AccessFunc(), user_groups, a_AccessMode):
-            return await a_Message.answer(access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
+            return await a_Message.answer(access.access_denied_message, reply_markup = a_GetButtonsFunc(a_Message, user_groups))
         result = ''
         async with state.proxy() as prjData:
             if a_Message.text == canсel_button_name:
                 await state.finish()
-                return await a_Message.answer(cancel_message, reply_markup = a_GetButtonsFunc(user_groups))
+                return await a_Message.answer(cancel_message, reply_markup = a_GetButtonsFunc(a_Message, user_groups))
 
             sql_request = a_Message.text
             log.Success(f'Сделан запрос [{sql_request}] пользователем {a_Message.from_user.id}.')
@@ -52,7 +52,7 @@ def RequestToBDFinishTemplate(a_GetButtonsFunc, a_AccessFunc, a_AccessMode):
             else:
                 log.Success(f'Результат запроса [{sql_request}] от пользователя {a_Message.from_user.id} следующий [{result}].')
         await state.finish()
-        await a_Message.answer(str(result), reply_markup = a_GetButtonsFunc(user_groups))
+        await a_Message.answer(str(result), reply_markup = a_GetButtonsFunc(a_Message, user_groups))
     return RequestToBDFinish
 
 def RequestToBDRegisterHandlers(dp, a_RequestButtonName, a_RequestStartMessage, a_FSM, a_GetButtonsFunc, a_AccessMode, a_AccessFunc):

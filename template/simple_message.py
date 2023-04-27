@@ -29,7 +29,7 @@ def SimpleMessageTemplate(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mod
         user_id = str(a_Message.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
         if not user_access.CheckAccessString(a_AccessFunc(), user_groups, access_mode):
-            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = a_GetButtonsFunc(user_groups))
+            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = a_GetButtonsFunc(a_Message, user_groups))
 
         res = await a_WorkFunc(a_Message, state = state)
         if res is None:
@@ -46,10 +46,10 @@ def SimpleMessageTemplate(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mod
         photo_id = res.photo_id
 
         if not res.item_access is None and not user_access.CheckAccessString(res.item_access, user_groups, access_mode):
-            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = keyborad_func(user_groups))
+            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = keyborad_func(a_Message, user_groups))
 
         if photo_id is None or photo_id == 0 or photo_id == '0':
-            return await bot.send_message(a_Message.from_user.id, msg, reply_markup = keyborad_func(user_groups))
+            return await bot.send_message(a_Message.from_user.id, msg, reply_markup = keyborad_func(a_Message, user_groups))
 
-        await bot.send_photo(user_id, photo_id, msg, reply_markup = keyborad_func(user_groups))
+        await bot.send_photo(user_id, photo_id, msg, reply_markup = keyborad_func(a_Message, user_groups))
     return SimpleMessage

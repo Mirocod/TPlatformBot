@@ -101,7 +101,7 @@ def AddBDItem3RegisterHandlers(dp, a_FSM, a_FSMName, a_FSMDesc, a_FSMPhoto, a_Bu
     keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
     keyboard_skip_and_cancel = bd_item.GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
     a_Prefix = f'add_{a_TableName}_{a_KeyName}_{a_NameField}_{a_DescField}_{a_PhotoField}:'
-    #    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_Prefix, access_mode)
+    #    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode)
     #    dp.register_message_handler(sel_handler, text = a_ButtonName)
     dp.register_message_handler(StartAddBDItemTemplate(a_FSM, a_FSMName, a_AddNameMessageFunc, a_TableName, a_KeyName, a_NameField, a_Prefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), text = a_ButtonName)
     dp.register_message_handler(NextAddBDItemTemplate(a_FSM, None, a_TableName, a_KeyName, a_NameField, a_AddDescMessageFunc, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMName)

@@ -78,7 +78,7 @@ def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_Messa
 def EditBDItemRegisterHandlers(dp, a_FSM, a_ButtonName, a_StartMessage, a_EditMessageFunc, a_FinishMessageFunc, a_TableName : str, a_KeyName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
     keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
     a_Prefix = f'edit_{a_TableName}_{a_KeyName}_{a_FieldName}:'
-    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_Prefix, access_mode)
+    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode)
     dp.register_message_handler(sel_handler, text = a_ButtonName)
     dp.register_callback_query_handler(StartEditBDItemTemplate(a_FSM, a_EditMessageFunc, a_TableName, a_KeyName, a_FieldName, a_Prefix, a_AccessFunc, keyboard_cancel, access_mode), lambda x: x.data.startswith(a_Prefix))
     if field_type == bd_item.FieldType.photo:
