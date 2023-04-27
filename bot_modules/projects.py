@@ -1,20 +1,18 @@
 # -*- coding: utf8 -*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Проекты
 
-from bot_sys import bot_bd, log, config, keyboard, user_access
+from bot_sys import bot_bd, log, keyboard, user_access
 from bot_modules import start, access, groups
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
 
-from aiogram import Bot, types
+from aiogram import types
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import Dispatcher
 import sqlite3
-
-bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
 
 class FSMCreateProject(StatesGroup):
     name = State()
@@ -33,6 +31,9 @@ class FSMEditDeskItem(StatesGroup):
     item_id = State()
     item_field = State()
 
+class FSMEditAccessItem(StatesGroup):
+    item_id = State()
+    item_field = State()
 # ---------------------------------------------------------
 # БД
 module_name = 'projects'
@@ -53,7 +54,7 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     {access_field} TEXT,
     {create_datetime_field} TEXT
     )''',
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=va', '{user_access.user_access_group_all}=va');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
 
 # ---------------------------------------------------------
@@ -128,6 +129,15 @@ project_edit_desc_message = f'''
 Введите новое описание проекта:
 '''
 
+project_edit_access_message = f'''
+Текущий доступ к проекту:
+#{access_field}
+
+{user_access.user_access_readme}
+
+Введите новое описание проекта:
+'''
+
 project_select_to_edit_message = '''
 Выберите проект, который вы хотите отредактировать.
 '''
@@ -147,6 +157,7 @@ edit_project_button_name = "🛠 Редактировать проект"
 edit_project_photo_button_name = "☐ Изменить изображение"
 edit_project_name_button_name = "≂ Изменить название"
 edit_project_desc_button_name = "𝌴 Изменить описание"
+edit_project_access_button_name = "✋ Изменить доступ"
 
 # ---------------------------------------------------------
 # Работа с кнопками
@@ -156,6 +167,7 @@ def GetEditProjectKeyboardButtons(a_UserGroups):
         keyboard.ButtonWithAccess(edit_project_photo_button_name, user_access.AccessMode.EDIT, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_name_button_name, user_access.AccessMode.EDIT, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_desc_button_name, user_access.AccessMode.EDIT, GetAccess()),
+        keyboard.ButtonWithAccess(edit_project_access_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
         ]
     mods = [start]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
@@ -196,7 +208,7 @@ def ShowMessageTemplate(a_StringMessage):
         photo_id = a_Item[3]
         access = a_Item[4]
         create_time = a_Item[5]
-        msg = a_StringMessage.replace(f'#{name_field}', name).replace(f'#{desc_field}', desc).replace(f'#{create_datetime_field}', create_time)
+        msg = a_StringMessage.replace(f'#{name_field}', name).replace(f'#{desc_field}', desc).replace(f'#{create_datetime_field}', create_time).replace(f'#{access_field}', access)
         return simple_message.WorkFuncResult(msg, photo_id = photo_id, item_access = access)
     return ShowProject
 
@@ -221,7 +233,7 @@ async def ProjectPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
 # Работа с базой данных проектов
 
 def AddBDItemFunc(a_ItemData):
-    res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, datetime(\'now\'))', 
+    res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
             commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name)))
     
     if error:
@@ -264,4 +276,5 @@ def RegisterHandlers(dp : Dispatcher):
     bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_project_photo_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
     bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
     bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_project_access_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_access_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetEditProjectKeyboardButtons, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
 

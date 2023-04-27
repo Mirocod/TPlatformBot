@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Группы пользователей
 
@@ -18,17 +18,32 @@ class FSMRequestToBD(StatesGroup):
 # БД
 module_name = 'groups'
 
-init_bd_cmds = ["""CREATE TABLE IF NOT EXISTS user_groups(
-    group_id INTEGER PRIMARY KEY NOT NULL,
-    groupName TEXT,
-    UNIQUE(group_id)
+table_groups_name = 'user_groups'
+table_user_in_groups_name = 'user_in_groups'
+
+key_table_groups_name = 'group_id'
+name_table_groups_field = 'groupName'
+user_id_field = 'user_id'
+access_field = 'access'
+create_datetime_field = 'createDateTime'
+
+init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_groups_name}(
+    {key_table_groups_name} INTEGER PRIMARY KEY NOT NULL,
+    {name_table_groups_field} TEXT,
+    {access_field} TEXT,
+    {create_datetime_field} TEXT,
+    UNIQUE({key_table_groups_name}),
+    UNIQUE({name_table_groups_field})
 );""",
-"""CREATE TABLE IF NOT EXISTS user_in_groups(
-    user_id INTEGER,
-    group_id INTEGER,
-    UNIQUE(user_id, group_id)
+f"""CREATE TABLE IF NOT EXISTS {table_user_in_groups_name}(
+    {user_id_field} INTEGER,
+    {key_table_groups_name} INTEGER,
+    {access_field} TEXT,
+    {create_datetime_field} TEXT,
+    UNIQUE({user_id_field}, {key_table_groups_name})
 );""",
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');",
+f"INSERT OR IGNORE INTO {table_groups_name} ({name_table_groups_field}, {access_field}, {create_datetime_field}) VALUES ('{user_access.user_access_group_new}', '{user_access.user_access_group_new}=-', {bot_bd.GetBDDateTimeNow()});"
 ]
 
 # ---------------------------------------------------------

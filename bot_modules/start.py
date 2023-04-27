@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Стартовое меню
 
@@ -41,7 +41,11 @@ def GetStartKeyboardButtons(a_UserGroups):
 async def StartMenu(a_Message, state = None):
     user_id = str(a_Message.from_user.id)
     user_name = str(a_Message.from_user.username)
-    profile.AddUser(user_id, user_name)
+    first_name = str(a_Message.from_user.first_name)
+    last_name = str(a_Message.from_user.last_name)
+    is_bot = str(a_Message.from_user.is_bot)
+    language_code = str(a_Message.from_user.language_code)
+    profile.AddUser(user_id, user_name, first_name, last_name, is_bot, language_code)
     log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте. Полные данные {a_Message.from_user}.')
     return simple_message.WorkFuncResult(start_message)
 

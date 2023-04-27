@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Редактирование элемента в БД
 
@@ -11,6 +11,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+#TODO: Переделать на FinishOrNextAddBDItemTemplate StartAddBDItemTemplate
 
 cancel_message = '''
 🚫 Редактирование отменено

@@ -1,5 +1,5 @@
 #-*-coding utf-8-*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 import sqlite3
 from bot_sys import log
@@ -16,14 +16,12 @@ def GetBDFileName():
 
 # ---------------------------------------------------------
 
+def GetBDDateTimeNow():
+    return 'datetime(\'now\')'
+
 def BDExecute(a_Commands):
-    db = sqlite3.connect(GetBDFileName())
-    cursor = db.cursor()
     for cmd in a_Commands:
-        cursor.execute(cmd)
-    db.commit()
-    cursor.close()
-    db.close()
+        SQLRequestToBD(cmd, commit = True)
 
 def SelectBDTemplate(a_TableName):
     def SelectBD():
@@ -48,6 +46,7 @@ def SQLRequestToBD(a_Request : str, commit = False, return_error = False, param 
         error = "Ошибка sqlite3:" + str(e)
     cursor.close()
     db.close()
+    if not error: log.Success(f'Выполнен запроса [{a_Request}]')
     if return_error:
         return result, error
     return result

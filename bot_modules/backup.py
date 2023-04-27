@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Бэкапы пользователя
 
@@ -20,7 +20,7 @@ bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML
 module_name = 'backup'
 
 init_bd_cmds = [
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');"
 ]
 
 # ---------------------------------------------------------

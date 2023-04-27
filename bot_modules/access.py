@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-# Общественное достояние 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
 # Права пользователей
 
@@ -16,8 +16,9 @@ class FSMRequestToBDAccess(StatesGroup):
 
 # ---------------------------------------------------------
 # БД
-table_name = 'module_access'
 module_name = 'access'
+
+table_name = 'module_access'
 
 init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
     modName TEXT,
@@ -25,7 +26,7 @@ init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
     itemDefaultAccess TEXT,
     UNIQUE(modName)
 );""",
-f"INSERT OR IGNORE INTO {table_name} (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
+f"INSERT OR IGNORE INTO {table_name} (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');"
 ]
 
 # ---------------------------------------------------------
@@ -47,8 +48,9 @@ request_start_message = '''
 '''
 
 help_message = '''
-📄 Существует БД для работы с правами
-`module_access (modName, modAccess)` - содержит права для модулей
+📄 Существует одна БД для работы с правами для модулей
+Имя БД: module_access 
+Поля:(modName, modAccess)
 
 modAccess - строка
 ''' + user_access.user_access_readme
