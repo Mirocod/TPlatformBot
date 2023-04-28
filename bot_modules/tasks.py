@@ -4,8 +4,8 @@
 # Задачи
 
 from bot_sys import bot_bd, log, keyboard, user_access
-from bot_modules import start, access, groups
-from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
+from bot_modules import start, access, groups, projects
+from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add, bd_item_select
 
 from aiogram import types
 
@@ -53,7 +53,7 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     {desc_field} TEXT,
     {photo_field} TEXT,
     {access_field} TEXT,
-    {create_datetime_field} TEXT
+    {create_datetime_field} TEXT,
     {parent_id_field} INTEGER
     )''',
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
@@ -62,9 +62,9 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VA
 # ---------------------------------------------------------
 # Сообщения
 
-tasks_button_name = "🟥 Задачи"
+tasks_button_name = "✎ Задачи"
 base_task_message = '''
-<b>🟥 Задачи</b>
+<b>✎ Задачи</b>
 
 '''
 
@@ -262,40 +262,46 @@ def GetModuleButtons():
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetStartTaskKeyboardButtons
-
     # Стартовое сообщение
     dp.register_message_handler(simple_message.SimpleMessageTemplate(TasksOpen, defaul_keyboard_func, GetAccess), text = tasks_button_name)
+    # Список задач projects.
+    a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'view_task', list_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)
+    bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, a_Prefix, parent_id_field, table_name, key_name, ShowMessageTemplate(task_open_message), GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func, access_mode = user_access.AccessMode.VIEW)
 
-    # Список задач
-    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_task_button_name, table_name, key_name, ShowMessageTemplate(task_open_message), GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
-
+    '''
     # Удаление задачи
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_task_button_name, table_name, key_name, TaskPreDelete, TaskPostDelete, GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
+    #    a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'del_task', add_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)
+    #    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_task_button_name, table_name, key_name, TaskPreDelete, TaskPostDelete, GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
+    '''
 
     # Добавление задачи
+    a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'add_task', add_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)
     bd_item_add.AddBDItem3RegisterHandlers(dp, \
-            bd_item.GetCheckForTextFunc(add_project_button_name), \
-            FSMCreateProject, FSMCreateProject.name,\
-            FSMCreateProject.desc, FSMCreateProject.photo,\
-            AddBDItemFunc, SimpleMessageTemplate(project_create_name_message), \
-            SimpleMessageTemplate(project_create_desc_message), \
-            SimpleMessageTemplate(project_create_photo_message), \
-            SimpleMessageTemplate(project_success_create_message), \
-            None, \
-            None, \
+            bd_item.GetCheckForPrefixFunc(a_Prefix), \
+            FSMCreateTask, \
+            FSMCreateTask.name,\
+            FSMCreateTask.desc, \
+            FSMCreateTask.photo,\
+            AddBDItemFunc, \
+            SimpleMessageTemplate(task_create_name_message), \
+            SimpleMessageTemplate(task_create_desc_message), \
+            SimpleMessageTemplate(task_create_photo_message), \
+            SimpleMessageTemplate(task_success_create_message), \
+            projects.table_name, \
+            projects.key_name, \
             name_field, \
             desc_field, \
             photo_field, \
             GetButtonNameAndKeyValueAndAccess, \
             GetAccess, \
-            GetStartProjectKeyboardButtons\
+            GetStartTaskKeyboardButtons\
             )
 
-     edit_keyboard_func = GetEditTaskKeyboardButtons
    # Редактирование задачи
-    dp.register_message_handler(simple_message.InfoMessageTemplate(task_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_task_button_name)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_task_photo_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_photo_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_task_name_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_name_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_task_desc_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_desc_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_task_access_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_access_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
+#     edit_keyboard_func = GetEditTaskKeyboardButtons
+#    dp.register_message_handler(simple_message.InfoMessageTemplate(task_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_task_button_name)
+#    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditPhotoItem, edit_task_photo_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_photo_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
+#    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_task_name_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_name_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+#    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_task_desc_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_desc_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
+#    bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_task_access_button_name, task_select_to_edit_message, ShowMessageTemplate(task_edit_access_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
 

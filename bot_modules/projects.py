@@ -4,7 +4,7 @@
 # Проекты
 
 from bot_sys import bot_bd, log, keyboard, user_access
-from bot_modules import start, access, groups
+from bot_modules import start, access, groups, tasks
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
 
 from aiogram import types
@@ -182,7 +182,7 @@ def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
         keyboard.ButtonWithAccess(del_project_button_name, user_access.AccessMode.DELETE, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_button_name, user_access.AccessMode.EDIT, GetAccess())
         ]
-    mods = [start]
+    mods = [start, tasks]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
 # ---------------------------------------------------------
@@ -191,11 +191,12 @@ def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
 select_handler = 0
 # стартовое сообщение
 async def ProjectsOpen(a_Message : types.message, state = None):
-    user_id = str(a_Message.from_user.id)
-    user_groups = groups.GetUserGroupData(user_id)
-    await a_Message.answer(base_project_message, reply_markup = GetStartProjectKeyboardButtons(a_Message, user_groups))
-    await select_handler(a_Message)
-    return None
+    #user_id = str(a_Message.from_user.id)
+    #user_groups = groups.GetUserGroupData(user_id)
+    #await a_Message.answer(base_project_message, reply_markup = GetStartProjectKeyboardButtons(a_Message, user_groups))
+    #await select_handler(a_Message)
+    #return None
+    return simple_message.WorkFuncResult(base_project_message)
 
 def GetButtonNameAndKeyValueAndAccess(a_Item):
     # projectName projectID projectAccess
@@ -266,7 +267,7 @@ def RegisterHandlers(dp : Dispatcher):
     # Список проектов
     dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
     global select_handler
-    select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
+    select_handler = bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Удаление проекта
     bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)

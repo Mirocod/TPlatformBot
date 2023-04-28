@@ -35,7 +35,7 @@ def GetCheckForTextFunc(a_Text):
 def GetKeyDataFromCallbackMessage(a_Message, a_Prefix):
     key_item_id = None
     if hasattr(a_Message, 'data'):
-        key_item_id = str(a_Message.data).replace(a_PrevPrefix, '')
+        key_item_id = str(a_Message.data).replace(a_Prefix, '')
     return key_item_id
 
 def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):

@@ -33,8 +33,9 @@ def SelectDBItemTemplate(a_TableName : str, a_ParentIDFieldName, a_GetButtonName
     return simple_message.InfoMessageTemplate(a_StartMessage, keyborad_func, a_AccessFunc, access_mode)
 
 def FirstSelectBDItemRegisterHandlers(dp, a_PrefixBase, a_ButtonName, a_TableName : str, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
+
     a_Prefix = f'{a_PrefixBase}select_{a_TableName}_{a_KeyName}:'
-    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, None, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode = access_mode)
+    sel_handler = SelectDBItemTemplate(a_TableName, None, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode = access_mode)
     dp.register_message_handler(sel_handler, text = a_ButtonName)
 
     return a_Prefix, sel_handler
@@ -42,7 +43,7 @@ def FirstSelectBDItemRegisterHandlers(dp, a_PrefixBase, a_ButtonName, a_TableNam
 def NextSelectBDItemRegisterHandlers(dp, a_PrevPrefix, a_ParentIDFieldName, a_TableName : str, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     a_Prefix = f'{a_PrevPrefix}_select_{a_TableName}_{a_KeyName}_{a_ParentIDFieldName}:'
 
-    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_Prefix, access_mode = access_mode)
-    dp.register_message_handler(sel_handler, bd_iem.GetCheckForPrefixFunc(a_PrevPrefix))
+    sel_handler = SelectDBItemTemplate(a_TableName, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_Prefix, access_mode = access_mode)
+    dp.register_callback_query_handler(sel_handler, bd_item.GetCheckForPrefixFunc(a_PrevPrefix))
 
     return a_Prefix, sel_handler
