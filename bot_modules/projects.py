@@ -272,7 +272,23 @@ def RegisterHandlers(dp : Dispatcher):
     bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Добавление проекта
-    bd_item_add.AddBDItem3RegisterHandlers(dp, FSMCreateProject, FSMCreateProject.name, FSMCreateProject.desc, FSMCreateProject.photo, add_project_button_name, AddBDItemFunc, SimpleMessageTemplate(project_create_name_message), SimpleMessageTemplate(project_create_desc_message), SimpleMessageTemplate(project_create_photo_message), SimpleMessageTemplate(project_success_create_message), table_name, key_name, name_field, desc_field, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, GetStartProjectKeyboardButtons)
+    bd_item_add.AddBDItem3RegisterHandlers(dp, \
+            bd_item.GetCheckForTextFunc(add_project_button_name), \
+            FSMCreateProject, FSMCreateProject.name,\
+            FSMCreateProject.desc, FSMCreateProject.photo,\
+            AddBDItemFunc, SimpleMessageTemplate(project_create_name_message), \
+            SimpleMessageTemplate(project_create_desc_message), \
+            SimpleMessageTemplate(project_create_photo_message), \
+            SimpleMessageTemplate(project_success_create_message), \
+            None, \
+            None, \
+            name_field, \
+            desc_field, \
+            photo_field, \
+            GetButtonNameAndKeyValueAndAccess, \
+            GetAccess, \
+            GetStartProjectKeyboardButtons\
+            )
 
     edit_keyboard_func = GetEditProjectKeyboardButtons
     # Редактирование проекта
@@ -281,4 +297,3 @@ def RegisterHandlers(dp : Dispatcher):
     bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditNameItem, edit_project_name_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
     bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditDeskItem, edit_project_desc_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
     bd_item_edit.EditBDItemRegisterHandlers(dp, FSMEditAccessItem, edit_project_access_button_name, project_select_to_edit_message, ShowMessageTemplate(project_edit_access_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
-

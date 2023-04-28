@@ -26,6 +26,18 @@ class FieldType(Enum):
     text = 'text'
     photo = 'photo'
 
+def GetCheckForPrefixFunc(a_Prefix):
+    return lambda x: x.data.startswith(a_Prefix)
+
+def GetCheckForTextFunc(a_Text):
+    return lambda x: x.text == a_Text
+
+def GetKeyDataFromCallbackMessage(a_Message, a_Prefix):
+    key_item_id = None
+    if hasattr(a_Message, 'data'):
+        key_item_id = str(a_Message.data).replace(a_PrevPrefix, '')
+    return key_item_id
+
 def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
     def GetCancelKeyboardButtons(a_Message, a_UserGroups):
         cur_buttons = [

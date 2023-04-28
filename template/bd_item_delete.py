@@ -35,5 +35,5 @@ def DeleteBDItemRegisterHandlers(dp, a_ButtonName, a_TableName : str, a_KeyName,
     a_Prefix = f'delete_{a_TableName}_{a_KeyName}:'
     sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode)
     dp.register_message_handler(sel_handler, text = a_ButtonName)
-    dp.register_callback_query_handler(DeleteBDItemTemplate(a_TableName, a_KeyName, a_PreDeleteWorkFunc, a_PostDeleteWorkFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode), lambda x: x.data.startswith(a_Prefix))
+    dp.register_callback_query_handler(DeleteBDItemTemplate(a_TableName, a_KeyName, a_PreDeleteWorkFunc, a_PostDeleteWorkFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode), bd_item.GetCheckForPrefixFunc(a_Prefix))
 

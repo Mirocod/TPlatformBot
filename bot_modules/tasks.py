@@ -45,6 +45,7 @@ desc_field = 'taskDesc'
 photo_field = 'taskPhoto'
 access_field = 'taskAccess'
 create_datetime_field = 'taskCreateDateTime'
+parent_id_field = 'projectID'
 
 init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     {key_name} INTEGER PRIMARY KEY,
@@ -53,6 +54,7 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     {photo_field} TEXT,
     {access_field} TEXT,
     {create_datetime_field} TEXT
+    {parent_id_field} INTEGER
     )''',
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
@@ -188,14 +190,12 @@ def GetStartTaskKeyboardButtons(a_Message, a_UserGroups):
 # ---------------------------------------------------------
 # Обработка сообщений
 
-select_handler = 0
 # стартовое сообщение
 async def TasksOpen(a_Message : types.message, state = None):
-    user_id = str(a_Message.from_user.id)
-    user_groups = groups.GetUserGroupData(user_id)
-    await a_Message.answer(base_task_message, reply_markup = GetStartTaskKeyboardButtons(a_Message, user_groups))
-    await select_handler(a_Message)
-    return None
+    #user_id = str(a_Message.from_user.id)
+    #user_groups = groups.GetUserGroupData(user_id)
+    #await a_Message.answer(base_task_message, reply_markup = GetStartTaskKeyboardButtons(a_Message, user_groups))
+    return simple_message.WorkFuncResult(base_task_message)
 
 def GetButtonNameAndKeyValueAndAccess(a_Item):
     # taskName taskID taskAccess
@@ -235,8 +235,8 @@ async def TaskPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
 # Работа с базой данных задач
 
 def AddBDItemFunc(a_ItemData):
-    res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-            commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name)))
+    res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+            commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name), a_ItemData[desc_field]))
 
     if error:
         log.Error(f'Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
@@ -263,16 +263,33 @@ def GetModuleButtons():
 def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetStartTaskKeyboardButtons
 
-    # Список задач
+    # Стартовое сообщение
     dp.register_message_handler(simple_message.SimpleMessageTemplate(TasksOpen, defaul_keyboard_func, GetAccess), text = tasks_button_name)
-    global select_handler
+
+    # Список задач
     select_handler = bd_item_view.SelectAndShowBDItemRegisterHandlers(dp, list_task_button_name, table_name, key_name, ShowMessageTemplate(task_open_message), GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
 
     # Удаление задачи
     bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_task_button_name, table_name, key_name, TaskPreDelete, TaskPostDelete, GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
 
     # Добавление задачи
-    bd_item_add.AddBDItem3RegisterHandlers(dp, FSMCreateTask, FSMCreateTask.name, FSMCreateTask.desc, FSMCreateTask.photo, add_task_button_name, AddBDItemFunc, SimpleMessageTemplate(task_create_name_message), SimpleMessageTemplate(task_create_desc_message), SimpleMessageTemplate(task_create_photo_message), SimpleMessageTemplate(task_success_create_message), table_name, key_name, name_field, desc_field, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, defaul_keyboard_func)
+    bd_item_add.AddBDItem3RegisterHandlers(dp, \
+            bd_item.GetCheckForTextFunc(add_project_button_name), \
+            FSMCreateProject, FSMCreateProject.name,\
+            FSMCreateProject.desc, FSMCreateProject.photo,\
+            AddBDItemFunc, SimpleMessageTemplate(project_create_name_message), \
+            SimpleMessageTemplate(project_create_desc_message), \
+            SimpleMessageTemplate(project_create_photo_message), \
+            SimpleMessageTemplate(project_success_create_message), \
+            None, \
+            None, \
+            name_field, \
+            desc_field, \
+            photo_field, \
+            GetButtonNameAndKeyValueAndAccess, \
+            GetAccess, \
+            GetStartProjectKeyboardButtons\
+            )
 
      edit_keyboard_func = GetEditTaskKeyboardButtons
    # Редактирование задачи
