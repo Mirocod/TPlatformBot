@@ -20,19 +20,15 @@ class FSMCreateProject(StatesGroup):
     photo = State()
     
 class FSMEditPhotoItem(StatesGroup):
-    item_id = State()
     item_field = State()
 
 class FSMEditNameItem(StatesGroup):
-    item_id = State()
     item_field = State()
 
 class FSMEditDeskItem(StatesGroup):
-    item_id = State()
     item_field = State()
 
 class FSMEditAccessItem(StatesGroup):
-    item_id = State()
     item_field = State()
 # ---------------------------------------------------------
 # БД
@@ -216,7 +212,7 @@ def ShowMessageTemplate(a_StringMessage):
     return ShowMessage
 
 def SimpleMessageTemplate(a_StringMessage):
-    async def ShowMessage(a_CallbackQuery : types.CallbackQuery):
+    async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
 
@@ -281,6 +277,7 @@ def RegisterHandlers(dp : Dispatcher):
             SimpleMessageTemplate(project_create_desc_message), \
             SimpleMessageTemplate(project_create_photo_message), \
             SimpleMessageTemplate(project_success_create_message), \
+            None,\
             None, \
             None, \
             name_field, \

@@ -46,7 +46,7 @@ def MakeKeyboardForMods(a_ModList, a_UserGroups):
 class Button:
     def __init__(self, a_Label, a_CallBackData):
         self.label = a_Label
-        self.callback_data = a_CallBackData
+        self.callback_data = str(a_CallBackData)
 
 def MakeInlineKeyboard(a_ButtonList : [Button], a_CallBackPrefix : str): 
     buttons = []

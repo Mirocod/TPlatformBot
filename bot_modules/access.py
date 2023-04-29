@@ -17,12 +17,10 @@ class FSMRequestToBDAccess(StatesGroup):
 
 
 class FSMEditAccessItem(StatesGroup):
-    item_id = State()
     item_field = State()
 
 
 class FSMEditDefaultAccessItem(StatesGroup):
-    item_id = State()
     item_field = State()
 # ---------------------------------------------------------
 # БД

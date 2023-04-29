@@ -215,7 +215,7 @@ def ShowMessageTemplate(a_StringMessage):
     return ShowMessage
 
 def SimpleMessageTemplate(a_StringMessage):
-    async def ShowMessage(a_CallbackQuery : types.CallbackQuery):
+    async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
 
@@ -236,7 +236,7 @@ async def TaskPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
 
 def AddBDItemFunc(a_ItemData, a_UserID):
     res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-            commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name) + f";{a_UserID}=+", a_ItemData[desc_field]))
+            commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name) + f";{a_UserID}=+", a_ItemData[parent_id_field]))
 
     if error:
         log.Error(f'Пользоватлель {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
@@ -264,7 +264,8 @@ def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetStartTaskKeyboardButtons
     # Стартовое сообщение
     dp.register_message_handler(simple_message.SimpleMessageTemplate(TasksOpen, defaul_keyboard_func, GetAccess), text = tasks_button_name)
-    # Список задач projects.
+
+    # Список задач
     a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'view_task', list_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)
     bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, a_Prefix, parent_id_field, table_name, key_name, ShowMessageTemplate(task_open_message), GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func, access_mode = user_access.AccessMode.VIEW)
 
@@ -287,6 +288,7 @@ def RegisterHandlers(dp : Dispatcher):
             SimpleMessageTemplate(task_create_desc_message), \
             SimpleMessageTemplate(task_create_photo_message), \
             SimpleMessageTemplate(task_success_create_message), \
+            a_Prefix,\
             projects.table_name, \
             projects.key_name, \
             name_field, \

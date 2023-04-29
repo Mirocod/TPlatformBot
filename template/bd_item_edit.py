@@ -20,11 +20,11 @@ error_photo_type_message = '''
 '''
 
 def StartEditBDItemTemplate(a_FSM, a_MessageFunc, a_TableName, a_KeyName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.EDIT):
-    return bd_item_add.StartAddBDItemTemplate(a_FSM, a_FSM.item_id, a_MessageFunc, a_TableName, a_KeyName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = access_mode)
+    return bd_item_add.StartAddBDItemTemplate(a_FSM, a_FSM.item_field, a_MessageFunc, a_TableName, a_KeyName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = access_mode)
 
 def FinishEditBDItemTemplate(a_FSM, a_TableName, a_KeyName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
     def EditBDItemFunc(a_ItemData, a_UserID):
-        item_id = a_ItemData[bd_item_add.parent_id_field_name]
+        item_id = a_ItemData[a_KeyName]
         field_value = a_ItemData[a_FieldName]
         res, error = bd_item.EditBDItemInTableTemplate(a_TableName, a_KeyName, a_FieldName)(item_id, field_value)
         if error:
