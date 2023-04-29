@@ -4,7 +4,7 @@
 # Задачи
 
 from bot_sys import bot_bd, log, keyboard, user_access
-from bot_modules import start, access, groups, projects
+from bot_modules import start, access, groups, projects, needs
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add, bd_item_select
 
 from aiogram import types
@@ -87,7 +87,7 @@ task_open_message = f'''
 
 # Создание задачи
 
-add_task_button_name = "✅ Добавить задачу"
+add_task_button_name = "☑ Добавить задачу"
 task_create_name_message = '''
 Создание задачи. Шаг №1
 
@@ -152,13 +152,13 @@ task_edit_access_message = f'''
 Введите новую строку доступа:
 '''
 
-task_success_edit_message = '''✅ Задача успешно отредактирован!'''
+task_success_edit_message = '''✅ Задача успешно отредактирована!'''
 
 # Удаление задачи
 
 del_task_button_name = "❌ Удалить задачу"
 task_select_to_delete_message = '''
-Выберите задача, который вы хотите удалить.
+Выберите задачу, которую вы хотите удалить.
 Все потребности в этой задачае так же будут удалены!
 '''
 
@@ -184,7 +184,7 @@ def GetStartTaskKeyboardButtons(a_Message, a_UserGroups):
         keyboard.ButtonWithAccess(del_task_button_name, user_access.AccessMode.DELETE, GetAccess()),
         keyboard.ButtonWithAccess(edit_task_button_name, user_access.AccessMode.EDIT, GetAccess())
         ]
-    mods = [start]
+    mods = [start, projects, needs]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
 # ---------------------------------------------------------
@@ -192,9 +192,6 @@ def GetStartTaskKeyboardButtons(a_Message, a_UserGroups):
 
 # стартовое сообщение
 async def TasksOpen(a_Message : types.message, state = None):
-    #user_id = str(a_Message.from_user.id)
-    #user_groups = groups.GetUserGroupData(user_id)
-    #await a_Message.answer(base_task_message, reply_markup = GetStartTaskKeyboardButtons(a_Message, user_groups))
     return simple_message.WorkFuncResult(base_task_message)
 
 def GetButtonNameAndKeyValueAndAccess(a_Item):
@@ -229,6 +226,7 @@ async def TaskPreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
 
 async def TaskPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
     log.Success(f'Задача №{a_ItemID} была удалена пользователем {a_CallbackQuery.from_user.id}.')
+    #TODO: удалить вложенные 
     return simple_message.WorkFuncResult(task_success_delete_message)
 
 # ---------------------------------------------------------
