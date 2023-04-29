@@ -40,7 +40,7 @@ def FirstSelectBDItemRegisterHandlers(dp, a_PrefixBase, a_ButtonName, a_TableNam
     sel_handler = SelectDBItemTemplate(a_TableName, None, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode = access_mode)
     dp.register_message_handler(sel_handler, text = a_ButtonName)
 
-    return a_Prefix, sel_handler
+    return a_Prefix
 
 def NextSelectBDItemRegisterHandlers(dp, a_PrevPrefix, a_ParentIDFieldName, a_TableName : str, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     a_Prefix = bd_item.HashPrefix(f'next_select_{a_TableName}_{a_KeyName}_{a_ParentIDFieldName}_after_prefix_{a_PrevPrefix}:')
@@ -48,4 +48,4 @@ def NextSelectBDItemRegisterHandlers(dp, a_PrevPrefix, a_ParentIDFieldName, a_Ta
     sel_handler = SelectDBItemTemplate(a_TableName, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_Prefix, access_mode = access_mode)
     dp.register_callback_query_handler(sel_handler, bd_item.GetCheckForPrefixFunc(a_PrevPrefix))
 
-    return a_Prefix, sel_handler
+    return a_Prefix

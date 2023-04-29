@@ -104,7 +104,7 @@ task_create_photo_message = '''
 Создание задачи. Шаг №3
 
 Загрузите обложку для задачи (Фото):
-Она будет отображаться в его описании.
+Она будет отображаться в её описании.
 '''
 
 task_success_create_message = '''✅ Задача успешно добавлена!'''
@@ -264,21 +264,50 @@ def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetStartTaskKeyboardButtons
     def RegisterSelectParent(a_ButtonName, access_mode):
         a_PrefixBase = a_ButtonName
-        return bd_item_select.FirstSelectBDItemRegisterHandlers(dp, a_PrefixBase, a_ButtonName, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = access_mode)
+        return bd_item_select.FirstSelectBDItemRegisterHandlers(dp, \
+                a_PrefixBase, \
+                a_ButtonName, \
+                projects.table_name, \
+                projects.key_name, \
+                projects.GetButtonNameAndKeyValueAndAccess, \
+                projects.select_project_message, \
+                projects.GetAccess, access_mode = access_mode\
+                )
 
     # Стартовое сообщение
     dp.register_message_handler(simple_message.SimpleMessageTemplate(TasksOpen, defaul_keyboard_func, GetAccess), text = tasks_button_name)
 
     # Список задач
-    a_Prefix, sel_handler = RegisterSelectParent(list_task_button_name, user_access.AccessMode.VIEW)
-    bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, a_Prefix, parent_id_field, table_name, key_name, ShowMessageTemplate(task_open_message), GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func, access_mode = user_access.AccessMode.VIEW)
+    a_Prefix = RegisterSelectParent(list_task_button_name, user_access.AccessMode.VIEW)
+    bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, \
+            a_Prefix, parent_id_field, \
+            table_name, key_name, \
+            ShowMessageTemplate(task_open_message), \
+            GetButtonNameAndKeyValueAndAccess, \
+            select_task_message, \
+            GetAccess, \
+            defaul_keyboard_func, \
+            access_mode = user_access.AccessMode.VIEW\
+            )
 
     # Удаление задачи
-    a_Prefix, sel_handler = RegisterSelectParent(del_task_button_name, user_access.AccessMode.DELETE)
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, a_Prefix, bd_item.GetCheckForPrefixFunc(a_Prefix), table_name, key_name, parent_id_field, TaskPreDelete, TaskPostDelete, GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
+    a_Prefix = RegisterSelectParent(del_task_button_name, user_access.AccessMode.DELETE)
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, \
+            a_Prefix, \
+            bd_item.GetCheckForPrefixFunc(a_Prefix), \
+            table_name, \
+            key_name, \
+            parent_id_field, \
+            TaskPreDelete, \
+            TaskPostDelete, \
+            GetButtonNameAndKeyValueAndAccess, \
+            select_task_message, \
+            GetAccess, \
+            defaul_keyboard_func\
+            )
 
     # Добавление задачи
-    a_Prefix, sel_handler = RegisterSelectParent(add_task_button_name, user_access.AccessMode.ADD)
+    a_Prefix = RegisterSelectParent(add_task_button_name, user_access.AccessMode.ADD)
     bd_item_add.AddBDItem3RegisterHandlers(dp, \
             bd_item.GetCheckForPrefixFunc(a_Prefix), \
             FSMCreateTask, \
@@ -301,15 +330,31 @@ def RegisterHandlers(dp : Dispatcher):
             GetStartTaskKeyboardButtons\
             )
 
+    def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
+        a_Prefix = RegisterSelectParent(a_ButtonName, a_AccessMode)
+        bd_item_edit.EditBDItemRegisterHandlers(dp, \
+                a_Prefix, \
+                a_FSM, \
+                bd_item.GetCheckForPrefixFunc(a_Prefix), \
+                task_select_to_edit_message, \
+                ShowMessageTemplate(a_EditMessage), \
+                ShowMessageTemplate(task_success_edit_message), \
+                table_name, \
+                key_name, \
+                parent_id_field, \
+                a_FieldName, \
+                GetButtonNameAndKeyValueAndAccess, \
+                GetAccess, \
+                edit_keyboard_func, \
+                access_mode = a_AccessMode, \
+                field_type = a_FieldType\
+                )
+
     # Редактирование задачи
     edit_keyboard_func = GetEditTaskKeyboardButtons
     dp.register_message_handler(simple_message.InfoMessageTemplate(task_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_task_button_name)
-    a_Prefix, sel_handler = RegisterSelectParent(edit_task_photo_button_name, user_access.AccessMode.EDIT)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, a_Prefix, FSMEditPhotoItem, bd_item.GetCheckForPrefixFunc(a_Prefix), task_select_to_edit_message, ShowMessageTemplate(task_edit_photo_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, parent_id_field, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
-    a_Prefix, sel_handler = RegisterSelectParent(edit_task_name_button_name, user_access.AccessMode.EDIT)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, a_Prefix, FSMEditNameItem, bd_item.GetCheckForPrefixFunc(a_Prefix), task_select_to_edit_message, ShowMessageTemplate(task_edit_name_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, parent_id_field, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    a_Prefix, sel_handler = RegisterSelectParent(edit_task_desc_button_name, user_access.AccessMode.EDIT)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, a_Prefix, FSMEditDeskItem, bd_item.GetCheckForPrefixFunc(a_Prefix), task_select_to_edit_message, ShowMessageTemplate(task_edit_desc_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, parent_id_field, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    a_Prefix, sel_handler = RegisterSelectParent(edit_task_access_button_name, user_access.AccessMode.EDIT)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, a_Prefix, FSMEditAccessItem, bd_item.GetCheckForPrefixFunc(a_Prefix), task_select_to_edit_message, ShowMessageTemplate(task_edit_access_message), ShowMessageTemplate(task_success_edit_message), table_name, key_name, parent_id_field, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
 
+    RegisterEdit(edit_task_photo_button_name, FSMEditPhotoItem, task_edit_photo_message, photo_field, bd_item.FieldType.photo)
+    RegisterEdit(edit_task_name_button_name, FSMEditNameItem, task_edit_name_message, name_field, bd_item.FieldType.text)
+    RegisterEdit(edit_task_desc_button_name, FSMEditDeskItem, task_edit_desc_message, desc_field, bd_item.FieldType.text)
+    RegisterEdit(edit_task_access_button_name, FSMEditAccessItem, task_edit_access_message, access_field, bd_item.FieldType.text)

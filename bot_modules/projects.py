@@ -184,14 +184,8 @@ def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
 # ---------------------------------------------------------
 # Обработка сообщений
 
-select_handler = 0
 # стартовое сообщение
 async def ProjectsOpen(a_Message : types.message, state = None):
-    #user_id = str(a_Message.from_user.id)
-    #user_groups = groups.GetUserGroupData(user_id)
-    #await a_Message.answer(base_project_message, reply_markup = GetStartProjectKeyboardButtons(a_Message, user_groups))
-    #await select_handler(a_Message)
-    #return None
     return simple_message.WorkFuncResult(base_project_message)
 
 def GetButtonNameAndKeyValueAndAccess(a_Item):
@@ -262,8 +256,7 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Список проектов
     dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
-    global select_handler
-    select_handler = bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
+    bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Удаление проекта
     bd_item_delete.DeleteBDItemRegisterHandlers(dp, None, bd_item.GetCheckForTextFunc(del_project_button_name), table_name, key_name, None, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)

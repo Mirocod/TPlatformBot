@@ -16,10 +16,9 @@ def ShowBDItemRegisterHandlers(dp, a_PrevPrefix, a_TableName : str, a_KeyName, a
     dp.register_callback_query_handler(ShowBDItemTemplate(a_TableName, a_KeyName, a_ShowItemWorkFunc, a_PrevPrefix, a_AccessFunc, a_ButtonFunc, access_mode = access_mode), bd_item.GetCheckForPrefixFunc(a_PrevPrefix))
 
 def FirstSelectAndShowBDItemRegisterHandlers(dp, a_ButtonName, a_TableName : str, a_KeyName, a_ShowItemWorkFunc, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.VIEW):
-    a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, '', a_ButtonName, a_TableName, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = access_mode)
+    a_Prefix = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, '', a_ButtonName, a_TableName, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = access_mode)
     ShowBDItemRegisterHandlers(dp, a_Prefix, a_TableName, a_KeyName, a_ShowItemWorkFunc, a_AccessFunc, a_ButtonFunc, access_mode = access_mode)
-    return sel_handler
 
 def LastSelectAndShowBDItemRegisterHandlers(dp, a_PrevPrefix, a_ParentIDFieldName, a_TableName : str, a_KeyName, a_ShowItemWorkFunc, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.VIEW):
-    a_Prefix, sel_handler = bd_item_select.NextSelectBDItemRegisterHandlers(dp, a_PrevPrefix, a_ParentIDFieldName, a_TableName, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = access_mode)
+    a_Prefix = bd_item_select.NextSelectBDItemRegisterHandlers(dp, a_PrevPrefix, a_ParentIDFieldName, a_TableName, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = access_mode)
     ShowBDItemRegisterHandlers(dp, a_Prefix, a_TableName, a_KeyName, a_ShowItemWorkFunc, a_AccessFunc, a_ButtonFunc, access_mode = access_mode)
