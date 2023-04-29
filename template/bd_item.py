@@ -5,7 +5,7 @@
 from enum import Enum
 
 from bot_sys import user_access, bot_bd, keyboard, log
-from bot_modules import groups
+from bot_modules import groups, access
 from template import simple_message
 
 from aiogram import types

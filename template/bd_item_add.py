@@ -18,7 +18,7 @@ cancel_message = '''
 
 parent_id_field_name = 'parent_id'
 
-def StartAddBDItemTemplate(a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.EDIT):
+def StartAddBDItemTemplate(a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD):
     async def StartAddBDItem(a_CallbackQuery : types.CallbackQuery, state : FSMContext):
         user_id = str(a_CallbackQuery.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)
@@ -44,8 +44,8 @@ def StartAddBDItemTemplate(a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, 
         return res_of_work_func
     return simple_message.SimpleMessageTemplate(StartAddBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
-def FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
-    return FinishOrNextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, True, access_mode = access_mode, field_type = field_type)
+def FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
+    return FinishOrNextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_ButtonFunc, True, access_mode = access_mode, field_type = field_type)
 
 def NextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
     return FinishOrNextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, False, access_mode = access_mode, field_type = field_type)
@@ -90,7 +90,7 @@ def FinishOrNextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_P
                 field_value = a_Message.text
             item_data[a_FieldName] = field_value
             if a_Finish:
-                res, error = a_AddBDItemFunc(item_data)
+                res, error = a_AddBDItemFunc(item_data, user_id)
         await state_func()
         if error:
             return simple_message.WorkFuncResult(error)
@@ -108,4 +108,4 @@ def AddBDItem3RegisterHandlers(dp, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMDesc
         dp.register_message_handler(StartAddBDItemTemplate(a_FSM, a_FSMName, a_AddNameMessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_Prefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), a_StartCheckFunc)
     dp.register_message_handler(NextAddBDItemTemplate(a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_NameField, a_AddDescMessageFunc, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMName)
     dp.register_message_handler(NextAddBDItemTemplate(a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_DescField, a_AddPhotoMessageFunc, a_AccessFunc, keyboard_skip_and_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMDesc)
-    dp.register_message_handler(FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)
+    dp.register_message_handler(FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)

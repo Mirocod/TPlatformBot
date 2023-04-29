@@ -4,7 +4,7 @@
 # Стартовое меню
 
 from bot_sys import log, config, keyboard, user_access
-from bot_modules import profile, projects, groups, access, backup, tasks
+from bot_modules import profile, projects, groups, access, backup
 from template import simple_message
 
 from aiogram.dispatcher import Dispatcher
@@ -31,7 +31,7 @@ start_menu_button_name = "☰ Главное меню"
 # Работа с кнопками
 
 def GetStartKeyboardButtons(a_Message, a_UserGroups):
-    mods = [profile, projects, groups, access, backup, tasks]
+    mods = [profile, projects, groups, access, backup]
     return keyboard.MakeKeyboardForMods(mods, a_UserGroups)
 
 # ---------------------------------------------------------
