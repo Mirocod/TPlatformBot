@@ -4,7 +4,7 @@
 # Проекты
 
 from bot_sys import bot_bd, log, keyboard, user_access
-from bot_modules import start, access, groups, tasks, needs
+from bot_modules import start, access, groups, tasks, needs, comments
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
 
 from aiogram import types
@@ -178,7 +178,7 @@ def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
         keyboard.ButtonWithAccess(del_project_button_name, user_access.AccessMode.DELETE, GetAccess()),
         keyboard.ButtonWithAccess(edit_project_button_name, user_access.AccessMode.EDIT, GetAccess())
         ]
-    mods = [start, tasks, needs]
+    mods = [start, tasks, needs, comments]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
 # ---------------------------------------------------------

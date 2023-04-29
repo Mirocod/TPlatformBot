@@ -4,7 +4,7 @@
 # Задачи
 
 from bot_sys import bot_bd, log, keyboard, user_access
-from bot_modules import start, access, groups, projects, needs
+from bot_modules import start, access, groups, projects, needs, comments
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add, bd_item_select
 
 from aiogram import types
@@ -27,7 +27,7 @@ class FSMEditNameItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditDeskItem(StatesGroup):
+class FSMEditDescItem(StatesGroup):
     item_id = State()
     item_field = State()
 
@@ -184,7 +184,7 @@ def GetStartTaskKeyboardButtons(a_Message, a_UserGroups):
         keyboard.ButtonWithAccess(del_task_button_name, user_access.AccessMode.DELETE, GetAccess()),
         keyboard.ButtonWithAccess(edit_task_button_name, user_access.AccessMode.EDIT, GetAccess())
         ]
-    mods = [start, projects, needs]
+    mods = [start, projects, needs, comments]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
 # ---------------------------------------------------------
@@ -354,5 +354,5 @@ def RegisterHandlers(dp : Dispatcher):
 
     RegisterEdit(edit_task_photo_button_name, FSMEditPhotoItem, task_edit_photo_message, photo_field, bd_item.FieldType.photo)
     RegisterEdit(edit_task_name_button_name, FSMEditNameItem, task_edit_name_message, name_field, bd_item.FieldType.text)
-    RegisterEdit(edit_task_desc_button_name, FSMEditDeskItem, task_edit_desc_message, desc_field, bd_item.FieldType.text)
+    RegisterEdit(edit_task_desc_button_name, FSMEditDescItem, task_edit_desc_message, desc_field, bd_item.FieldType.text)
     RegisterEdit(edit_task_access_button_name, FSMEditAccessItem, task_edit_access_message, access_field, bd_item.FieldType.text)

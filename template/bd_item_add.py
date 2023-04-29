@@ -108,3 +108,15 @@ def AddBDItem3RegisterHandlers(dp, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMDesc
     dp.register_message_handler(NextAddBDItemTemplate(a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_NameField, a_AddDescMessageFunc, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMName)
     dp.register_message_handler(NextAddBDItemTemplate(a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_DescField, a_AddPhotoMessageFunc, a_AccessFunc, keyboard_skip_and_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMDesc)
     dp.register_message_handler(FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)
+
+def AddBDItem1RegisterHandlers(dp, a_StartCheckFunc, a_FSM, a_AddBDItemFunc, a_AddMessageFunc, a_FinishMessageFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, a_FieldType, access_mode = user_access.AccessMode.ADD):
+    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
+    reg_func = dp.register_message_handler
+    if a_ParentTableName:
+        reg_func = dp.register_callback_query_handler
+    reg_func(StartAddBDItemTemplate(a_FSM, a_FSM.bd_item, a_AddMessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), a_StartCheckFunc)
+    finish_handler = FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = a_FieldType)
+    if a_FieldType == bd_item.FieldType.photo:
+        dp.register_message_handler(finish_handler, content_types = ['photo', 'text'], state = a_FSM.bd_item)
+    else:
+        dp.register_message_handler(finish_handler, state = a_FSM.bd_item)
