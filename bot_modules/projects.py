@@ -266,7 +266,7 @@ def RegisterHandlers(dp : Dispatcher):
     select_handler = bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Удаление проекта
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_project_button_name, table_name, key_name, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, None, bd_item.GetCheckForTextFunc(del_project_button_name), table_name, key_name, None, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Добавление проекта
     bd_item_add.AddBDItem3RegisterHandlers(dp, \

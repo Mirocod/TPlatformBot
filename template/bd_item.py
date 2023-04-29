@@ -22,6 +22,13 @@ item_not_found = 'Элемент {item_id} не найден в таблице {
 skip_button_name = "⏩ Пропустить"
 canсel_button_name = "🚫 Отменить"
 
+def HashPrefix(a_Str):
+    # callback data в сообщении имеет ограниченную длину, поэтому сокращаем префикс
+    summ = 0
+    for i in a_Str:
+        summ += ord(i)
+    return f'{summ}:'
+
 class FieldType(Enum):
     text = 'text'
     photo = 'photo'

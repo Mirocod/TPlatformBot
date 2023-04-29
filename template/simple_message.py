@@ -49,7 +49,6 @@ def SimpleMessageTemplate(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mod
             return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = keyboard_func(a_Message, user_groups))
 
         if photo_id is None or photo_id == 0 or photo_id == '0':
-            print(keyboard_func)
             return await bot.send_message(a_Message.from_user.id, msg, reply_markup = keyboard_func(a_Message, user_groups))
 
         await bot.send_photo(user_id, photo_id, msg, reply_markup = keyboard_func(a_Message, user_groups))

@@ -27,12 +27,15 @@ def Chunks(a_List, a_ChunkSize):
     for i in range(0, len(a_List), a_ChunkSize):
         yield a_List[i: i + a_ChunkSize]
 
+def GetKeyInRowCount(a_AllKeyCount):
+    return min(max(int(math.sqrt(a_AllKeyCount) // 1), 1), 4)
+
 def MakeKeyboard(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     buttons = []
     for b in a_ButtonList:
         if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
             buttons += [types.KeyboardButton(b.label)]
-    step = max(int(math.sqrt(len(buttons)) // 1), 1)
+    step = GetKeyInRowCount(len(buttons))
     key = types.ReplyKeyboardMarkup(keyboard=Chunks(buttons, step), resize_keyboard = True)
     return key
 
@@ -52,7 +55,7 @@ def MakeInlineKeyboard(a_ButtonList : [Button], a_CallBackPrefix : str):
     buttons = []
     for b in a_ButtonList:
         buttons += [types.InlineKeyboardButton(text = b.label, callback_data = f'{a_CallBackPrefix}{b.callback_data}')]
-    step = max(int(math.sqrt(len(buttons)) // 1), 1)
+    step = GetKeyInRowCount(len(buttons))
     inline_keyboard = InlineKeyboardMarkup(inline_keyboard=Chunks(buttons, step))
     return inline_keyboard
 

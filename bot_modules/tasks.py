@@ -269,11 +269,9 @@ def RegisterHandlers(dp : Dispatcher):
     a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'view_task', list_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)
     bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, a_Prefix, parent_id_field, table_name, key_name, ShowMessageTemplate(task_open_message), GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func, access_mode = user_access.AccessMode.VIEW)
 
-    '''
     # Удаление задачи
-    #    a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'del_task', add_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)
-    #    bd_item_delete.DeleteBDItemRegisterHandlers(dp, del_task_button_name, table_name, key_name, TaskPreDelete, TaskPostDelete, GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
-    '''
+    a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'del_task', del_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.DELETE)
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, a_Prefix, bd_item.GetCheckForPrefixFunc(a_Prefix), table_name, key_name, parent_id_field,TaskPreDelete, TaskPostDelete, GetButtonNameAndKeyValueAndAccess, select_task_message, GetAccess, defaul_keyboard_func)
 
     # Добавление задачи
     a_Prefix, sel_handler = bd_item_select.FirstSelectBDItemRegisterHandlers(dp, 'add_task', add_task_button_name, projects.table_name, projects.key_name, projects.GetButtonNameAndKeyValueAndAccess, projects.select_project_message, projects.GetAccess, access_mode = user_access.AccessMode.VIEW)

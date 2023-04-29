@@ -31,9 +31,13 @@ def DeleteBDItemTemplate(a_TableName, a_KeyName, a_PreDeleteWorkFunc, a_PostDele
 
     return simple_message.SimpleMessageTemplate(DeleteBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
-def DeleteBDItemRegisterHandlers(dp, a_ButtonName, a_TableName : str, a_KeyName, a_PreDeleteWorkFunc, a_PostDeleteWorkFunc, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.DELETE):
-    a_Prefix = f'delete_{a_TableName}_{a_KeyName}:'
-    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, None, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, None, a_Prefix, access_mode)
-    dp.register_message_handler(sel_handler, text = a_ButtonName)
+def DeleteBDItemRegisterHandlers(dp, a_PrevPrefix, a_StartCheckFunc, a_TableName : str, a_KeyName, a_ParentIDFieldName,a_PreDeleteWorkFunc, a_PostDeleteWorkFunc, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.DELETE):
+    reg_func = dp.register_message_handler
+    if a_ParentIDFieldName:
+        reg_func = dp.register_callback_query_handler
+    
+    a_Prefix = bd_item.HashPrefix(f'delete_{a_TableName}_{a_KeyName}:')
+    sel_handler = bd_item_select.SelectDBItemTemplate(a_TableName, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_Prefix, access_mode)
+    reg_func(sel_handler, a_StartCheckFunc)
     dp.register_callback_query_handler(DeleteBDItemTemplate(a_TableName, a_KeyName, a_PreDeleteWorkFunc, a_PostDeleteWorkFunc, a_Prefix, a_AccessFunc, a_ButtonFunc, access_mode), bd_item.GetCheckForPrefixFunc(a_Prefix))
 
