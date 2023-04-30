@@ -260,7 +260,10 @@ def GetAccess():
 
 # Доступные кнопки
 def GetModuleButtons():
-    return [keyboard.ButtonWithAccess(projects_button_name, user_access.AccessMode.VIEW, GetAccess())]
+    return [
+            keyboard.ButtonWithAccess(projects_button_name, user_access.AccessMode.VIEW, GetAccess()),
+            keyboard.ButtonWithAccess(list_project_button_name, user_access.AccessMode.VIEW, GetAccess()),
+            ]
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
