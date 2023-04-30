@@ -1,6 +1,6 @@
-## PlatformBot
+## TPlatformBot
 
-### Модульный Telegram-бот с возможностью редактирования прав доступа, как пользователям, так и группам пользоветелей
+### Модульный Telegram-бот с возможностью редактирования прав доступа, как пользователям, так и группам пользователей
 
 Список модулей
 
@@ -28,10 +28,12 @@
 
 *** Загрузка зависимостей ***
 
-AltLinux
+> AltLinux
 
 `sudo apt-get install python3-module-pip`
+
 `sudo apt-get install python3-modules-sqlite3`
+
 `python3 -m pip install -r requirements.txt` 
 
 *** Запуск ***
@@ -48,3 +50,8 @@ AltLinux
 
 Запишите в первый Telegram ID пользователей, которым будет предоставлен полный (root) доступ
 Во втором файле должен быть записан api_token бота, который создаётся при помощи @BotFather
+
+## ТЕстовая версия
+
+Тестовая версия запущена по ссылке
+http://t.me/Test_TPlatform_bot
