@@ -19,16 +19,16 @@ class FSMCreateProject(StatesGroup):
     desc = State()
     photo = State()
     
-class FSMEditPhotoItem(StatesGroup):
+class FSMEditProjectPhotoItem(StatesGroup):
     item_field = State()
 
-class FSMEditNameItem(StatesGroup):
+class FSMEditProjectNameItem(StatesGroup):
     item_field = State()
 
-class FSMEditDeskItem(StatesGroup):
+class FSMEditProjectDeskItem(StatesGroup):
     item_field = State()
 
-class FSMEditAccessItem(StatesGroup):
+class FSMEditProjectAccessItem(StatesGroup):
     item_field = State()
 # ---------------------------------------------------------
 # БД
@@ -271,17 +271,41 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Список проектов
     dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
-    bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message, GetViewItemInlineKeyboardTemplate), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
+    bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, \
+            list_project_button_name, \
+            table_name, \
+            key_name, \
+            ShowMessageTemplate(project_open_message, GetViewItemInlineKeyboardTemplate), \
+            GetButtonNameAndKeyValueAndAccess, \
+            select_project_message, \
+            GetAccess, \
+            defaul_keyboard_func\
+            )
 
     # Удаление проекта
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, None, bd_item.GetCheckForTextFunc(del_project_button_name), table_name, key_name, None, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
+    bd_item_delete.DeleteBDItemRegisterHandlers(dp, \
+            None, \
+            bd_item.GetCheckForTextFunc(del_project_button_name), \
+            table_name, \
+            key_name, \
+            None, \
+            ProjectPreDelete, \
+            ProjectPostDelete, \
+            GetButtonNameAndKeyValueAndAccess, \
+            select_project_message, \
+            GetAccess, \
+            defaul_keyboard_func\
+            )
 
     # Добавление проекта
     bd_item_add.AddBDItem3RegisterHandlers(dp, \
             bd_item.GetCheckForTextFunc(add_project_button_name), \
-            FSMCreateProject, FSMCreateProject.name,\
-            FSMCreateProject.desc, FSMCreateProject.photo,\
-            AddBDItemFunc, SimpleMessageTemplate(project_create_name_message), \
+            FSMCreateProject,\
+            FSMCreateProject.name,\
+            FSMCreateProject.desc, \
+            FSMCreateProject.photo,\
+            AddBDItemFunc, \
+            SimpleMessageTemplate(project_create_name_message), \
             SimpleMessageTemplate(project_create_desc_message), \
             SimpleMessageTemplate(project_create_photo_message), \
             SimpleMessageTemplate(project_success_create_message), \
@@ -296,10 +320,30 @@ def RegisterHandlers(dp : Dispatcher):
             GetStartProjectKeyboardButtons\
             )
 
-    edit_keyboard_func = GetEditProjectKeyboardButtons
     # Редактирование проекта
+    edit_keyboard_func = GetEditProjectKeyboardButtons
+
+    def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
+        bd_item_edit.EditBDItemRegisterHandlers(dp, \
+                None, \
+                a_FSM, \
+                bd_item.GetCheckForTextFunc(a_ButtonName), \
+                project_select_to_edit_message, \
+                ShowMessageTemplate(a_EditMessage), \
+                ShowMessageTemplate(project_success_edit_message), \
+                table_name, \
+                key_name, \
+                None, \
+                a_FieldName, \
+                GetButtonNameAndKeyValueAndAccess, \
+                GetAccess, \
+                edit_keyboard_func, \
+                access_mode = a_AccessMode, \
+                field_type = a_FieldType\
+                )
+
     dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, None, FSMEditPhotoItem, bd_item.GetCheckForTextFunc(edit_project_photo_button_name), project_select_to_edit_message, ShowMessageTemplate(project_edit_photo_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, None, photo_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.photo)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, None, FSMEditNameItem, bd_item.GetCheckForTextFunc(edit_project_name_button_name), project_select_to_edit_message, ShowMessageTemplate(project_edit_name_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, None, name_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, None, FSMEditDeskItem, bd_item.GetCheckForTextFunc(edit_project_desc_button_name), project_select_to_edit_message, ShowMessageTemplate(project_edit_desc_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, None, desc_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, None, FSMEditAccessItem, bd_item.GetCheckForTextFunc(edit_project_access_button_name), project_select_to_edit_message, ShowMessageTemplate(project_edit_access_message), ShowMessageTemplate(project_success_edit_message), table_name, key_name, None, access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
+    RegisterEdit(edit_project_photo_button_name, FSMEditProjectPhotoItem, project_edit_photo_message, photo_field, bd_item.FieldType.photo)
+    RegisterEdit(edit_project_name_button_name, FSMEditProjectNameItem, project_edit_name_message, name_field, bd_item.FieldType.text)
+    RegisterEdit(edit_project_desc_button_name, FSMEditProjectDeskItem, project_edit_desc_message, desc_field, bd_item.FieldType.text)
+    RegisterEdit(edit_project_access_button_name, FSMEditProjectAccessItem, project_edit_access_message, access_field, bd_item.FieldType.text)

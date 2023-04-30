@@ -184,5 +184,23 @@ def RegisterHandlers(dp : Dispatcher):
     sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBDAccess, defaul_keyboard_func, user_access.AccessMode.ACCEES_EDIT, GetAccess)
 
     edit_keyboard_func = defaul_keyboard_func
-    bd_item_edit.EditBDItemRegisterHandlers(dp, None, FSMEditAccessItem, bd_item.GetCheckForTextFunc(edit_moduleaccess_access_button_name), moduleaccess_select_to_edit_message, ShowMessageTemplate(moduleaccess_edit_access_message), ShowMessageTemplate(moduleaccess_success_edit_message), table_name, mod_name_field, None, moduleaccess_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
-    bd_item_edit.EditBDItemRegisterHandlers(dp, None, FSMEditDefaultAccessItem, bd_item.GetCheckForTextFunc(edit_moduleaccess_default_access_button_name), moduleaccess_select_to_edit_message, ShowMessageTemplate(moduleaccess_edit_default_access_message), ShowMessageTemplate(moduleaccess_success_edit_message), table_name, mod_name_field, None, mod_default_access_field, GetButtonNameAndKeyValueAndAccess, GetAccess, edit_keyboard_func, access_mode = user_access.AccessMode.ACCEES_EDIT, field_type = bd_item.FieldType.text)
+    def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.ACCEES_EDIT):
+        bd_item_edit.EditBDItemRegisterHandlers(dp, \
+                None, \
+                a_FSM, \
+                bd_item.GetCheckForTextFunc(a_ButtonName), \
+                moduleaccess_select_to_edit_message, \
+                ShowMessageTemplate(a_EditMessage), \
+                ShowMessageTemplate(moduleaccess_success_edit_message), \
+                table_name, \
+                mod_name_field, \
+                None, \
+                a_FieldName, \
+                GetButtonNameAndKeyValueAndAccess, \
+                GetAccess, \
+                edit_keyboard_func, \
+                access_mode = a_AccessMode, \
+                field_type = a_FieldType\
+                )
+    RegisterEdit(edit_moduleaccess_access_button_name, FSMEditAccessItem, moduleaccess_edit_access_message, moduleaccess_field, bd_item.FieldType.text, user_access.AccessMode.ACCEES_EDIT)
+    RegisterEdit(edit_moduleaccess_default_access_button_name, FSMEditDefaultAccessItem, moduleaccess_edit_default_access_message, mod_default_access_field, bd_item.FieldType.text, user_access.AccessMode.EDIT)

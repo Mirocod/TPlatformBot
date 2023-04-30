@@ -19,19 +19,19 @@ class FSMCreateTask(StatesGroup):
     desc = State()
     photo = State()
     
-class FSMEditPhotoItem(StatesGroup):
+class FSMEditTaskPhotoItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditNameItem(StatesGroup):
+class FSMEditTaskNameItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditDescItem(StatesGroup):
+class FSMEditTaskDescItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditAccessItem(StatesGroup):
+class FSMEditTaskAccessItem(StatesGroup):
     item_id = State()
     item_field = State()
 # ---------------------------------------------------------
@@ -367,7 +367,7 @@ def RegisterHandlers(dp : Dispatcher):
     edit_keyboard_func = GetEditTaskKeyboardButtons
     dp.register_message_handler(simple_message.InfoMessageTemplate(task_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_task_button_name)
 
-    RegisterEdit(edit_task_photo_button_name, FSMEditPhotoItem, task_edit_photo_message, photo_field, bd_item.FieldType.photo)
-    RegisterEdit(edit_task_name_button_name, FSMEditNameItem, task_edit_name_message, name_field, bd_item.FieldType.text)
-    RegisterEdit(edit_task_desc_button_name, FSMEditDescItem, task_edit_desc_message, desc_field, bd_item.FieldType.text)
-    RegisterEdit(edit_task_access_button_name, FSMEditAccessItem, task_edit_access_message, access_field, bd_item.FieldType.text)
+    RegisterEdit(edit_task_photo_button_name, FSMEditTaskPhotoItem, task_edit_photo_message, photo_field, bd_item.FieldType.photo)
+    RegisterEdit(edit_task_name_button_name, FSMEditTaskNameItem, task_edit_name_message, name_field, bd_item.FieldType.text)
+    RegisterEdit(edit_task_desc_button_name, FSMEditTaskDescItem, task_edit_desc_message, desc_field, bd_item.FieldType.text)
+    RegisterEdit(edit_task_access_button_name, FSMEditTaskAccessItem, task_edit_access_message, access_field, bd_item.FieldType.text)

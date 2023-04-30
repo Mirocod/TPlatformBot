@@ -17,11 +17,11 @@ import sqlite3
 class FSMCreateComment(StatesGroup):
     bd_item = State()
 
-class FSMEditDescItem(StatesGroup):
+class FSMEditCommentDescItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditAccessItem(StatesGroup):
+class FSMEditCommentAccessItem(StatesGroup):
     item_id = State()
     item_field = State()
 # ---------------------------------------------------------
@@ -327,5 +327,5 @@ def RegisterHandlers(dp : Dispatcher):
     edit_keyboard_func = GetEditCommentKeyboardButtons
     dp.register_message_handler(simple_message.InfoMessageTemplate(comment_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_comment_button_name)
 
-    RegisterEdit(edit_comment_desc_button_name, FSMEditDescItem, comment_edit_desc_message, desc_field, bd_item.FieldType.text)
-    RegisterEdit(edit_comment_access_button_name, FSMEditAccessItem, comment_edit_access_message, access_field, bd_item.FieldType.text)
+    RegisterEdit(edit_comment_desc_button_name, FSMEditCommentDescItem, comment_edit_desc_message, desc_field, bd_item.FieldType.text)
+    RegisterEdit(edit_comment_access_button_name, FSMEditCommentAccessItem, comment_edit_access_message, access_field, bd_item.FieldType.text)
