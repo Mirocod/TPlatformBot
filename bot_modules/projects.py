@@ -181,6 +181,14 @@ def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
     mods = [start, tasks, needs, comments]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
+def GetViewItemInlineKeyboardTemplate(a_ItemID):
+    def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
+        cur_buttons = [
+                keyboard.InlineButton(tasks.list_task_button_name, tasks.select_tasks_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                ]
+        return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
+    return GetViewItemInlineKeyboard
+
 # ---------------------------------------------------------
 # Обработка сообщений
 
@@ -192,7 +200,7 @@ def GetButtonNameAndKeyValueAndAccess(a_Item):
     # projectName projectID projectAccess
     return a_Item[1], a_Item[0], a_Item[4]
 
-def ShowMessageTemplate(a_StringMessage):
+def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         if (len(a_Item) < 6):
             return simple_message.WorkFuncResult(error_find_proj_message)
@@ -202,7 +210,10 @@ def ShowMessageTemplate(a_StringMessage):
                 replace(f'#{desc_field}', a_Item[2]).\
                 replace(f'#{create_datetime_field}', a_Item[5]).\
                 replace(f'#{access_field}', a_Item[4])
-        return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4])
+        keyboard_func = None
+        if keyboard_template_func:
+            keyboard_func = keyboard_template_func(a_Item[0])
+        return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowMessage
 
 def SimpleMessageTemplate(a_StringMessage):
@@ -257,7 +268,7 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Список проектов
     dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
-    bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
+    bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, list_project_button_name, table_name, key_name, ShowMessageTemplate(project_open_message, GetViewItemInlineKeyboardTemplate), GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)
 
     # Удаление проекта
     bd_item_delete.DeleteBDItemRegisterHandlers(dp, None, bd_item.GetCheckForTextFunc(del_project_button_name), table_name, key_name, None, ProjectPreDelete, ProjectPostDelete, GetButtonNameAndKeyValueAndAccess, select_project_message, GetAccess, defaul_keyboard_func)

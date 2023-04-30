@@ -59,6 +59,8 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
 
+select_needs_prefix = ''
+
 # ---------------------------------------------------------
 # Сообщения
 
@@ -187,6 +189,13 @@ def GetStartNeedKeyboardButtons(a_Message, a_UserGroups):
     mods = [start, projects, tasks, comments]
     return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
 
+def GetViewItemInlineKeyboardTemplate(a_ItemID):
+    def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
+        cur_buttons = [
+                keyboard.InlineButton(comments.list_comment_button_name, comments.select_comments_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                ]
+        return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
+    return GetViewItemInlineKeyboard
 # ---------------------------------------------------------
 # Обработка сообщений
 
@@ -198,7 +207,7 @@ def GetButtonNameAndKeyValueAndAccess(a_Item):
     # needName needID needAccess
     return a_Item[1], a_Item[0], a_Item[4]
 
-def ShowMessageTemplate(a_StringMessage):
+def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         if (len(a_Item) < 6):
             return simple_message.WorkFuncResult(error_find_proj_message)
@@ -208,7 +217,10 @@ def ShowMessageTemplate(a_StringMessage):
                 replace(f'#{desc_field}', a_Item[2]).\
                 replace(f'#{create_datetime_field}', a_Item[5]).\
                 replace(f'#{access_field}', a_Item[4])
-        return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4])
+        keyboard_func = None
+        if keyboard_template_func:
+            keyboard_func = keyboard_template_func(a_Item[0])
+        return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowMessage
 
 def SimpleMessageTemplate(a_StringMessage):
@@ -294,13 +306,15 @@ def RegisterHandlers(dp : Dispatcher):
     bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, \
             a_Prefix, parent_id_field, \
             table_name, key_name, \
-            ShowMessageTemplate(need_open_message), \
+            ShowMessageTemplate(need_open_message, GetViewItemInlineKeyboardTemplate), \
             GetButtonNameAndKeyValueAndAccess, \
             select_need_message, \
             GetAccess, \
             defaul_keyboard_func, \
             access_mode = user_access.AccessMode.VIEW\
             )
+    global select_needs_prefix
+    select_needs_prefix = a_Prefix
 
     # Удаление потребностей
     a_Prefix = RegisterSelectParent(del_need_button_name, user_access.AccessMode.DELETE)

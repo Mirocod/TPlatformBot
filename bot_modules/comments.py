@@ -45,6 +45,8 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
 
+select_comments_prefix = ''
+
 # ---------------------------------------------------------
 # Сообщения
 
@@ -264,6 +266,8 @@ def RegisterHandlers(dp : Dispatcher):
             defaul_keyboard_func, \
             access_mode = user_access.AccessMode.VIEW\
             )
+    global select_comments_prefix
+    select_comments_prefix = a_Prefix
 
     # Удаление комментариев
     a_Prefix = RegisterSelectParent(del_comment_button_name, user_access.AccessMode.DELETE)
