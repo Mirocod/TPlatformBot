@@ -4,7 +4,7 @@
 # Стартовое меню
 
 from bot_sys import log, config, keyboard, user_access
-from bot_modules import profile, projects, groups, access, backup
+from bot_modules import profile, projects, groups, access, backup, languages
 from template import simple_message
 
 from aiogram.dispatcher import Dispatcher
@@ -23,7 +23,7 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VA
 start_message = '''
 <b>Добро пожаловать!</b>
 
-Выберите возможные действия на кнопах ниже ⌨'''
+Выберите возможные действия на кнопках ниже ⌨'''
 
 start_menu_button_name = "☰ Главное меню"
 
@@ -31,7 +31,7 @@ start_menu_button_name = "☰ Главное меню"
 # Работа с кнопками
 
 def GetStartKeyboardButtons(a_Message, a_UserGroups):
-    mods = [profile, projects, groups, access, backup]
+    mods = [profile, projects, groups, access, backup, languages]
     return keyboard.MakeKeyboardForMods(mods, a_UserGroups)
 
 # ---------------------------------------------------------
