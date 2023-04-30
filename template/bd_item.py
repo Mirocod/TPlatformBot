@@ -10,13 +10,9 @@ from template import simple_message
 
 from aiogram import types
 
-'''
-class TableListParam():
-    def __init__(self, a_TableName : str, a_KeyName : str, a_GetButtonNameAndKeyValueAndAccessFunc):
-        self.table_name = a_TableName
-        self.key_name = a_KeyName
-        self.get_bname_and_key_value_func = a_GetButtonNameAndKeyValueAndAccessFunc
-'''
+import hashlib
+def md5(a_Str):
+    return hashlib.md5(a_Str.encode('utf-8')).hexdigest()
 
 item_not_found = 'Элемент {item_id} не найден в таблице {a_TableName}'
 skip_button_name = "⏩ Пропустить"
@@ -24,10 +20,8 @@ canсel_button_name = "🚫 Отменить"
 
 def HashPrefix(a_Str):
     # callback data в сообщении имеет ограниченную длину, поэтому сокращаем префикс
-    summ = 0
-    for i in a_Str:
-        summ += ord(i)
-    return f'{summ}:'
+    #log.Info(f'HashPrefix {md5(a_Str)[0:8]}: - {a_Str}')
+    return f'{md5(a_Str)[0:8]}:'
 
 class FieldType(Enum):
     text = 'text'
