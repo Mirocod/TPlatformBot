@@ -259,15 +259,18 @@ def AddOrIgnoreLang(a_Lang : str):
 
 g_languages = {}
 def GetLangID(a_Lang):
+    global g_languages
     return g_languages.get(a_Lang, None)
 
 def GetLangName(a_LangID):
+    global g_languages
     for lang_name, lang_id in g_languages:
         if a_LangID == lang_id:
             return lang_name
-    return None
+    return user_messages.default_language
 
 def FlushLanguages():
+    global g_languages
     msg = user_messages.GetMessages()
     for lang, msg_dict in msg.items():
         AddOrIgnoreLang(lang)
@@ -275,6 +278,7 @@ def FlushLanguages():
     if langs:
         for l in langs:
             g_languages[l[1]] = str(l[0])
+    print('FlushLanguages', g_languages)
 
 # Инициализация БД
 def GetInitBDCommands():

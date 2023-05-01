@@ -9,7 +9,7 @@ from aiogram.utils import executor
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import sqlite3
-from bot_sys import config, log, bot_bd, user_access
+from bot_sys import config, log, bot_bd, user_access, user_messages
 from bot_modules import profile, start, projects, groups, access, backup, tasks, needs, comments, messages, languages
 
 storage = MemoryStorage()
@@ -26,6 +26,8 @@ for m in modules:
         init_bd_cmd += c
 # Первичная инициализация базы данных
 bot_bd.BDExecute(init_bd_cmd)
+
+user_messages.UpdateSignal(log.GetTimeNow())
 
 languages.FlushLanguages()
 messages.FlushMessages()

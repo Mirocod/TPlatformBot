@@ -3,7 +3,7 @@
 
 # Проекты
 
-from bot_sys import bot_bd, log, keyboard, user_access
+from bot_sys import bot_bd, log, keyboard, user_access, user_messages
 from bot_modules import start, access, groups, tasks, needs, comments
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
 
@@ -53,110 +53,116 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
 
+def MSG(a_MessageName, a_MessageDesc):
+    def UpdateMSG(a_Message : user_messages.Message):
+        print(a_Message.m_MessageName, a_Message.m_MessageDesc)
+        globals()[a_Message.m_MessageName] = a_Message
+    user_messages.MSG(a_MessageName, a_MessageDesc, UpdateMSG, log.GetTimeNow())
+
 # ---------------------------------------------------------
 # Сообщения
 
 projects_button_name = "🟥 Проекты"
-base_project_message = '''
+MSG('base_project_message','''
 <b>🟥 Проекты</b>
 
-'''
+''')
 
 list_project_button_name = "📃 Список проектов"
-select_project_message = '''
+MSG('select_project_message','''
 Пожалуйста, выберите проект:
-'''
+''')
 
-error_find_proj_message = '''
+MSG('error_find_proj_message','''
 ❌ Ошибка, проект не найден
-'''
+''')
 
-project_open_message = f'''
+MSG('project_open_message',f'''
 <b>Проект:  #{name_field}</b>
 
 #{desc_field}
 
 Время создания: #{create_datetime_field}
-'''
+''')
 
 # Создание проекта
 
 add_project_button_name = "✅ Добавить проект"
-project_create_name_message = '''
+MSG('project_create_name_message','''
 Создание проекта. Шаг №1
 
 Введите название проекта:
-'''
+''')
 
-project_create_desc_message = '''
+MSG('project_create_desc_message','''
 Создание проекта. Шаг №2
 
 Введите описание проекта:
-'''
+''')
 
-project_create_photo_message = '''
+MSG('project_create_photo_message','''
 Создание проекта. Шаг №3
 
 Загрузите обложку для проекта (Фото):
 Она будет отображаться в его описании.
-'''
+''')
 
-project_success_create_message = '''✅ Проект успешно добавлен!'''
+MSG('project_success_create_message','''✅ Проект успешно добавлен!''')
 
 # Редактирование проекта.
 
 edit_project_button_name = "🛠 Редактировать проект"
-project_start_edit_message= '''
+MSG('project_start_edit_message', '''
 Пожалуйста, выберите действие:
-'''
+''')
 
-project_select_to_edit_message = '''
+MSG('project_select_to_edit_message','''
 Выберите проект, который вы хотите отредактировать.
-'''
+''')
 
 edit_project_photo_button_name = "☐ Изменить изображение в проекте"
-project_edit_photo_message = '''
+MSG('project_edit_photo_message','''
 Загрузите новую обложку для проекта (Фото):
 Она будет отображаться в его описании.
-'''
+''')
 
 edit_project_name_button_name = "≂ Изменить название в проекте"
-project_edit_name_message = f'''
+MSG('project_edit_name_message',f'''
 Текущее название проекта:
 #{name_field}
 
 Введите новое название проекта:
-'''
+''')
 
 edit_project_desc_button_name = "𝌴 Изменить описание в проекте"
-project_edit_desc_message = f'''
+MSG('project_edit_desc_message',f'''
 Текущее описание проекта:
 #{desc_field}
 
 Введите новое описание проекта:
-'''
+''')
 
 edit_project_access_button_name = "✋ Изменить доступ к проекту"
-project_edit_access_message = f'''
+MSG('project_edit_access_message',f'''
 Текущий доступ к проекту:
 #{access_field}
 
 {user_access.user_access_readme}
 
 Введите новую строку доступа:
-'''
+''')
 
-project_success_edit_message = '''✅ Проект успешно отредактирован!'''
+MSG('project_success_edit_message','''✅ Проект успешно отредактирован!''')
 
 # Удаление проекта
 
 del_project_button_name = "❌ Удалить проект"
-project_select_to_delete_message = '''
+MSG('project_select_to_delete_message','''
 Выберите проект, который вы хотите удалить.
 Все задачи и потребности в этом проекте так же будут удалены!
-'''
+''')
 
-project_success_delete_message = '''✅ Проект успешно удалён!'''
+MSG('project_success_delete_message','''✅ Проект успешно удалён!''')
 
 # ---------------------------------------------------------
 # Работа с кнопками
@@ -205,7 +211,7 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
         if (len(a_Item) < 6):
             return simple_message.WorkFuncResult(error_find_proj_message)
 
-        msg = a_StringMessage.\
+        msg = str(a_StringMessage).\
                 replace(f'#{name_field}', a_Item[1]).\
                 replace(f'#{desc_field}', a_Item[2]).\
                 replace(f'#{create_datetime_field}', a_Item[5]).\

@@ -3,7 +3,7 @@
 
 # Профиль пользователя
 
-from bot_sys import bot_bd, log, config, keyboard, user_access
+from bot_sys import bot_bd, log, config, keyboard, user_access, user_messages
 from bot_modules import start, access, groups
 from template import simple_message
 
@@ -38,10 +38,16 @@ init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=+', '{user_access.user_access_group_new}=+');"
 ]
 
+def MSG(a_MessageName, a_MessageDesc):
+    def UpdateMSG(a_Message : user_messages.Message):
+        print(a_Message.m_MessageName, a_Message.m_MessageDesc)
+        globals()[a_Message.m_MessageName] = a_Message
+    user_messages.MSG(a_MessageName, a_MessageDesc, UpdateMSG, log.GetTimeNow())
+
 # ---------------------------------------------------------
 # Сообщения
 
-profile_message = f'''
+MSG('profile_message', f'''
 <b>📰 Профиль:</b> 
 
 <b>ID:</b> #{key_name}
@@ -50,7 +56,7 @@ profile_message = f'''
 <b>Имя2:</b> #{name2_field}
 <b>Код языка:</b> #{language_code_field}
 <b>Дата добавления:</b> #{create_datetime_field}
-'''
+''')
 
 user_profile_button_name = "📰 Профиль"
 
@@ -68,7 +74,7 @@ async def ProfileOpen(a_Message, state = None):
     user_info = GetUserInfo(a_Message.from_user.id)
     msg = profile_message
     if not user_info is None:
-        msg = msg.\
+        msg = str(msg).\
                 replace(f'#{key_name}', str(user_info[0])).\
                 replace(f'#{name_field}', str(user_info[1])).\
                 replace(f'#{name1_field}', str(user_info[2])).\

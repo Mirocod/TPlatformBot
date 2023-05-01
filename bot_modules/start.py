@@ -9,10 +9,11 @@ from template import simple_message
 
 from aiogram.dispatcher import Dispatcher
 
-MSG = user_messages.MSG
-def UpdateMSG(a_Message : user_messages.Message):
-    print(a_Message.m_MessageName, a_Message.m_MessageDesc)
-    globals()[a_Message.m_MessageName] = a_Message
+def MSG(a_MessageName, a_MessageDesc):
+    def UpdateMSG(a_Message : user_messages.Message):
+        print(a_Message.m_MessageName, a_Message.m_MessageDesc)
+        globals()[a_Message.m_MessageName] = a_Message
+    user_messages.MSG(a_MessageName, a_MessageDesc, UpdateMSG, log.GetTimeNow())
 
 # ---------------------------------------------------------
 # БД
@@ -29,7 +30,7 @@ MSG('start_message', '''
 <b>Добро пожаловать!</b>
 
 Выберите возможные действия на кнопках ниже ⌨'''
-, UpdateMSG)
+)
 
 start_menu_button_name = "☰ Главное меню"
 

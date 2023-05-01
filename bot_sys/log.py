@@ -18,8 +18,11 @@ import colorama
 import datetime
 colorama.init()
 
+def GetTimeNow():
+    return datetime.datetime.now()
+
 def GetTime():
-    now = datetime.datetime.now()
+    now = GetTimeNow()
     time = now.strftime(f"[%d.%m.%Y, %H:%M]")
     return time
 

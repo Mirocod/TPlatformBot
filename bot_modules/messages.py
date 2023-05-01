@@ -216,6 +216,7 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
 
         if message_success_edit_message == a_StringMessage:
             FlushMessages()
+            # TODO FlushMessages происходит рано. Нужно после изменений
         msg = a_StringMessage.\
                 replace(f'#{name_field}', a_Item[1]).\
                 replace(f'#{desc_field}', a_Item[2]).\
@@ -278,13 +279,13 @@ def FlushMessages():
     if msgs_bd:
         for m in msgs_bd:
             name = m[1]
-            lang_id = m[5]
+            lang_id = m[6]
             lang_name = languages.GetLangName(lang_id)
-            new_msg = user_messages.Message(name, m[2], lang_name, m[3])
+            new_msg = user_messages.Message(name, m[2], lang_name, m[3], log.GetTimeNow())
             if not msg.get(lang_name, None):
                 msg[lang_name] = {}
             msg[lang_name][name] = new_msg
-            user_messages.UpdateMSG(new_msg)
+    user_messages.UpdateSignal(log.GetTimeNow())
 
 # Инициализация БД
 def GetInitBDCommands():
