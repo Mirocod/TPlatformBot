@@ -52,7 +52,7 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     UNIQUE({key_name}),
     UNIQUE({name_field})
     )''',
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
+f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
 ]
 
 # ---------------------------------------------------------
