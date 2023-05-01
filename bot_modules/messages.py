@@ -3,7 +3,7 @@
 
 # Сообщения
 
-from bot_sys import bot_bd, log, keyboard, user_access
+from bot_sys import bot_bd, log, keyboard, user_access, user_messages
 from bot_modules import start, access, groups, languages
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add, bd_item_select
 
@@ -54,7 +54,9 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     {photo_field} TEXT,
     {access_field} TEXT,
     {create_datetime_field} TEXT,
-    {parent_id_field} INTEGER
+    {parent_id_field} INTEGER,
+    UNIQUE({key_name}),
+    UNIQUE({name_field}, {parent_id_field})
     )''',
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
@@ -212,6 +214,8 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
         if (len(a_Item) < 6):
             return simple_message.WorkFuncResult(error_find_proj_message)
 
+        if message_success_edit_message == a_StringMessage:
+            FlushMessages()
         msg = a_StringMessage.\
                 replace(f'#{name_field}', a_Item[1]).\
                 replace(f'#{desc_field}', a_Item[2]).\
@@ -239,6 +243,7 @@ async def MessagePreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
 async def MessagePostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
     log.Success(f'Сообщение №{a_ItemID} была удалена пользователем {a_CallbackQuery.from_user.id}.')
     #TODO: удалить вложенные 
+    FlushMessages()
     return simple_message.WorkFuncResult(message_success_delete_message)
 
 # ---------------------------------------------------------
@@ -253,10 +258,33 @@ def AddBDItemFunc(a_ItemData, a_UserID):
     else:
         log.Success(f'Пользоватлель {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
 
+    FlushMessages()
     return res, error
 
 # ---------------------------------------------------------
 # API
+
+def AddOrIgnoreMessage(a_Message : user_messages.Message):
+    return bot_bd.SQLRequestToBD(f'INSERT OR IGNORE INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+            commit = True, return_error = True, param = (a_Message.m_PhotoID, a_Message.m_MessageName, a_Message.m_MessageDesc, access.GetItemDefaultAccessForModule(module_name), languages.GetLangID(a_Message.m_Language)))
+
+def FlushMessages():
+    msg = user_messages.GetMessages()
+    for lang, msg_dict in msg.items():
+        for msg_name, message in msg_dict.items():
+            AddOrIgnoreMessage(message)
+
+    msgs_bd = bd_item.GetAllItemsTemplate(table_name)()
+    if msgs_bd:
+        for m in msgs_bd:
+            name = m[1]
+            lang_id = m[5]
+            lang_name = languages.GetLangName(lang_id)
+            new_msg = user_messages.Message(name, m[2], lang_name, m[3])
+            if not msg.get(lang_name, None):
+                msg[lang_name] = {}
+            msg[lang_name][name] = new_msg
+            user_messages.UpdateMSG(new_msg)
 
 # Инициализация БД
 def GetInitBDCommands():

@@ -3,11 +3,16 @@
 
 # Стартовое меню
 
-from bot_sys import log, config, keyboard, user_access
+from bot_sys import log, config, keyboard, user_access, user_messages
 from bot_modules import profile, projects, groups, access, backup, languages
 from template import simple_message
 
 from aiogram.dispatcher import Dispatcher
+
+MSG = user_messages.MSG
+def UpdateMSG(a_Message : user_messages.Message):
+    print(a_Message.m_MessageName, a_Message.m_MessageDesc)
+    globals()[a_Message.m_MessageName] = a_Message
 
 # ---------------------------------------------------------
 # БД
@@ -20,10 +25,11 @@ f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VA
 # ---------------------------------------------------------
 # Сообщения
 
-start_message = '''
+MSG('start_message', '''
 <b>Добро пожаловать!</b>
 
 Выберите возможные действия на кнопках ниже ⌨'''
+, UpdateMSG)
 
 start_menu_button_name = "☰ Главное меню"
 

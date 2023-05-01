@@ -3,7 +3,7 @@
 
 # Языки
 
-from bot_sys import bot_bd, log, keyboard, user_access
+from bot_sys import bot_bd, log, keyboard, user_access, user_messages
 from bot_modules import start, access, groups, messages
 from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
 
@@ -48,7 +48,9 @@ init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
     {desc_field} TEXT,
     {photo_field} TEXT,
     {access_field} TEXT,
-    {create_datetime_field} TEXT
+    {create_datetime_field} TEXT,
+    UNIQUE({key_name}),
+    UNIQUE({name_field})
     )''',
 f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
 ]
@@ -230,6 +232,7 @@ async def LanguagePreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
 async def LanguagePostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
     log.Success(f'Язык №{a_ItemID} был удалён пользователем {a_CallbackQuery.from_user.id}.')
     #TODO: удалить вложенные 
+    FlushLanguages()
     return simple_message.WorkFuncResult(language_success_delete_message)
 
 # ---------------------------------------------------------
@@ -244,10 +247,34 @@ def AddBDItemFunc(a_ItemData, a_UserID):
     else:
         log.Success(f'Пользоватлель {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
 
+    FlushLanguages()
     return res, error
 
 # ---------------------------------------------------------
 # API
+
+def AddOrIgnoreLang(a_Lang : str):
+    res, error = bot_bd.SQLRequestToBD(f'INSERT OR IGNORE INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+            commit = True, return_error = True, param = (0, a_Lang, '', access.GetItemDefaultAccessForModule(module_name)))
+
+g_languages = {}
+def GetLangID(a_Lang):
+    return g_languages.get(a_Lang, None)
+
+def GetLangName(a_LangID):
+    for lang_name, lang_id in g_languages:
+        if a_LangID == lang_id:
+            return lang_name
+    return None
+
+def FlushLanguages():
+    msg = user_messages.GetMessages()
+    for lang, msg_dict in msg.items():
+        AddOrIgnoreLang(lang)
+    langs = bd_item.GetAllItemsTemplate(table_name)()
+    if langs:
+        for l in langs:
+            g_languages[l[1]] = str(l[0])
 
 # Инициализация БД
 def GetInitBDCommands():

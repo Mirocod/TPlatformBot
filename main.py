@@ -13,7 +13,7 @@ from bot_sys import config, log, bot_bd, user_access
 from bot_modules import profile, start, projects, groups, access, backup, tasks, needs, comments, messages, languages
 
 storage = MemoryStorage()
-bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
+bot = Bot(token = config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
 dp = Dispatcher(bot, storage = storage)
 
 # Первичная инициализация модулей. Все модули должны быть прописаны в списке modules
@@ -21,12 +21,17 @@ modules = [tasks, access, profile, start, projects, groups, backup, needs, comme
 
 init_bd_cmd = []
 for m in modules:
-    m.RegisterHandlers(dp)
     c = m.GetInitBDCommands()
     if not c is None:
         init_bd_cmd += c
-# Первичаня инициализация базы данных
+# Первичная инициализация базы данных
 bot_bd.BDExecute(init_bd_cmd)
+
+languages.FlushLanguages()
+messages.FlushMessages()
+
+for m in modules:
+    m.RegisterHandlers(dp)
 
 # Юнит тесты модулей и файлов
 test_mods = [user_access]
@@ -34,8 +39,8 @@ for m in test_mods:
     m.Test()
 
 if __name__ == '__main__':
-    os.system('clear')
-    os.system('cls')
+#    os.system('clear')
+#    os.system('cls')
     log.Success(log_start_message)
 
 executor.start_polling(dp)
