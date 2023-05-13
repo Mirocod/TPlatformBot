@@ -31,7 +31,7 @@ def GetCheckForPrefixFunc(a_Prefix):
     return lambda x: x.data.startswith(a_Prefix)
 
 def GetCheckForTextFunc(a_Text):
-    return lambda x: x.text == a_Text
+    return lambda x: x.text == str(a_Text)
 
 def GetCheckForCommandsFunc(a_Commands):
     return lambda x: x.commands == a_Commands

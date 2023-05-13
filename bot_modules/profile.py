@@ -3,12 +3,9 @@
 
 # Профиль пользователя
 
-from bot_sys import bot_bd, log, config, keyboard, user_access, user_messages
-from bot_modules import start, access, groups
-from template import simple_message
-
-from aiogram import types
-from aiogram.dispatcher import Dispatcher
+from bot_sys import user_access, bot_bd
+from bot_modules import mod_simple_message, groups, access_utils
+from template import bd_item, simple_message
 
 # ---------------------------------------------------------
 # БД
@@ -24,30 +21,7 @@ language_code_field = 'userLanguageCode'
 access_field = 'userAccess'
 create_datetime_field = 'createDateTime'
 
-init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
-    {key_name} INTEGER,
-    {name_field} TEXT,
-    {name1_field} TEXT,
-    {name2_field} TEXT,
-    {is_bot_field} TEXT,
-    {language_code_field} TEXT,
-    {access_field} TEXT,
-    {create_datetime_field} TEXT,
-    UNIQUE({key_name})
-);""",
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=+', '{user_access.user_access_group_new}=+');"
-]
-
-def MSG(a_MessageName, a_MessageDesc):
-    def UpdateMSG(a_Message : user_messages.Message):
-        print(a_Message.m_MessageName, a_Message.m_MessageDesc)
-        globals()[a_Message.m_MessageName] = a_Message
-    user_messages.MSG(a_MessageName, a_MessageDesc, UpdateMSG, log.GetTimeNow())
-
-# ---------------------------------------------------------
-# Сообщения
-
-MSG('profile_message', f'''
+start_message = f'''
 <b>📰 Профиль:</b> 
 
 <b>ID:</b> #{key_name}
@@ -56,25 +30,41 @@ MSG('profile_message', f'''
 <b>Имя2:</b> #{name2_field}
 <b>Код языка:</b> #{language_code_field}
 <b>Дата добавления:</b> #{create_datetime_field}
-''')
+'''
 
-user_profile_button_name = "📰 Профиль"
+start_menu_button_name = "📰 Профиль"
 
-# ---------------------------------------------------------
-# Работа с кнопками
+class ModuleProfile(mod_simple_message.SimpleMessageModule):
+    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        a_InitAccess = f'{user_access.user_access_group_new}=+'
+        super().__init__(start_message, start_menu_button_name, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
-def GetStartKeyboardButtons(a_Message, a_UserGroups):
-    mods = [start]
-    return keyboard.MakeKeyboardForMods(mods, a_UserGroups)
+    def GetInitBDCommands(self):
+        return super(). GetInitBDCommands() + [
+            f"""CREATE TABLE IF NOT EXISTS {table_name}(
+            {key_name} INTEGER,
+            {name_field} TEXT,
+            {name1_field} TEXT,
+            {name2_field} TEXT,
+            {is_bot_field} TEXT,
+            {language_code_field} TEXT,
+            {access_field} TEXT,
+            {create_datetime_field} TEXT,
+            UNIQUE({key_name})
+            );""",
+            ]
 
-# ---------------------------------------------------------
-# Обработка сообщений
+    def GetName(self):
+        return module_name
 
-async def ProfileOpen(a_Message, state = None):
-    user_info = GetUserInfo(a_Message.from_user.id)
-    msg = profile_message
-    if not user_info is None:
-        msg = str(msg).\
+    # Основной обработчик главного сообщения
+    async def StartMessageHandler(self, a_Message, state = None):
+        user_info = GetUserInfo(self.m_Bot, a_Message.from_user.id)
+        lang = str(a_Message.from_user.language_code)
+        msg = self.m_StartMessage
+        msg = msg.GetMessageForLang(lang).StaticCopy()
+        if not user_info is None:
+            msg.m_MessageDesc = msg.GetDesc().\
                 replace(f'#{key_name}', str(user_info[0])).\
                 replace(f'#{name_field}', str(user_info[1])).\
                 replace(f'#{name1_field}', str(user_info[2])).\
@@ -83,46 +73,28 @@ async def ProfileOpen(a_Message, state = None):
                 replace(f'#{language_code_field}', str(user_info[5])).\
                 replace(f'#{access_field}', str(user_info[6])).\
                 replace(f'#{create_datetime_field}', str(user_info[7]))
-        return simple_message.WorkFuncResult(msg, item_access = str(user_info[6]))
-    return simple_message.WorkFuncResult(msg)
+            return simple_message.WorkFuncResult(msg, item_access = str(user_info[6]))
+        return await super().StartMessageHandler(a_Message, state)
 
-# ---------------------------------------------------------
+
 # Работа с базой данных пользователей
 
 # Добавление пользователя, если он уже есть, то игнорируем
-def AddUser(a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, a_LanguageCode):
-    bot_bd.SQLRequestToBD(f"INSERT OR IGNORE INTO users ({key_name}, {name_field}, {name1_field}, {name2_field}, {is_bot_field}, {language_code_field}, {access_field}, {create_datetime_field}) VALUES (?, ?, ?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
-            commit=True, param = (a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, a_LanguageCode, access.GetItemDefaultAccessForModule(module_name)))
-
-    user_groups = groups.GetUserGroupData(a_UserID)
+def AddUser(a_Bot, a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, a_LanguageCode):
+    a_Bot.SQLRequest(f"INSERT OR IGNORE INTO users ({key_name}, {name_field}, {name1_field}, {name2_field}, {is_bot_field}, {language_code_field}, {access_field}, {create_datetime_field}) VALUES (?, ?, ?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
+            commit=True, param = (a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, a_LanguageCode, access_utils.GetItemDefaultAccessForModule(a_Bot, module_name)))
+'''
+    user_groups = access_utils.GetUserGroupData(a_Bot, a_UserID)
     # Если пользователь не состоит ни в одной группе, то добавляем его в группу user_access.user_access_group_new
     if len(user_groups.group_names_list) == 0:
-        new_group_id = bot_bd.SQLRequestToBD(f'SELECT {groups.key_table_groups_name} FROM {groups.table_groups_name} WHERE {groups.name_table_groups_field} = ?', 
+        new_group_id = a_Bot.SQLRequest(f'SELECT {groups.key_table_groups_name} FROM {groups.table_groups_name} WHERE {groups.name_table_groups_field} = ?', 
                 param = [user_access.user_access_group_new])
         if new_group_id and new_group_id[0]:
-            bot_bd.SQLRequestToBD(f"INSERT OR IGNORE INTO {groups.table_user_in_groups_name} ({groups.user_id_field}, {groups.key_table_groups_name}, {groups.access_field}, {groups.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
-                    commit=True, param = (a_UserID, new_group_id[0][0], access.GetItemDefaultAccessForModule(module_name)))
-
-def GetUserInfo(a_UserID):
-    user_info = bot_bd.SQLRequestToBD('SELECT * FROM users WHERE user_id = ?', param = [a_UserID])
+            a_Bot.SQLRequest(f"INSERT OR IGNORE INTO {groups.table_user_in_groups_name} ({groups.user_id_field}, {groups.key_table_groups_name}, {groups.access_field}, {groups.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
+                    commit=True, param = (a_UserID, new_group_id[0][0], access_utils.GetItemDefaultAccessForModule(a_Bot, module_name)))
+'''
+def GetUserInfo(a_Bot, a_UserID):
+    user_info = a_Bot.SQLRequest('SELECT * FROM users WHERE user_id = ?', param = [a_UserID])
     if len(user_info) != 0:
         return user_info[0]
     return None
-
-# ---------------------------------------------------------
-# API
-
-# Инициализация БД
-def GetInitBDCommands():
-    return init_bd_cmds
-
-def GetAccess():
-    return access.GetAccessForModule(module_name)
-
-# Доступные кнопки
-def GetModuleButtons():
-    return [keyboard.ButtonWithAccess(user_profile_button_name, user_access.AccessMode.VIEW, GetAccess())]
-
-# Обработка кнопок
-def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(ProfileOpen, GetStartKeyboardButtons, GetAccess), text = user_profile_button_name)

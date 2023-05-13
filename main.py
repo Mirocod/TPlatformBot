@@ -6,7 +6,7 @@ log_start_message = 'Бот успешно запущен!'
 import os
 
 from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages
-from bot_modules import mod_agregator, start #, projects, groups, access, backup, tasks, needs, comments, messages, profile, languages
+from bot_modules import mod_agregator, start, profile #, projects, groups, access, backup, tasks, needs, comments, messages, , languages
 
 g_Log = log
 g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
@@ -18,7 +18,13 @@ g_BotButtons = bot_messages.BotMessages(default_language)
 
 g_ModuleAgregator = mod_agregator.ModuleAgregator()
 
-mod_start = start.ModuleStart([], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_start_name = 'start'
+
+mod_profile = profile.ModuleProfile([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_profile)
+
+start_mod_name_list = [mod_profile.GetName()]#, 'projects', 'groups', 'access', 'backup', 'languages']
+mod_start = start.ModuleStart(start_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_start)
 
 # Первичная инициализация модулей. Все модули должны быть прописаны в списке modules
@@ -40,6 +46,7 @@ g_BotButtons.UpdateSignal(g_Log.GetTimeNow())
 #messages.FlushMessages()
 
 for m in modules:
+    print(m)
     m.RegisterHandlers()
 
 # Юнит тесты модулей и файлов

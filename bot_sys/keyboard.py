@@ -37,7 +37,7 @@ def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     buttons = []
     for b in a_ButtonList:
         if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
-            buttons += [types.KeyboardButton(b.label)]
+            buttons += [types.KeyboardButton(str(b.label))]
     step = GetButtonInRowCount(len(buttons))
     return Chunks(buttons, step)
 
@@ -69,7 +69,7 @@ def MakeAiogramInlineKeyboard(a_ButtonList : [InlineButton]):
     for row in a_ButtonList:
         r = []
         for b in row:
-            r += [types.InlineKeyboardButton(text = b.label, callback_data = b.callback_data)]
+            r += [types.InlineKeyboardButton(text = str(b.label), callback_data = b.callback_data)]
         buttons += r
     inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return inline_keyboard

@@ -35,8 +35,8 @@ class SimpleMessageModule(mod_interface.IModule):
         self.m_StartMessageHandler = simple_message.SimpleMessageTemplate(
                 self.m_Bot,
                 self.m_StartMessageHandlerFunc,
-                None,
                 self.m_GetStartKeyboardButtonsFunc,
+                None,
                 self.m_GetAccessFunc
                 )
 
@@ -75,7 +75,7 @@ class SimpleMessageModule(mod_interface.IModule):
 
     def GetModuleButtons(self):
         return [
-                keyboard.ButtonWithAccess(self.m_StartButtonName, user_access.AccessMode.VIEW, GetAccess()),
+                keyboard.ButtonWithAccess(self.m_StartButtonName, user_access.AccessMode.VIEW, self.GetAccess()),
                 ]
 
     def RegisterHandlers(self):

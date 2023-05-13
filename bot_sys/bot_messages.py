@@ -12,6 +12,9 @@ class BotMessage:
         self.m_PhotoID = a_PhotoID
         self.m_DateTime = a_DateTime
 
+    def StaticCopy(self):
+        return BotMessage(None, self.m_MessageName, self.m_MessageDesc, self.m_Language, self.m_PhotoID, self.m_DateTime)
+
     def GetName(self):
         return self.m_MessageName
 
@@ -25,10 +28,12 @@ class BotMessage:
         return self.m_PhotoID
 
     def __str__(self):
-        msg = GetMessageForLang(self.m_Language)
+        msg = self.GetMessageForLang(self.m_Language)
         return msg.GetDesc()
 
     def GetMessageForLang(self, a_Language):
+        if not self.m_BotMessages:
+            return self
         last_update = self.m_BotMessages.m_LastUpdate
         new_msg = self
         if self.m_DateTime < last_update:

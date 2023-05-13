@@ -19,11 +19,11 @@ def InfoMessageTemplate(a_Bot, a_HelpMessage, a_GetButtonsFunc, a_GetInlineButto
     return SimpleMessageTemplate(a_Bot, GetMessage, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_AccessFunc, access_mode = access_mode)
 
 def SimpleMessageTemplate(a_Bot, a_WorkFunc, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
-    def ProxyGetButtonsTemplate(a_GetButtonsFunc):
+    def ProxyGetButtonsTemplate(a_GetButtonsFunc1):
         def ReturnNone(a_Message, user_groups):
             return None
-        if a_GetButtonsFunc:
-            return a_GetButtonsFunc
+        if a_GetButtonsFunc1:
+            return a_GetButtonsFunc1
         else:
             return ReturnNone
 
@@ -54,7 +54,7 @@ def SimpleMessageTemplate(a_Bot, a_WorkFunc, a_GetButtonsFunc, a_GetInlineButton
         if not res.item_access is None and not user_access.CheckAccess(a_Bot.GetRootIDs(), res.item_access, user_groups, access_mode):
             return await AccessDeniedMessage(user_id, a_Message, user_groups)
 
-        msg = msg.GetMessageForLang(lang)
+        msg = msg.GetMessageForLang(lang).StaticCopy()
 
         await a_Bot.SendMessage(
                     user_id,

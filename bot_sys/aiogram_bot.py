@@ -29,9 +29,13 @@ class AiogramBot(interfaces.IBot):
         return bot_bd.SQLRequest(self.m_BDFileName, a_Request, commit = commit, return_error = return_error, param = param)
 
     async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons):
-        inline_keyboard = keyboard.MakeAiogramInlineKeyboard(a_InlineKeyboardButtons)
-        base_keyboard = keyboard.MakeAiogramKeyboard(a_KeyboardButtons)
+        inline_keyboard = None
         if a_InlineKeyboardButtons:
+            inline_keyboard = keyboard.MakeAiogramInlineKeyboard(a_InlineKeyboardButtons)
+        base_keyboard = None
+        if a_KeyboardButtons:
+            base_keyboard = keyboard.MakeAiogramKeyboard(a_KeyboardButtons)
+        if inline_keyboard:
                 base_keyboard = inline_keyboard
         if a_PhotoIDs and a_PhotoIDs != 0 and a_PhotoIDs != '0':
             await self.m_TBot.send_photo(
@@ -41,6 +45,7 @@ class AiogramBot(interfaces.IBot):
                         reply_markup = base_keyboard
                         )
         else:
+            #print('SendMessage', a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons, base_keyboard)
             await self.m_TBot.send_message(
                         a_UserID,
                         a_Message,
