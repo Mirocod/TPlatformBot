@@ -31,6 +31,15 @@ def SelectBDTemplate(a_TableName):
 def SQLRequestToBD(a_Request : str, commit = False, return_error = False, param = None):
     return SQLRequest(GetBDFileName(), a_Request, commit = commit, return_error = return_error, param = param)
 
+def RequestsExecute(a_BDFileName, a_Commands):
+    for cmd in a_Commands:
+        SQLRequest(a_BDFileName, cmd, commit = True)
+
+def RequestSelectTemplate(a_BDFileName, a_TableName):
+    def SelectBD():
+        return SQLRequest(a_BDFileName, f'SELECT * FROM {a_TableName}')
+    return SelectBD
+
 def SQLRequest(a_BDFileName, a_Request : str, commit = False, return_error = False, param = None):
     db = sqlite3.connect(a_BDFileName)
     cursor = db.cursor()

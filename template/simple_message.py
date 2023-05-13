@@ -3,53 +3,62 @@
 
 # Простые информационные сообщения
 
-from bot_sys import user_access, config
-from bot_modules import access, groups
+from bot_sys import user_access
+from bot_modules import access
 from aiogram import types
 
-from aiogram import Bot
-bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
-
 class WorkFuncResult():
-    def __init__(self, a_StringMessage : str, photo_id = None, item_access = None, keyboard_func = None):
+    def __init__(self, a_StringMessage : str, photo_id = None, item_access = None):
         self.string_message = a_StringMessage
         self.photo_id = photo_id
         self.item_access = item_access
-        self.keyboard_func = keyboard_func
 
-
-def InfoMessageTemplateLegacy(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
+def InfoMessageTemplate(a_Bot, a_HelpMessage, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     async def GetMessage(a_Message : types.message, state = None):
         return WorkFuncResult(a_HelpMessage)
 
-    return SimpleMessageTemplateLegacy(GetMessage, a_GetButtonsFunc, a_AccessFunc, access_mode)
+    return SimpleMessageTemplate(a_Bot, GetMessage, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_AccessFunc, access_mode = access_mode)
 
-def SimpleMessageTemplateLegacy(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
+def SimpleMessageTemplate(a_Bot, a_WorkFunc, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
+    def ProxyGetButtonsTemplate(a_GetButtonsFunc):
+        def ReturnNone():
+            return None
+        if a_GetButtonsFunc:
+            return a_GetButtonsFunc
+        else:
+            return ReturnNone
+
+    async def AccessDeniedMessage(a_UserID, a_Message, user_groups):
+        return a_Bot.SendMessage(
+                    a_UserID,
+                    access.access_denied_message,
+                    None,
+                    None,
+                    ProxyGetButtonsTemplate(a_GetButtonsFunc)(a_Message, user_groups)
+                    )
+
     async def SimpleMessage(a_Message : types.message, state = None):
         user_id = str(a_Message.from_user.id)
-        user_groups = groups.GetUserGroupData(user_id)
-        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, access_mode):
-            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = a_GetButtonsFunc(a_Message, user_groups))
+        user_groups = a_Bot.GetUserGroupData(user_id)
+        if not user_access.CheckAccess(a_Bot.GetRootIDs(), a_AccessFunc(), user_groups, access_mode):
+            return await AccessDeniedMessage(user_id, a_Message, user_groups)
 
         res = await a_WorkFunc(a_Message, state = state)
         if res is None:
             return
-        
-        keyboard_func = a_GetButtonsFunc
-        if res.keyboard_func:
-            keyboard_func = res.keyboard_func
-        
+
         msg = res.string_message
         if msg is None:
             return
 
-        photo_id = res.photo_id
+        if not res.item_access is None and not user_access.CheckAccess(a_Bot.GetRootIDs(), res.item_access, user_groups, access_mode):
+            return await AccessDeniedMessage(user_id, a_Message, user_groups)
 
-        if not res.item_access is None and not user_access.CheckAccessString(res.item_access, user_groups, access_mode):
-            return await bot.send_message(a_Message.from_user.id, access.access_denied_message, reply_markup = keyboard_func(a_Message, user_groups))
-
-        if photo_id is None or photo_id == 0 or photo_id == '0':
-            return await bot.send_message(a_Message.from_user.id, msg, reply_markup = keyboard_func(a_Message, user_groups))
-
-        await bot.send_photo(user_id, photo_id, msg, reply_markup = keyboard_func(a_Message, user_groups))
+        await a_Bot.SendMessage(
+                    user_id,
+                    msg,
+                    res.photo_id,
+                    ProxyGetButtonsTemplate(a_GetInlineButtonsFunc)(a_Message, user_groups),
+                    ProxyGetButtonsTemplate(a_GetButtonsFunc)(a_Message, user_groups)
+                    )
     return SimpleMessage
