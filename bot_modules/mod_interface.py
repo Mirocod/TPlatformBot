@@ -5,21 +5,21 @@ from abc import ABC, abstractmethod
 
 class IModule(ABC):
     @abstractmethod
-    def GetName():
+    def GetName(self):
         pass
 
     @abstractmethod
-    def GetInitBDCommands():
+    def GetInitBDCommands(self):
         pass
 
     @abstractmethod
-    def GetAccess():
+    def GetAccess(self):
         pass
 
     @abstractmethod
-    def GetModuleButtons():
+    def GetModuleButtons(self):
         pass
 
     @abstractmethod
-    def RegisterHandlers():
+    def RegisterHandlers(self):
         pass

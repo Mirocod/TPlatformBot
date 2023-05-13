@@ -9,7 +9,7 @@ from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages
 from bot_modules import mod_agregator, start #, projects, groups, access, backup, tasks, needs, comments, messages, profile, languages
 
 g_Log = log
-g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log):
+g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
 
 default_language = 'ru'
 

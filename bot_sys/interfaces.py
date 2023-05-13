@@ -5,11 +5,11 @@ from abc import ABC, abstractmethod
 
 class IBot(ABC):
     @abstractmethod
-    def GetRootIDs():
+    def GetRootIDs(self):
         pass
 
     @abstractmethod
-    def GetLog():
+    def GetLog(self):
         pass
 
     @abstractmethod
@@ -17,27 +17,15 @@ class IBot(ABC):
         pass
 
     @abstractmethod
-    def GetUserGroupData(a_UserID):
-        pass
-
-    @abstractmethod
-    def GetAccessForModule(a_ModuleName):
-        pass
-
-    @abstractmethod
-    def GetItemDefaultAccessForModule(a_ModuleName):
-        pass
-
-    @abstractmethod
     async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons):
         pass
 
     @abstractmethod
-    def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc):
+    def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
         pass
 
     @abstractmethod
-    def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc):
+    def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
         pass
 
     @abstractmethod

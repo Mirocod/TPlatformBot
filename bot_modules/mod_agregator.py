@@ -5,11 +5,11 @@ class ModuleAgregator:
     def __init__(self):
         self.m_Modules = {}
 
-    def GetModule(a_ModName):
+    def GetModule(self, a_ModName):
         return self.m_Modules[a_ModName]
 
-    def AddModule(a_Module):
+    def AddModule(self, a_Module):
         self.m_Modules[a_Module.GetName()] = a_Module
 
-    def GetModList():
-        self.m_Modules.items()
+    def GetModList(self):
+        return self.m_Modules.values()

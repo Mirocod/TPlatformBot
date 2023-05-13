@@ -12,16 +12,16 @@ class BotMessage:
         self.m_PhotoID = a_PhotoID
         self.m_DateTime = a_DateTime
 
-    def GetName():
+    def GetName(self):
         return self.m_MessageName
 
-    def GetDesc():
+    def GetDesc(self):
         return self.m_MessageDesc
 
-    def GetLanguage():
+    def GetLanguage(self):
         return self.m_Language
 
-    def GetPhotoID():
+    def GetPhotoID(self):
         return self.m_PhotoID
 
     def __str__(self):
@@ -51,15 +51,15 @@ class BotMessages:
         self.m_Messages = {}
         self.m_LastUpdate = None
 
-    def GetMessages():
+    def GetMessages(self):
         return self.m_Messages
 
-    def UpdateSignal(a_DateTime):
+    def UpdateSignal(self, a_DateTime):
         self.m_LastUpdate = a_DateTime
 
-    def CreateMessage(a_MessageName, a_MessageDesc, a_DateTime):
-        cur_msg = BotMessage(a_MessageName, a_MessageDesc, self.a_DefaultLanguage, 0, a_DateTime)
-        msg = GetMessages()
+    def CreateMessage(self, a_MessageName, a_MessageDesc, a_DateTime):
+        cur_msg = BotMessage(self, a_MessageName, a_MessageDesc, self.a_DefaultLanguage, 0, a_DateTime)
+        msg = self.GetMessages()
         if not msg.get(self.a_DefaultLanguage, None):
             msg[self.a_DefaultLanguage] = {}
         if not msg[self.a_DefaultLanguage].get(a_MessageName, None):
