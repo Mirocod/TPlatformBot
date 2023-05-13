@@ -39,3 +39,8 @@ class IBot(ABC):
     @abstractmethod
     def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc):
         pass
+
+    @abstractmethod
+    def StartPolling(self):
+        pass
+

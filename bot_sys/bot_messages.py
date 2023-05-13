@@ -1,0 +1,68 @@
+#-*-coding utf-8-*-
+# Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
+
+# Работа с сообщениями
+
+class BotMessage:
+    def __init__(self, a_BotMessages, a_MessageName : str, a_MessageDesc : str, a_Language : str, a_PhotoID : str, a_DateTime):
+        self.m_BotMessages = a_BotMessages
+        self.m_MessageName = a_MessageName
+        self.m_MessageDesc = a_MessageDesc
+        self.m_Language = a_Language
+        self.m_PhotoID = a_PhotoID
+        self.m_DateTime = a_DateTime
+
+    def GetName():
+        return self.m_MessageName
+
+    def GetDesc():
+        return self.m_MessageDesc
+
+    def GetLanguage():
+        return self.m_Language
+
+    def GetPhotoID():
+        return self.m_PhotoID
+
+    def __str__(self):
+        msg = GetMessageForLang(self.m_Language)
+        return msg.GetDesc()
+
+    def GetMessageForLang(self, a_Language):
+        last_update = self.m_BotMessages.m_LastUpdate
+        new_msg = self
+        if self.m_DateTime < last_update:
+            msg = self.m_BotMessages.GetMessages()
+            if not msg.get(a_Language, None):
+                a_Language = self.m_Language
+                if not msg.get(a_Language, None):
+                    a_Language = self.m_BotMessages.a_DefaultLanguage
+            new_msg = msg[a_Language].get(self.m_MessageName, self)
+            if a_Language == self.m_Language:
+                self.m_MessageDesc = new_msg.m_MessageDesc
+                self.m_Language = new_msg.m_Language
+                self.m_PhotoID = new_msg.m_PhotoID
+                self.m_DateTime = new_msg.m_DateTime
+        return new_msg
+
+class BotMessages:
+    def __init__(self, a_DefaultLanguage):
+        self.a_DefaultLanguage = a_DefaultLanguage
+        self.m_Messages = {}
+        self.m_LastUpdate = None
+
+    def GetMessages():
+        return self.m_Messages
+
+    def UpdateSignal(a_DateTime):
+        self.m_LastUpdate = a_DateTime
+
+    def CreateMessage(a_MessageName, a_MessageDesc, a_DateTime):
+        cur_msg = BotMessage(a_MessageName, a_MessageDesc, self.a_DefaultLanguage, 0, a_DateTime)
+        msg = GetMessages()
+        if not msg.get(self.a_DefaultLanguage, None):
+            msg[self.a_DefaultLanguage] = {}
+        if not msg[self.a_DefaultLanguage].get(a_MessageName, None):
+            msg[self.a_DefaultLanguage][a_MessageName] = cur_msg
+        return cur_msg
+

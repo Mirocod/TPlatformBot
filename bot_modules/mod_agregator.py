@@ -11,3 +11,5 @@ class ModuleAgregator:
     def AddModule(a_Module):
         self.m_Modules[a_Module.GetName()] = a_Module
 
+    def GetModList():
+        self.m_Modules.items()

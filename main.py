@@ -4,36 +4,43 @@
 log_start_message = 'Бот успешно запущен!'
 
 import os
-from aiogram import Bot, types
-from aiogram.utils import executor
-from aiogram.dispatcher import Dispatcher
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-import sqlite3
-from bot_sys import config, log, bot_bd, user_access, user_messages
-from bot_modules import profile, start, projects, groups, access, backup, tasks, needs, comments, messages, languages
 
-storage = MemoryStorage()
-bot = Bot(token = config.GetTelegramBotApiToken(), parse_mode = types.ParseMode.HTML)
-dp = Dispatcher(bot, storage = storage)
+from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages
+from bot_modules import mod_agregator, start #, projects, groups, access, backup, tasks, needs, comments, messages, profile, languages
+
+g_Log = log
+g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log):
+
+default_language = 'ru'
+
+g_BotMessages = bot_messages.BotMessages(default_language)
+g_BotButtons = bot_messages.BotMessages(default_language)
+
+g_ModuleAgregator = mod_agregator.ModuleAgregator()
+
+mod_start = start.ModuleStart([], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_start)
 
 # Первичная инициализация модулей. Все модули должны быть прописаны в списке modules
-modules = [tasks, access, profile, start, projects, groups, backup, needs, comments, messages, languages]
+modules = g_ModuleAgregator.GetModList() # [start] #tasks, access, profile, projects, groups, backup, needs, comments, messages, languages]
 
-init_bd_cmd = []
+init_bd_cmds = []
 for m in modules:
     c = m.GetInitBDCommands()
     if not c is None:
-        init_bd_cmd += c
+        init_bd_cmds += c
 # Первичная инициализация базы данных
-bot_bd.BDExecute(init_bd_cmd)
+for c in init_bd_cmds:
+    g_Bot.SQLRequest(c, commit = True)
 
-user_messages.UpdateSignal(log.GetTimeNow())
+g_BotMessages.UpdateSignal(g_Log.GetTimeNow())
+g_BotButtons.UpdateSignal(g_Log.GetTimeNow())
 
-languages.FlushLanguages()
-messages.FlushMessages()
+#languages.FlushLanguages()
+#messages.FlushMessages()
 
 for m in modules:
-    m.RegisterHandlers(dp)
+    m.RegisterHandlers()
 
 # Юнит тесты модулей и файлов
 test_mods = [user_access]
@@ -43,6 +50,6 @@ for m in test_mods:
 if __name__ == '__main__':
 #    os.system('clear')
 #    os.system('cls')
-    log.Success(log_start_message)
+    g_Log.Success(log_start_message)
 
-executor.start_polling(dp)
+g_Bot.StartPolling()

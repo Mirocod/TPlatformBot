@@ -7,6 +7,7 @@ from aiogram import types
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.utils import executor
 
 class AiogramBot(interfaces.IBot):
     def __init__(self, a_TelegramBotApiToken, a_BDFileName, a_RootIDs, a_Log):
@@ -74,8 +75,11 @@ class AiogramBot(interfaces.IBot):
                         )
 
     def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc):
-       self.m_Dispatcher.register_message_handler(a_MessageHandler, a_CheckFunc)
+        self.m_Dispatcher.register_message_handler(a_MessageHandler, a_CheckFunc)
 
     def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc):
-       self.m_Dispatcher.register_callback_query_handler(a_CallbackHandler, a_CheckFunc)
+        self.m_Dispatcher.register_callback_query_handler(a_CallbackHandler, a_CheckFunc)
+
+    def StartPolling(self):
+        executor.start_polling(self.m_Dispatcher)
 

@@ -33,6 +33,9 @@ def GetCheckForPrefixFunc(a_Prefix):
 def GetCheckForTextFunc(a_Text):
     return lambda x: x.text == a_Text
 
+def GetCheckForCommandsFunc(a_Commands):
+    return lambda x: x.commands == a_Commands
+
 def GetKeyDataFromCallbackMessage(a_Message, a_Prefix):
     key_item_id = None
     if a_Prefix and hasattr(a_Message, 'data'):
