@@ -190,7 +190,7 @@ def GetStartProjectKeyboardButtons(a_Message, a_UserGroups):
 def GetViewItemInlineKeyboardTemplate(a_ItemID):
     def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
         cur_buttons = [
-                keyboard.InlineButton(tasks.list_task_button_name, tasks.select_tasks_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                keyboard.InlineButtonWithAccess(tasks.list_task_button_name, tasks.select_tasks_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
                 ]
         return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
     return GetViewItemInlineKeyboard
@@ -222,7 +222,7 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
         return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowMessage
 
-def SimpleMessageTemplate(a_StringMessage):
+def SimpleMessageTemplateLegacy(a_StringMessage):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
@@ -276,7 +276,7 @@ def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetStartProjectKeyboardButtons
 
     # Список проектов
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(ProjectsOpen, defaul_keyboard_func, GetAccess), text = projects_button_name)
     bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, \
             list_project_button_name, \
             table_name, \
@@ -311,10 +311,10 @@ def RegisterHandlers(dp : Dispatcher):
             FSMCreateProject.desc, \
             FSMCreateProject.photo,\
             AddBDItemFunc, \
-            SimpleMessageTemplate(project_create_name_message), \
-            SimpleMessageTemplate(project_create_desc_message), \
-            SimpleMessageTemplate(project_create_photo_message), \
-            SimpleMessageTemplate(project_success_create_message), \
+            SimpleMessageTemplateLegacy(project_create_name_message), \
+            SimpleMessageTemplateLegacy(project_create_desc_message), \
+            SimpleMessageTemplateLegacy(project_create_photo_message), \
+            SimpleMessageTemplateLegacy(project_success_create_message), \
             None,\
             None, \
             None, \
@@ -348,7 +348,7 @@ def RegisterHandlers(dp : Dispatcher):
                 field_type = a_FieldType\
                 )
 
-    dp.register_message_handler(simple_message.InfoMessageTemplate(project_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(project_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_project_button_name)
     RegisterEdit(edit_project_photo_button_name, FSMEditProjectPhotoItem, project_edit_photo_message, photo_field, bd_item.FieldType.photo)
     RegisterEdit(edit_project_name_button_name, FSMEditProjectNameItem, project_edit_name_message, name_field, bd_item.FieldType.text)
     RegisterEdit(edit_project_desc_button_name, FSMEditProjectDeskItem, project_edit_desc_message, desc_field, bd_item.FieldType.text)

@@ -136,7 +136,7 @@ def ShowMessageTemplate(a_StringMessage):
         return simple_message.WorkFuncResult(msg, item_access = a_Item[1])
     return ShowMessage
 
-def SimpleMessageTemplate(a_StringMessage):
+def SimpleMessageTemplateLegacy(a_StringMessage):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
@@ -178,8 +178,8 @@ def GetModuleButtons():
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetEditAccessKeyboardButtons
-    dp.register_message_handler(simple_message.InfoMessageTemplate(access_start_message, defaul_keyboard_func, GetAccess), text = access_button_name)
-    dp.register_message_handler(simple_message.InfoMessageTemplate(help_message, defaul_keyboard_func, GetAccess), text = help_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(access_start_message, defaul_keyboard_func, GetAccess), text = access_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(help_message, defaul_keyboard_func, GetAccess), text = help_button_name)
 
     sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBDAccess, defaul_keyboard_func, user_access.AccessMode.ACCEES_EDIT, GetAccess)
 

@@ -224,7 +224,7 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
         return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowMessage
 
-def SimpleMessageTemplate(a_StringMessage):
+def SimpleMessageTemplateLegacy(a_StringMessage):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
@@ -286,7 +286,7 @@ def RegisterHandlers(dp : Dispatcher):
                 )
 
     # Стартовое сообщение
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(TasksOpen, defaul_keyboard_func, GetAccess), text = tasks_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(TasksOpen, defaul_keyboard_func, GetAccess), text = tasks_button_name)
 
     # Список задач
     a_Prefix = RegisterSelectParent(list_task_button_name, user_access.AccessMode.VIEW)
@@ -328,10 +328,10 @@ def RegisterHandlers(dp : Dispatcher):
             FSMCreateTask.desc, \
             FSMCreateTask.photo,\
             AddBDItemFunc, \
-            SimpleMessageTemplate(task_create_name_message), \
-            SimpleMessageTemplate(task_create_desc_message), \
-            SimpleMessageTemplate(task_create_photo_message), \
-            SimpleMessageTemplate(task_success_create_message), \
+            SimpleMessageTemplateLegacy(task_create_name_message), \
+            SimpleMessageTemplateLegacy(task_create_desc_message), \
+            SimpleMessageTemplateLegacy(task_create_photo_message), \
+            SimpleMessageTemplateLegacy(task_success_create_message), \
             a_Prefix,\
             projects.table_name, \
             projects.key_name, \
@@ -365,7 +365,7 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Редактирование задачи
     edit_keyboard_func = GetEditTaskKeyboardButtons
-    dp.register_message_handler(simple_message.InfoMessageTemplate(task_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_task_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(task_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_task_button_name)
 
     RegisterEdit(edit_task_photo_button_name, FSMEditTaskPhotoItem, task_edit_photo_message, photo_field, bd_item.FieldType.photo)
     RegisterEdit(edit_task_name_button_name, FSMEditTaskNameItem, task_edit_name_message, name_field, bd_item.FieldType.text)

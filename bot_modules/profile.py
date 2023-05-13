@@ -125,4 +125,4 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(ProfileOpen, GetStartKeyboardButtons, GetAccess), text = user_profile_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(ProfileOpen, GetStartKeyboardButtons, GetAccess), text = user_profile_button_name)

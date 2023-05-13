@@ -193,7 +193,7 @@ def GetStartMessageKeyboardButtons(a_Message, a_UserGroups):
 def GetViewItemInlineKeyboardTemplate(a_ItemID):
     def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
         cur_buttons = [
-                #keyboard.InlineButton(needs.list_need_button_name, needs.select_needs_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                #keyboard.InlineButtonWithAccess(needs.list_need_button_name, needs.select_needs_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
                 ]
         return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
     return GetViewItemInlineKeyboard
@@ -228,7 +228,7 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
         return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowMessage
 
-def SimpleMessageTemplate(a_StringMessage):
+def SimpleMessageTemplateLegacy(a_StringMessage):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
@@ -314,7 +314,7 @@ def RegisterHandlers(dp : Dispatcher):
                 )
 
     # Стартовое сообщение
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(MessagesOpen, defaul_keyboard_func, GetAccess), text = messages_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(MessagesOpen, defaul_keyboard_func, GetAccess), text = messages_button_name)
 
     # Список сообщений
     a_Prefix = RegisterSelectParent(list_message_button_name, user_access.AccessMode.VIEW)
@@ -356,10 +356,10 @@ def RegisterHandlers(dp : Dispatcher):
             FSMCreateMessage.desc, \
             FSMCreateMessage.photo,\
             AddBDItemFunc, \
-            SimpleMessageTemplate(message_create_name_message), \
-            SimpleMessageTemplate(message_create_desc_message), \
-            SimpleMessageTemplate(message_create_photo_message), \
-            SimpleMessageTemplate(message_success_create_message), \
+            SimpleMessageTemplateLegacy(message_create_name_message), \
+            SimpleMessageTemplateLegacy(message_create_desc_message), \
+            SimpleMessageTemplateLegacy(message_create_photo_message), \
+            SimpleMessageTemplateLegacy(message_success_create_message), \
             a_Prefix,\
             languages.table_name, \
             languages.key_name, \
@@ -393,7 +393,7 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Редактирование сообщения
     edit_keyboard_func = GetEditMessageKeyboardButtons
-    dp.register_message_handler(simple_message.InfoMessageTemplate(message_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_message_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(message_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_message_button_name)
 
     RegisterEdit(edit_message_photo_button_name, FSMEditMessagePhotoItem, message_edit_photo_message, photo_field, bd_item.FieldType.photo)
     RegisterEdit(edit_message_name_button_name, FSMEditMessageNameItem, message_edit_name_message, name_field, bd_item.FieldType.text)

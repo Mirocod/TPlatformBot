@@ -192,7 +192,7 @@ def GetStartNeedKeyboardButtons(a_Message, a_UserGroups):
 def GetViewItemInlineKeyboardTemplate(a_ItemID):
     def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
         cur_buttons = [
-                keyboard.InlineButton(comments.list_comment_button_name, comments.select_comments_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                keyboard.InlineButtonWithAccess(comments.list_comment_button_name, comments.select_comments_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
                 ]
         return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
     return GetViewItemInlineKeyboard
@@ -223,7 +223,7 @@ def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
         return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowMessage
 
-def SimpleMessageTemplate(a_StringMessage):
+def SimpleMessageTemplateLegacy(a_StringMessage):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
@@ -299,7 +299,7 @@ def RegisterHandlers(dp : Dispatcher):
 
 
     # Стартовое сообщение
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(NeedsOpen, defaul_keyboard_func, GetAccess), text = needs_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(NeedsOpen, defaul_keyboard_func, GetAccess), text = needs_button_name)
 
     # Список потребностей
     a_Prefix = RegisterSelectParent(list_need_button_name, user_access.AccessMode.VIEW)
@@ -341,10 +341,10 @@ def RegisterHandlers(dp : Dispatcher):
             FSMCreateNeed.desc, \
             FSMCreateNeed.photo,\
             AddBDItemFunc, \
-            SimpleMessageTemplate(need_create_name_message), \
-            SimpleMessageTemplate(need_create_desc_message), \
-            SimpleMessageTemplate(need_create_photo_message), \
-            SimpleMessageTemplate(need_success_create_message), \
+            SimpleMessageTemplateLegacy(need_create_name_message), \
+            SimpleMessageTemplateLegacy(need_create_desc_message), \
+            SimpleMessageTemplateLegacy(need_create_photo_message), \
+            SimpleMessageTemplateLegacy(need_success_create_message), \
             a_Prefix,\
             tasks.table_name, \
             tasks.key_name, \
@@ -378,7 +378,7 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Редактирование потребностей
     edit_keyboard_func = GetEditNeedKeyboardButtons
-    dp.register_message_handler(simple_message.InfoMessageTemplate(need_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_need_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(need_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_need_button_name)
 
     RegisterEdit(edit_need_photo_button_name, FSMEditNeedPhotoItem, need_edit_photo_message, photo_field, bd_item.FieldType.photo)
     RegisterEdit(edit_need_name_button_name, FSMEditNeedNameItem, need_edit_name_message, name_field, bd_item.FieldType.text)

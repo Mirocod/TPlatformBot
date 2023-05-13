@@ -124,7 +124,7 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.InfoMessageTemplate(group_start_message, GetEditGroupKeyboardButtons, GetAccess), text = user_group_button_name)
-    dp.register_message_handler(simple_message.InfoMessageTemplate(help_message, GetEditGroupKeyboardButtons, GetAccess), text = help_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(group_start_message, GetEditGroupKeyboardButtons, GetAccess), text = user_group_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(help_message, GetEditGroupKeyboardButtons, GetAccess), text = help_button_name)
 
     sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBD, GetEditGroupKeyboardButtons, user_access.AccessMode.EDIT, GetAccess)

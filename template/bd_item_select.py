@@ -24,14 +24,14 @@ def GetBDItemsListKeyboardButtonsTemplate(a_TableName : str, a_ParentIDFieldName
             if access is None:
                 access = ''
             if bname:
-                b = keyboard.InlineButton(bname, a_NextPrefix, key_value, access, access_mode)
+                b = keyboard.InlineButtonWithAccess(bname, a_NextPrefix, key_value, access, access_mode)
                 items_button_list += [b]
         return keyboard.MakeInlineKeyboard(items_button_list, a_UserGroups)
     return GetBDItemsListKeyboardButtons
 
 def SelectDBItemTemplate(a_TableName : str, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_NextPrefix, access_mode = user_access.AccessMode.VIEW):
     keyboard_func = GetBDItemsListKeyboardButtonsTemplate(a_TableName, a_ParentIDFieldName, a_PrevPrefix, a_NextPrefix, a_GetButtonNameAndKeyValueAndAccessFunc)
-    return simple_message.InfoMessageTemplate(a_StartMessage, keyboard_func, a_AccessFunc, access_mode)
+    return simple_message.InfoMessageTemplateLegacy(a_StartMessage, keyboard_func, a_AccessFunc, access_mode)
 
 def FirstSelectBDItemRegisterHandlers(dp, a_PrefixBase, a_ButtonName, a_TableName : str, a_KeyName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
 

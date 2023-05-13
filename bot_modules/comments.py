@@ -166,7 +166,7 @@ def ShowMessageTemplate(a_StringMessage):
         return simple_message.WorkFuncResult(msg, item_access = a_Item[2])
     return ShowMessage
 
-def SimpleMessageTemplate(a_StringMessage):
+def SimpleMessageTemplateLegacy(a_StringMessage):
     async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringMessage)
     return ShowMessage
@@ -252,7 +252,7 @@ def RegisterHandlers(dp : Dispatcher):
 
 
     # Стартовое сообщение
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(CommentsOpen, defaul_keyboard_func, GetAccess), text = comments_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(CommentsOpen, defaul_keyboard_func, GetAccess), text = comments_button_name)
 
     # Список комментариев
     a_Prefix = RegisterSelectParent(list_comment_button_name, user_access.AccessMode.VIEW)
@@ -291,8 +291,8 @@ def RegisterHandlers(dp : Dispatcher):
             bd_item.GetCheckForPrefixFunc(a_Prefix), \
             FSMCreateComment, \
             AddBDItemFunc, \
-            SimpleMessageTemplate(comment_create_desc_message), \
-            SimpleMessageTemplate(comment_success_create_message), \
+            SimpleMessageTemplateLegacy(comment_create_desc_message), \
+            SimpleMessageTemplateLegacy(comment_success_create_message), \
             a_Prefix,\
             needs.table_name, \
             needs.key_name, \
@@ -325,7 +325,7 @@ def RegisterHandlers(dp : Dispatcher):
 
     # Редактирование комментариев
     edit_keyboard_func = GetEditCommentKeyboardButtons
-    dp.register_message_handler(simple_message.InfoMessageTemplate(comment_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_comment_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(comment_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_comment_button_name)
 
     RegisterEdit(edit_comment_desc_button_name, FSMEditCommentDescItem, comment_edit_desc_message, desc_field, bd_item.FieldType.text)
     RegisterEdit(edit_comment_access_button_name, FSMEditCommentAccessItem, comment_edit_access_message, access_field, bd_item.FieldType.text)

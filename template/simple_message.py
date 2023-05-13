@@ -18,13 +18,13 @@ class WorkFuncResult():
         self.keyboard_func = keyboard_func
 
 
-def InfoMessageTemplate(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
+def InfoMessageTemplateLegacy(a_HelpMessage, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     async def GetMessage(a_Message : types.message, state = None):
         return WorkFuncResult(a_HelpMessage)
 
-    return SimpleMessageTemplate(GetMessage, a_GetButtonsFunc, a_AccessFunc, access_mode)
+    return SimpleMessageTemplateLegacy(GetMessage, a_GetButtonsFunc, a_AccessFunc, access_mode)
 
-def SimpleMessageTemplate(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
+def SimpleMessageTemplateLegacy(a_WorkFunc, a_GetButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     async def SimpleMessage(a_Message : types.message, state = None):
         user_id = str(a_Message.from_user.id)
         user_groups = groups.GetUserGroupData(user_id)

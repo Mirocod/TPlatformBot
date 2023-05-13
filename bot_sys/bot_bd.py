@@ -29,7 +29,10 @@ def SelectBDTemplate(a_TableName):
     return SelectBD
 
 def SQLRequestToBD(a_Request : str, commit = False, return_error = False, param = None):
-    db = sqlite3.connect(GetBDFileName())
+    return SQLRequest(GetBDFileName(), a_Request, commit = commit, return_error = return_error, param = param)
+
+def SQLRequest(a_BDFileName, a_Request : str, commit = False, return_error = False, param = None):
+    db = sqlite3.connect(a_BDFileName)
     cursor = db.cursor()
     result = []
     error = None

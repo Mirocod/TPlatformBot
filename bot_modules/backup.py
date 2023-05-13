@@ -81,7 +81,7 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.InfoMessageTemplate(backup_message, GetBackupKeyboardButtons, GetAccess), text = backup_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(backup_message, GetBackupKeyboardButtons, GetAccess), text = backup_button_name)
 
     dp.register_message_handler(file_message.BackupFileTemplate(bot_bd.GetBDFileName(), backup_bd_message, GetAccess, GetBackupKeyboardButtons, error_backup_message), text = backup_bd_button_name)
     dp.register_message_handler(file_message.BackupFileTemplate(log.g_log_file_name, backup_log_message, GetAccess, GetBackupKeyboardButtons, error_backup_message), text = backup_log_button_name)

@@ -72,7 +72,7 @@ def GetModuleButtons():
 
 # Обработка кнопок
 def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(StartMenu, GetStartKeyboardButtons, GetAccess), commands = ['start'])
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(StartMenu, GetStartKeyboardButtons, GetAccess), text = start_menu_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(StartMenu, GetStartKeyboardButtons, GetAccess), commands = ['start'])
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(StartMenu, GetStartKeyboardButtons, GetAccess), text = start_menu_button_name)
 
 

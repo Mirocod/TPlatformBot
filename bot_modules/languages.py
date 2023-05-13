@@ -185,7 +185,7 @@ def GetStartLanguageKeyboardButtons(a_Language, a_UserGroups):
 def GetViewItemInlineKeyboardTemplate(a_ItemID):
     def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
         cur_buttons = [
-                keyboard.InlineButton(messages.list_message_button_name, messages.select_messages_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                keyboard.InlineButtonWithAccess(messages.list_message_button_name, messages.select_messages_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
                 ]
         return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
     return GetViewItemInlineKeyboard
@@ -216,7 +216,7 @@ def ShowMessageTemplate(a_StringLanguage, keyboard_template_func = None):
         return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
     return ShowLanguage
 
-def SimpleMessageTemplate(a_StringLanguage):
+def SimpleMessageTemplateLegacy(a_StringLanguage):
     async def ShowLanguage(a_CallbackQuery : types.CallbackQuery, a_Item):
         return simple_message.WorkFuncResult(a_StringLanguage)
     return ShowLanguage
@@ -298,7 +298,7 @@ def RegisterHandlers(dp : Dispatcher):
     defaul_keyboard_func = GetStartLanguageKeyboardButtons
 
     # Список языков
-    dp.register_message_handler(simple_message.SimpleMessageTemplate(LanguagesOpen, defaul_keyboard_func, GetAccess), text = languages_button_name)
+    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(LanguagesOpen, defaul_keyboard_func, GetAccess), text = languages_button_name)
     bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(dp, \
             list_language_button_name, \
             table_name, \
@@ -333,10 +333,10 @@ def RegisterHandlers(dp : Dispatcher):
             FSMCreateLanguage.desc, \
             FSMCreateLanguage.photo,\
             AddBDItemFunc, \
-            SimpleMessageTemplate(language_create_name_message), \
-            SimpleMessageTemplate(language_create_desc_message), \
-            SimpleMessageTemplate(language_create_photo_message), \
-            SimpleMessageTemplate(language_success_create_message), \
+            SimpleMessageTemplateLegacy(language_create_name_message), \
+            SimpleMessageTemplateLegacy(language_create_desc_message), \
+            SimpleMessageTemplateLegacy(language_create_photo_message), \
+            SimpleMessageTemplateLegacy(language_success_create_message), \
             None,\
             None, \
             None, \
@@ -370,7 +370,7 @@ def RegisterHandlers(dp : Dispatcher):
                 field_type = a_FieldType\
                 )
 
-    dp.register_message_handler(simple_message.InfoMessageTemplate(language_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_language_button_name)
+    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(language_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_language_button_name)
     RegisterEdit(edit_language_photo_button_name, FSMEditLanguagePhotoItem, language_edit_photo_message, photo_field, bd_item.FieldType.photo)
     RegisterEdit(edit_language_name_button_name, FSMEditLanguageNameItem, language_edit_name_message, name_field, bd_item.FieldType.text)
     RegisterEdit(edit_language_desc_button_name, FSMEditLanguageDeskItem, language_edit_desc_message, desc_field, bd_item.FieldType.text)

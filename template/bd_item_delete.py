@@ -29,7 +29,7 @@ def DeleteBDItemTemplate(a_TableName, a_KeyName, a_PreDeleteWorkFunc, a_PostDele
 
         return await a_PostDeleteWorkFunc(a_CallbackQuery, item_id)
 
-    return simple_message.SimpleMessageTemplate(DeleteBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
+    return simple_message.SimpleMessageTemplateLegacy(DeleteBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
 def DeleteBDItemRegisterHandlers(dp, a_PrevPrefix, a_StartCheckFunc, a_TableName : str, a_KeyName, a_ParentIDFieldName,a_PreDeleteWorkFunc, a_PostDeleteWorkFunc, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.DELETE):
     reg_func = dp.register_message_handler

@@ -39,7 +39,7 @@ def StartAddBDItemTemplate(a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, 
                 check.keyboard_func = a_FinishButtonFunc
                 return check
         return res_of_work_func
-    return simple_message.SimpleMessageTemplate(StartAddBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
+    return simple_message.SimpleMessageTemplateLegacy(StartAddBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
 def FinishAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
     return FinishOrNextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_ButtonFunc, True, access_mode = access_mode, field_type = field_type)
@@ -95,7 +95,7 @@ def FinishOrNextAddBDItemTemplate(a_FSM, a_AddBDItemFunc, a_ParentTableName, a_P
             return simple_message.WorkFuncResult(error)
         return res_of_work_func
 
-    return simple_message.SimpleMessageTemplate(FinishAddBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
+    return simple_message.SimpleMessageTemplateLegacy(FinishAddBDItem, a_ButtonFunc, a_AccessFunc, access_mode)
 
 def AddBDItem3RegisterHandlers(dp, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMDesc, a_FSMPhoto, a_AddBDItemFunc, a_AddNameMessageFunc, a_AddDescMessageFunc, a_AddPhotoMessageFunc, a_FinishMessageFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_NameField, a_DescField, a_PhotoField, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD):
     keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
