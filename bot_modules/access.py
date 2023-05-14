@@ -4,7 +4,7 @@
 # Права пользователей
 
 from bot_sys import bot_bd, log, config, keyboard, user_access
-from bot_modules import start, groups
+from bot_modules import access_utils
 from template import simple_message, sql_request, bd_item_edit, bd_item
 
 from aiogram.dispatcher import FSMContext
@@ -67,10 +67,6 @@ help_message = '''
 
 modAccess - строка
 ''' + user_access.user_access_readme
-
-access_denied_message = '''
-❌ Доступ запрещён!
-''' 
 
 access_button_name = "⛀ Доступ пользователей"
 sql_request_button_name = "⛁ Запрос к БД для редактирования доступа"

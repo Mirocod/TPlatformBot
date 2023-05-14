@@ -5,7 +5,7 @@
 from enum import Enum
 
 from bot_sys import user_access, bot_bd, keyboard, log
-from bot_modules import groups, access
+from bot_modules import groups_utils, access_utils
 from template import simple_message
 
 from aiogram import types
@@ -82,7 +82,7 @@ def EditBDItemInTableTemplate(a_TableName : str, a_KeyName : str, a_FieldName : 
 def CheckAccessBDItemTemplate(a_TableName, a_KeyName, a_KeyValue, a_WorkFunc, a_AccessMode : user_access.AccessMode):
     async def CheckAccessBDItem(a_CallbackQuery : types.CallbackQuery):
         user_id = str(a_CallbackQuery.from_user.id)
-        user_groups = groups.GetUserGroupData(user_id)
+        user_groups = groups_utils.GetUserGroupData(user_id)
         item_id = a_KeyValue
         item = GetBDItemsTemplate(a_TableName, a_KeyName)(item_id)
         if len(item) < 1:
@@ -95,7 +95,7 @@ def CheckAccessBDItemTemplate(a_TableName, a_KeyName, a_KeyValue, a_WorkFunc, a_
             return result_work_func, result_work_func
 
         if not result_work_func.item_access is None and not user_access.CheckAccessString(result_work_func.item_access, user_groups, a_AccessMode):
-            return simple_message.WorkFuncResult(access.access_denied_message), None
+            return simple_message.WorkFuncResult(access_utils.access_denied_message), None
 
         return None, result_work_func
     return CheckAccessBDItem

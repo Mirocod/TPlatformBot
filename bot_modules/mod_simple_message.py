@@ -3,8 +3,8 @@
 
 # Простой модуль с одним сообщением
 
-from bot_sys import keyboard, user_access, keyboard
-from bot_modules import access, mod_interface
+from bot_sys import keyboard, user_access
+from bot_modules import access_utils, mod_interface
 from template import simple_message, bd_item
 
 class SimpleMessageModule(mod_interface.IModule):
@@ -67,11 +67,11 @@ class SimpleMessageModule(mod_interface.IModule):
 
     def GetInitBDCommands(self):
         return [
-                access.GetAccessForModuleRequest(self.GetName(), self.m_InitAccess, self.m_InitAccess),
+                access_utils.GetAccessForModuleRequest(self.GetName(), self.m_InitAccess, self.m_InitAccess),
                 ]
 
     def GetAccess(self):
-        return access.GetAccessForModule(self.m_Bot, self.GetName())
+        return access_utils.GetAccessForModule(self.m_Bot, self.GetName())
 
     def GetModuleButtons(self):
         return [

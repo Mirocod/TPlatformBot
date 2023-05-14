@@ -4,25 +4,20 @@
 # Сообщения для работы с файлами
 
 from bot_sys import log, config, user_access
-from bot_modules import access, groups
+from bot_modules import groups_utils
 from template import simple_message
 
 def BackupFileTemplate(a_Bot, a_Path, a_CaptionMessage, a_AccessFunc, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_ErrorMessage, access_mode = user_access.AccessMode.EDIT):
     async def BackupFile(a_Message):
         user_id = str(a_Message.from_user.id)
-        user_groups= groups.GetUserGroupData(a_Bot, user_id)
+        user_groups= groups_utils.GetUserGroupData(a_Bot, user_id)
         if not user_access.CheckAccessString(a_AccessFunc(), user_groups, access_mode):
             return await simple_message.AccessDeniedMessage(a_Bot, a_GetButtonsFunc, user_id, a_Message, user_groups)
 
         document = await GetFile(a_Bot, a_Path)
         if document is None:
-            return a_Bot.SendMessage(
-                user_id,
-                a_ErrorMessage,
-                None,
-                simple_message.ProxyGetButtonsTemplate(a_GetButtonsFunc)(a_Message, user_groups),
-                None
-                )
+            return simple_message.SendMessage(a_Bot, a_ErrorMessage, a_GetButtonsFunc, None, user_id, a_Message, user_groups)
+
         msg = a_CaptionMessage.GetDesc()
         msg = msg.replace('@time', a_Bot.GetLog().GetTime())
 

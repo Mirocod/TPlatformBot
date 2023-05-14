@@ -3,13 +3,12 @@
 
 # Группы пользователей
 
-from bot_sys import bot_bd, log, config, keyboard, user_access
-from bot_modules import start, access
-from template import simple_message, sql_request
+from bot_sys import keyboard, user_access, bot_bd
+from bot_modules import mod_simple_message
+from template import simple_message, sql_request, bd_item
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import Dispatcher
 
 class FSMRequestToBD(StatesGroup):
     sqlRequest = State()
@@ -27,29 +26,10 @@ user_id_field = 'user_id'
 access_field = 'access'
 create_datetime_field = 'createDateTime'
 
-init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_groups_name}(
-    {key_table_groups_name} INTEGER PRIMARY KEY NOT NULL,
-    {name_table_groups_field} TEXT,
-    {access_field} TEXT,
-    {create_datetime_field} TEXT,
-    UNIQUE({key_table_groups_name}),
-    UNIQUE({name_table_groups_field})
-);""",
-f"""CREATE TABLE IF NOT EXISTS {table_user_in_groups_name}(
-    {user_id_field} INTEGER,
-    {key_table_groups_name} INTEGER,
-    {access_field} TEXT,
-    {create_datetime_field} TEXT,
-    UNIQUE({user_id_field}, {key_table_groups_name})
-);""",
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');",
-f"INSERT OR IGNORE INTO {table_groups_name} ({name_table_groups_field}, {access_field}, {create_datetime_field}) VALUES ('{user_access.user_access_group_new}', '{user_access.user_access_group_new}=-', {bot_bd.GetBDDateTimeNow()});"
-]
-
 # ---------------------------------------------------------
 # Сообщения
 
-group_start_message = '''
+start_message = '''
 <b>Группы пользователей находятся в стадии разработки</b>
 
 Пока можете воспользоваться хардкорным способом через запросы к БД
@@ -73,69 +53,73 @@ help_message = '''
 `user_in_groups(user_id, group_id)` - содержит соответсвия ID пользователей и групп
  '''
 
-user_group_button_name = "‍️️▦ Группы пользователей"
+start_menu_button_name = "‍️️▦ Группы пользователей"
 sql_request_button_name = "⛃ Запрос к БД для редактирования групп"
 help_button_name = "📄 Информация по группам"
 
-# ---------------------------------------------------------
-# Работа с кнопками
-'''
-def GetEditGroupKeyboardButtons(a_Message, a_UserGroups):
-    cur_buttons = [
-        keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.EDIT, GetAccess()), 
-        keyboard.ButtonWithAccess(help_button_name, user_access.AccessMode.VIEW, GetAccess())
-    ]
-    mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
+init_access = '{user_access.user_access_group_new}=-'
 
-# ---------------------------------------------------------
-# Обработка сообщений
+class ModuleGroups(mod_simple_message.SimpleMessageModule):
+    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(start_message, start_menu_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
+        self.m_RequestStartMessage = self.CreateMessage('equest start', request_start_message)
 
-# ---------------------------------------------------------
-# Работа с базой данных групп
+        self.m_HelpButtonName = self.CreateButton('help', help_button_name)
+        self.m_HelpMessage = self.CreateMessage('help', help_message)
 
-def GetGroupIDForUser(a_UserID):
-    return bot_bd.SQLRequestToBD('SELECT group_id FROM user_in_groups WHERE user_id = ?', param = [a_UserID])
+        self.m_HelpMessageHandler = simple_message.InfoMessageTemplate(
+                self.m_Bot,
+                self.m_HelpMessage,
+                self.m_GetStartKeyboardButtonsFunc,
+                None,
+                self.m_GetAccessFunc
+                )
 
-def GetGroupNamesForUser(a_UserID):
-    return bot_bd.SQLRequestToBD('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', param = [a_UserID])
+    def GetInitBDCommands(self):
+        return super(). GetInitBDCommands() + [
+            f"""CREATE TABLE IF NOT EXISTS {table_groups_name}(
+                {key_table_groups_name} INTEGER PRIMARY KEY NOT NULL,
+                {name_table_groups_field} TEXT,
+                {access_field} TEXT,
+                {create_datetime_field} TEXT,
+                UNIQUE({key_table_groups_name}),
+                UNIQUE({name_table_groups_field})
+            );""",
+            f"""CREATE TABLE IF NOT EXISTS {table_user_in_groups_name}(
+                {user_id_field} INTEGER,
+                {key_table_groups_name} INTEGER,
+                {access_field} TEXT,
+                {create_datetime_field} TEXT,
+                UNIQUE({user_id_field}, {key_table_groups_name})
+            );""",
+            f"INSERT OR IGNORE INTO {table_groups_name} ({name_table_groups_field}, {access_field}, {create_datetime_field}) VALUES ('{user_access.user_access_group_new}', '{user_access.user_access_group_new}=-', {bot_bd.GetBDDateTimeNow()});"
+            ]
 
-# ---------------------------------------------------------
-# API
+    def GetName(self):
+        return module_name
 
-def GetUserGroupData(a_UserID):
-    r = GetGroupNamesForUser(a_UserID)
-    groups = []
-    for i in r:
-        if len(i) > 0:
-            groups += [i[0]]
-    return user_access.UserGroups(a_UserID, groups)
+    def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
+        mod_buttons = super().GetStartKeyboardButtons(a_Message, a_UserGroups)
+        cur_buttons = [
+                keyboard.ButtonWithAccess(self.m_SqlRequestButtonName, user_access.AccessMode.EDIT, self.GetAccess()), 
+                keyboard.ButtonWithAccess(self.m_HelpButtonName , user_access.AccessMode.VIEW, self.GetAccess())
+                ]
+        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
 
-# Инициализация БД
-def GetInitBDCommands():
-    return init_bd_cmds
+    def RegisterHandlers(self):
+        super().RegisterHandlers()
+        sql_request.RequestToBDRegisterHandlers(
+                self.m_Bot,
+                self.m_SqlRequestButtonName,
+                self.m_RequestStartMessage,
+                FSMRequestToBD,
+                self.m_GetStartKeyboardButtonsFunc,
+                user_access.AccessMode.EDIT,
+                self.m_GetAccessFunc
+                )
+        self.m_Bot.RegisterMessageHandler(
+                self.m_HelpMessageHandler, 
+                bd_item.GetCheckForTextFunc(self.m_HelpButtonName)
+                )
 
-def GetAccess():
-    return access.GetAccessForModule(module_name)
-
-# Доступные кнопки
-def GetModuleButtons():
-    return [keyboard.ButtonWithAccess(user_group_button_name, user_access.AccessMode.VIEW, GetAccess())]
-
-# Обработка кнопок
-def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(group_start_message, GetEditGroupKeyboardButtons, GetAccess), text = user_group_button_name)
-    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(help_message, GetEditGroupKeyboardButtons, GetAccess), text = help_button_name)
-
-    sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBD, GetEditGroupKeyboardButtons, user_access.AccessMode.EDIT, GetAccess)
-'''
-
-def GetUserGroupData(a_Bot, a_UserID):
-    def GetGroupNamesForUser(a_UserID):
-        return a_Bot.SQLRequest('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', param = [a_UserID])
-    r = GetGroupNamesForUser(a_UserID)
-    groups = []
-    for i in r:
-        if len(i) > 0:
-            groups += [i[0]]
-    return user_access.UserGroups(a_UserID, groups)

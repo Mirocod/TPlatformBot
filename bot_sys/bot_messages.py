@@ -50,6 +50,9 @@ class BotMessage:
                 self.m_DateTime = new_msg.m_DateTime
         return new_msg
 
+def MakeBotMessage(a_MessageDesc):
+    return BotMessage(None, '', a_MessageDesc, None, 0, None)
+
 class BotMessages:
     def __init__(self, a_DefaultLanguage):
         self.a_DefaultLanguage = a_DefaultLanguage

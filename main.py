@@ -6,7 +6,7 @@ log_start_message = 'Бот успешно запущен!'
 import os
 
 from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages
-from bot_modules import mod_agregator, start, profile, backup #, projects, groups, access, , tasks, needs, comments, messages, , languages
+from bot_modules import mod_agregator, start, profile, backup, groups #, projects, , access, , tasks, needs, comments, messages, , languages
 
 g_Log = log
 g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
@@ -26,9 +26,13 @@ g_ModuleAgregator.AddModule(mod_profile)
 mod_backup = backup.ModuleBackup([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_backup)
 
+mod_groups = groups.ModuleGroups([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_groups)
+
 start_mod_name_list = [#, 'projects', 'groups', 'access', , 'languages']
         mod_profile.GetName(),
         mod_backup.GetName(),
+        mod_groups.GetName(),
         ]
 mod_start = start.ModuleStart(start_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_start)
