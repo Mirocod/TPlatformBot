@@ -79,7 +79,7 @@ help_button_name = "📄 Информация по группам"
 
 # ---------------------------------------------------------
 # Работа с кнопками
-
+'''
 def GetEditGroupKeyboardButtons(a_Message, a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.EDIT, GetAccess()), 
@@ -128,3 +128,14 @@ def RegisterHandlers(dp : Dispatcher):
     dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(help_message, GetEditGroupKeyboardButtons, GetAccess), text = help_button_name)
 
     sql_request.RequestToBDRegisterHandlers(dp, sql_request_button_name, request_start_message, FSMRequestToBD, GetEditGroupKeyboardButtons, user_access.AccessMode.EDIT, GetAccess)
+'''
+
+def GetUserGroupData(a_Bot, a_UserID):
+    def GetGroupNamesForUser(a_UserID):
+        return a_Bot.SQLRequest('SELECT groupName FROM user_groups WHERE group_id=(SELECT group_id FROM user_in_groups WHERE user_id = ?)', param = [a_UserID])
+    r = GetGroupNamesForUser(a_UserID)
+    groups = []
+    for i in r:
+        if len(i) > 0:
+            groups += [i[0]]
+    return user_access.UserGroups(a_UserID, groups)

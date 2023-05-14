@@ -4,7 +4,7 @@
 # Простой модуль с одним сообщением
 
 from bot_sys import keyboard, user_access, keyboard
-from bot_modules import access_utils, mod_interface
+from bot_modules import access, mod_interface
 from template import simple_message, bd_item
 
 class SimpleMessageModule(mod_interface.IModule):
@@ -17,8 +17,8 @@ class SimpleMessageModule(mod_interface.IModule):
         self.m_BotButtons = a_BotButtons
         self.m_Log = a_Log
 
-        self.m_StartButtonName = self.CreateButton(f'{self.GetName()}_start', a_StartButtonName)
-        self.m_StartMessage = self.CreateMessage(f'{self.GetName()}_start', a_StartMessage)
+        self.m_StartButtonName = self.CreateButton('start', a_StartButtonName)
+        self.m_StartMessage = self.CreateMessage('start', a_StartMessage)
 
         async def StartMessageHandler(a_Message, state = None):
             return await self.StartMessageHandler(a_Message, state)
@@ -45,11 +45,11 @@ class SimpleMessageModule(mod_interface.IModule):
         return simple_message.WorkFuncResult(self.m_StartMessage)
 
     def CreateMessage(self, a_MessageName, a_MessageDesc):
-        msg = self.m_BotMessages.CreateMessage(a_MessageName, a_MessageDesc, self.m_Log.GetTimeNow())
+        msg = self.m_BotMessages.CreateMessage(f'{self.GetName()}_{a_MessageName}', a_MessageDesc, self.m_Log.GetTimeNow())
         return msg
 
     def CreateButton(self, a_ButtonName, a_ButtonDesc):
-        btn = self.m_BotButtons.CreateMessage(a_ButtonName, a_ButtonDesc, self.m_Log.GetTimeNow())
+        btn = self.m_BotButtons.CreateMessage(f'{self.GetName()}_{a_ButtonName}', a_ButtonDesc, self.m_Log.GetTimeNow())
         return btn
 
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
@@ -67,11 +67,11 @@ class SimpleMessageModule(mod_interface.IModule):
 
     def GetInitBDCommands(self):
         return [
-                access_utils.GetAccessForModuleRequest(self.GetName(), self.m_InitAccess, self.m_InitAccess),
+                access.GetAccessForModuleRequest(self.GetName(), self.m_InitAccess, self.m_InitAccess),
                 ]
 
     def GetAccess(self):
-        return access_utils.GetAccessForModule(self.m_Bot, self.GetName())
+        return access.GetAccessForModule(self.m_Bot, self.GetName())
 
     def GetModuleButtons(self):
         return [

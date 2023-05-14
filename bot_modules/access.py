@@ -106,7 +106,7 @@ moduleaccess_success_edit_message = '''✅ Проект успешно отре�
 
 # ---------------------------------------------------------
 # Работа с кнопками
-
+'''
 def GetEditAccessKeyboardButtons(a_Message, a_UserGroups):
     cur_buttons = [
         keyboard.ButtonWithAccess(sql_request_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
@@ -204,3 +204,24 @@ def RegisterHandlers(dp : Dispatcher):
                 )
     RegisterEdit(edit_moduleaccess_access_button_name, FSMEditAccessItem, moduleaccess_edit_access_message, moduleaccess_field, bd_item.FieldType.text, user_access.AccessMode.ACCEES_EDIT)
     RegisterEdit(edit_moduleaccess_default_access_button_name, FSMEditDefaultAccessItem, moduleaccess_edit_default_access_message, mod_default_access_field, bd_item.FieldType.text, user_access.AccessMode.EDIT)
+
+'''
+def GetAccessForModuleRequest(module_name, access, default_access):
+     return f"INSERT OR IGNORE INTO {table_name} ({mod_name_field}, {moduleaccess_field}, {mod_default_access_field}) VALUES ('{module_name}', '{access}', '{default_access}');"
+
+def GetModulesAccessList(a_Bot):
+    return bot_bd.RequestSelectTemplate(a_Bot.m_BDFileName, table_name)()
+
+def GetAccessForModule(a_Bot, a_ModuleName):
+    alist = GetModulesAccessList(a_Bot)
+    for i in alist:
+        if i[0] == a_ModuleName:
+            return i[1]
+    return ''
+
+def GetItemDefaultAccessForModule(a_Bot, a_ModuleName):
+    alist = GetModulesAccessList(a_Bot)
+    for i in alist:
+        if i[0] == a_ModuleName:
+            return i[2]
+    return ''

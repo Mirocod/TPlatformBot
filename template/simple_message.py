@@ -4,7 +4,7 @@
 # Простые информационные сообщения
 
 from bot_sys import user_access
-from bot_modules import access, access_utils
+from bot_modules import access, groups
 from aiogram import types
 
 class WorkFuncResult():
@@ -39,7 +39,7 @@ def SimpleMessageTemplate(a_Bot, a_WorkFunc, a_GetButtonsFunc, a_GetInlineButton
     async def SimpleMessage(a_Message : types.message, state = None):
         user_id = str(a_Message.from_user.id)
         lang = str(a_Message.from_user.language_code)
-        user_groups = access_utils.GetUserGroupData(a_Bot, user_id)
+        user_groups = groups.GetUserGroupData(a_Bot, user_id)
         if not user_access.CheckAccess(a_Bot.GetRootIDs(), a_AccessFunc(), user_groups, access_mode):
             return await AccessDeniedMessage(user_id, a_Message, user_groups)
 
