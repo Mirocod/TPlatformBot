@@ -34,10 +34,11 @@ start_message = f'''
 
 start_menu_button_name = "📰 Профиль"
 
+init_access = f'{user_access.user_access_group_new}=+'
+
 class ModuleProfile(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        a_InitAccess = f'{user_access.user_access_group_new}=+'
-        super().__init__(start_message, start_menu_button_name, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(start_message, start_menu_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetInitBDCommands(self):
         return super(). GetInitBDCommands() + [

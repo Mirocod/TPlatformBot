@@ -24,8 +24,10 @@ def GetButtons(a_ModList):
 import math
 
 def Chunks(a_List, a_ChunkSize):
+    chunk_list = []
     for i in range(0, len(a_List), a_ChunkSize):
-        yield a_List[i: i + a_ChunkSize]
+         chunk_list += [a_List[i: i + a_ChunkSize]]
+    return chunk_list
 
 def GetButtonInRowCount(a_AllKeyCount):
     return min(max(int(math.sqrt(a_AllKeyCount) // 1), 1), 4)
@@ -33,6 +35,7 @@ def GetButtonInRowCount(a_AllKeyCount):
 def MakeAiogramKeyboard(a_ButtonList : [[str]]):
     return types.ReplyKeyboardMarkup(keyboard=a_ButtonList, resize_keyboard = True)
 
+# TODO перенести KeyboardButton в MakeAiogramKeyboard
 def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     buttons = []
     for b in a_ButtonList:

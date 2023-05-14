@@ -28,7 +28,7 @@ class AiogramBot(interfaces.IBot):
     def SQLRequest(self, a_Request : str, commit = False, return_error = False, param = None):
         return bot_bd.SQLRequest(self.m_BDFileName, a_Request, commit = commit, return_error = return_error, param = param)
 
-    async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons):
+    async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_KeyboardButtons, a_InlineKeyboardButtons):
         inline_keyboard = None
         if a_InlineKeyboardButtons:
             inline_keyboard = keyboard.MakeAiogramInlineKeyboard(a_InlineKeyboardButtons)
@@ -51,6 +51,23 @@ class AiogramBot(interfaces.IBot):
                         a_Message,
                         reply_markup = base_keyboard
                         )
+
+    async def SendDocument(self, a_UserID, a_Document, a_Caption, a_KeyboardButtons, a_InlineKeyboardButtons):
+        inline_keyboard = None
+        if a_InlineKeyboardButtons:
+            inline_keyboard = keyboard.MakeAiogramInlineKeyboard(a_InlineKeyboardButtons)
+        base_keyboard = None
+        if a_KeyboardButtons:
+            base_keyboard = keyboard.MakeAiogramKeyboard(a_KeyboardButtons)
+        if inline_keyboard:
+                base_keyboard = inline_keyboard
+        await self.m_TBot.send_document(
+                        a_UserID,
+                        a_Document,
+                        caption = a_Caption,
+                        reply_markup = base_keyboard
+                        )
+
 
     def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
         if a_CheckFunc:

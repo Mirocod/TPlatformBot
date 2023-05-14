@@ -45,11 +45,11 @@ class SimpleMessageModule(mod_interface.IModule):
         return simple_message.WorkFuncResult(self.m_StartMessage)
 
     def CreateMessage(self, a_MessageName, a_MessageDesc):
-        msg = self.m_BotMessages.CreateMessage(f'{self.GetName()}_{a_MessageName}', a_MessageDesc, self.m_Log.GetTimeNow())
+        msg = self.m_BotMessages.CreateMessage(f'{self.GetName()} {a_MessageName}', a_MessageDesc, self.m_Log.GetTimeNow())
         return msg
 
     def CreateButton(self, a_ButtonName, a_ButtonDesc):
-        btn = self.m_BotButtons.CreateMessage(f'{self.GetName()}_{a_ButtonName}', a_ButtonDesc, self.m_Log.GetTimeNow())
+        btn = self.m_BotButtons.CreateMessage(f'{self.GetName()} {a_ButtonName}', a_ButtonDesc, self.m_Log.GetTimeNow())
         return btn
 
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):

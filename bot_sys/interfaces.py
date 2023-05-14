@@ -17,7 +17,11 @@ class IBot(ABC):
         pass
 
     @abstractmethod
-    async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons):
+    async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_KeyboardButtons, a_InlineKeyboardButtons):
+        pass
+
+    @abstractmethod
+    async def SendDocument(self, a_UserID, a_Document, a_Caption, a_KeyboardButtons, a_InlineKeyboardButtons):
         pass
 
     @abstractmethod
