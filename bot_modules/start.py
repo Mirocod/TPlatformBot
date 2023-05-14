@@ -12,13 +12,13 @@ start_message = '''
 
 Выберите возможные действия на кнопках ниже ⌨'''
 
-start_menu_button_name = "☰ Главное меню"
+start_button_name = "☰ Главное меню"
 
 init_access = f'{user_access.user_access_group_all}=+'
 
 class ModuleStart(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(start_message, start_menu_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetName(self):
         return 'start'

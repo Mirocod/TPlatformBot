@@ -3,14 +3,12 @@
 
 # Права пользователей
 
-from bot_sys import bot_bd, log, config, keyboard, user_access
-from bot_modules import access_utils
-from template import simple_message, sql_request, bd_item_edit, bd_item
+from bot_sys import keyboard, user_access, bot_bd
+from bot_modules import mod_simple_message
+from template import simple_message, sql_request, bd_item
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import Dispatcher
-from aiogram import types
 
 class FSMRequestToBDAccess(StatesGroup):
     sqlRequest = State()
@@ -33,19 +31,10 @@ mod_default_access_field = 'itemDefaultAccess'
 
 #TODO: Автоматическое создание init_bd_cmds, необходимо table_name, mod_name_field ... объединить в объект
 
-init_bd_cmds = [f"""CREATE TABLE IF NOT EXISTS {table_name}(
-    {mod_name_field} TEXT,
-    {moduleaccess_field} TEXT,
-    {mod_default_access_field} TEXT,
-    UNIQUE({mod_name_field})
-);""",
-f"INSERT OR IGNORE INTO {table_name} ({mod_name_field}, {moduleaccess_field}, {mod_default_access_field}) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');"
-]
-
 # ---------------------------------------------------------
 # Сообщения
 
-access_start_message = '''
+start_message = '''
 <b> Права пользователей находятся в стадии разработки</b>
 
 Пока можете воспользоваться хардкорным способом через запросы к БД
@@ -68,7 +57,7 @@ help_message = '''
 modAccess - строка
 ''' + user_access.user_access_readme
 
-access_button_name = "⛀ Доступ пользователей"
+start_button_name = "⛀ Доступ пользователей"
 sql_request_button_name = "⛁ Запрос к БД для редактирования доступа"
 help_button_name = "📄 Информация по редактированию доступа"
 
@@ -99,6 +88,65 @@ moduleaccess_edit_default_access_message = f'''
 '''
 
 moduleaccess_success_edit_message = '''✅ Проект успешно отредактирован!'''
+
+init_access = f'{user_access.user_access_group_new}=-'
+
+class ModuleAccess(mod_simple_message.SimpleMessageModule):
+    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
+        self.m_RequestStartMessage = self.CreateMessage('equest start', request_start_message)
+
+        self.m_HelpButtonName = self.CreateButton('help', help_button_name)
+        self.m_HelpMessage = self.CreateMessage('help', help_message)
+
+        self.m_HelpMessageHandler = simple_message.InfoMessageTemplate(
+                self.m_Bot,
+                self.m_HelpMessage,
+                self.m_GetStartKeyboardButtonsFunc,
+                None,
+                self.m_GetAccessFunc
+                )
+
+    def GetInitBDCommands(self):
+        return super(). GetInitBDCommands() + [
+            f"""CREATE TABLE IF NOT EXISTS {table_name}(
+                {mod_name_field} TEXT,
+                {moduleaccess_field} TEXT,
+                {mod_default_access_field} TEXT,
+                UNIQUE({mod_name_field})
+                );""",
+            ]
+
+    def GetName(self):
+        return module_name
+
+    def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
+        mod_buttons = super().GetStartKeyboardButtons(a_Message, a_UserGroups)
+        cur_buttons = [
+                keyboard.ButtonWithAccess(self.m_SqlRequestButtonName, user_access.AccessMode.EDIT, self.GetAccess()), 
+                keyboard.ButtonWithAccess(self.m_HelpButtonName , user_access.AccessMode.VIEW, self.GetAccess())
+                ]
+        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
+
+    def RegisterHandlers(self):
+        super().RegisterHandlers()
+        sql_request.RequestToBDRegisterHandlers(
+                self.m_Bot,
+                self.m_SqlRequestButtonName,
+                self.m_RequestStartMessage,
+                FSMRequestToBDAccess,
+                self.m_GetStartKeyboardButtonsFunc,
+                user_access.AccessMode.EDIT,
+                self.m_GetAccessFunc
+                )
+        self.m_Bot.RegisterMessageHandler(
+                self.m_HelpMessageHandler, 
+                bd_item.GetCheckForTextFunc(self.m_HelpButtonName)
+                )
+
+
+
 
 # ---------------------------------------------------------
 # Работа с кнопками
@@ -202,22 +250,4 @@ def RegisterHandlers(dp : Dispatcher):
     RegisterEdit(edit_moduleaccess_default_access_button_name, FSMEditDefaultAccessItem, moduleaccess_edit_default_access_message, mod_default_access_field, bd_item.FieldType.text, user_access.AccessMode.EDIT)
 
 '''
-def GetAccessForModuleRequest(module_name, access, default_access):
-     return f"INSERT OR IGNORE INTO {table_name} ({mod_name_field}, {moduleaccess_field}, {mod_default_access_field}) VALUES ('{module_name}', '{access}', '{default_access}');"
 
-def GetModulesAccessList(a_Bot):
-    return bot_bd.RequestSelectTemplate(a_Bot.m_BDFileName, table_name)()
-
-def GetAccessForModule(a_Bot, a_ModuleName):
-    alist = GetModulesAccessList(a_Bot)
-    for i in alist:
-        if i[0] == a_ModuleName:
-            return i[1]
-    return ''
-
-def GetItemDefaultAccessForModule(a_Bot, a_ModuleName):
-    alist = GetModulesAccessList(a_Bot)
-    for i in alist:
-        if i[0] == a_ModuleName:
-            return i[2]
-    return ''
