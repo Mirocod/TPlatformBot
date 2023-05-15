@@ -3,8 +3,8 @@
 
 # Профиль пользователя
 
-from bot_sys import user_access, bot_bd
-from bot_modules import mod_simple_message, groups, access, access_utils
+from bot_sys import user_access, bot_bd, bd_table
+from bot_modules import mod_simple_message, groups, access, access_utils, groups_utils
 from template import bd_item, simple_message
 
 # ---------------------------------------------------------
@@ -20,6 +20,17 @@ is_bot_field = 'userIsBot'
 language_code_field = 'userLanguageCode'
 access_field = 'userAccess'
 create_datetime_field = 'createDateTime'
+
+table = bd_table.Table(table_name, [
+        bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
+        bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR),
+        bd_table.TableField(name1_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(name2_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(is_bot_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(language_code_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
+        bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
+        ])
 
 start_message = f'''
 <b>📰 Профиль:</b> 
@@ -42,17 +53,7 @@ class ModuleProfile(mod_simple_message.SimpleMessageModule):
 
     def GetInitBDCommands(self):
         return super(). GetInitBDCommands() + [
-            f"""CREATE TABLE IF NOT EXISTS {table_name}(
-            {key_name} INTEGER,
-            {name_field} TEXT,
-            {name1_field} TEXT,
-            {name2_field} TEXT,
-            {is_bot_field} TEXT,
-            {language_code_field} TEXT,
-            {access_field} TEXT,
-            {create_datetime_field} TEXT,
-            UNIQUE({key_name})
-            );""",
+            table.GetInitTableRequest(),
             ]
 
     def GetName(self):
@@ -62,19 +63,11 @@ class ModuleProfile(mod_simple_message.SimpleMessageModule):
     async def StartMessageHandler(self, a_Message, state = None):
         user_info = GetUserInfo(self.m_Bot, a_Message.from_user.id)
         lang = str(a_Message.from_user.language_code)
-        msg = self.m_StartMessage
-        msg = msg.GetMessageForLang(lang).StaticCopy()
         if not user_info is None:
-            msg.m_MessageDesc = msg.GetDesc().\
-                replace(f'#{key_name}', str(user_info[0])).\
-                replace(f'#{name_field}', str(user_info[1])).\
-                replace(f'#{name1_field}', str(user_info[2])).\
-                replace(f'#{name2_field}', str(user_info[3])).\
-                replace(f'#{is_bot_field}', str(user_info[4])).\
-                replace(f'#{language_code_field}', str(user_info[5])).\
-                replace(f'#{access_field}', str(user_info[6])).\
-                replace(f'#{create_datetime_field}', str(user_info[7]))
-            return simple_message.WorkFuncResult(msg, item_access = str(user_info[6]))
+            msg = self.m_StartMessage
+            msg = msg.GetMessageForLang(lang).StaticCopy()
+            msg.m_MessageDesc = table.ReplaceAllFieldTags(msg.GetDesc(), user_info)
+            return simple_message.WorkFuncResult(msg, item_access = str(user_info[table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]))
         return await super().StartMessageHandler(a_Message, state)
 
 
@@ -84,8 +77,8 @@ class ModuleProfile(mod_simple_message.SimpleMessageModule):
 def AddUser(a_Bot, a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, a_LanguageCode):
     a_Bot.SQLRequest(f"INSERT OR IGNORE INTO users ({key_name}, {name_field}, {name1_field}, {name2_field}, {is_bot_field}, {language_code_field}, {access_field}, {create_datetime_field}) VALUES (?, ?, ?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
             commit=True, param = (a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, a_LanguageCode, access_utils.GetItemDefaultAccessForModule(a_Bot, module_name)))
-'''
-    user_groups = access_utils.GetUserGroupData(a_Bot, a_UserID)
+
+    user_groups = groups_utils.GetUserGroupData(a_Bot, a_UserID)
     # Если пользователь не состоит ни в одной группе, то добавляем его в группу user_access.user_access_group_new
     if len(user_groups.group_names_list) == 0:
         new_group_id = a_Bot.SQLRequest(f'SELECT {groups.key_table_groups_name} FROM {groups.table_groups_name} WHERE {groups.name_table_groups_field} = ?', 
@@ -93,7 +86,7 @@ def AddUser(a_Bot, a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, 
         if new_group_id and new_group_id[0]:
             a_Bot.SQLRequest(f"INSERT OR IGNORE INTO {groups.table_user_in_groups_name} ({groups.user_id_field}, {groups.key_table_groups_name}, {groups.access_field}, {groups.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
                     commit=True, param = (a_UserID, new_group_id[0][0], access_utils.GetItemDefaultAccessForModule(a_Bot, module_name)))
-'''
+
 def GetUserInfo(a_Bot, a_UserID):
     user_info = a_Bot.SQLRequest('SELECT * FROM users WHERE user_id = ?', param = [a_UserID])
     if len(user_info) != 0:

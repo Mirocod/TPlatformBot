@@ -4,7 +4,7 @@
 # Права пользователей
 
 from bot_sys import keyboard, user_access, bot_bd
-from bot_modules import mod_simple_message
+from bot_modules import mod_simple_message, access_utils
 from template import simple_message, sql_request, bd_item
 
 from aiogram.dispatcher import FSMContext
@@ -24,10 +24,10 @@ class FSMEditDefaultAccessItem(StatesGroup):
 # БД
 module_name = 'access'
 
-table_name = 'module_access'
-mod_name_field = 'modName'
-moduleaccess_field = 'modAccess'
-mod_default_access_field = 'itemDefaultAccess'
+table_name = access_utils.table_name
+mod_name_field = access_utils.mod_name_field
+moduleaccess_field = access_utils.moduleaccess_field
+mod_default_access_field = access_utils.mod_default_access_field
 
 #TODO: Автоматическое создание init_bd_cmds, необходимо table_name, mod_name_field ... объединить в объект
 
@@ -109,14 +109,14 @@ class ModuleAccess(mod_simple_message.SimpleMessageModule):
                 )
 
     def GetInitBDCommands(self):
-        return super(). GetInitBDCommands() + [
+        return [
             f"""CREATE TABLE IF NOT EXISTS {table_name}(
                 {mod_name_field} TEXT,
                 {moduleaccess_field} TEXT,
                 {mod_default_access_field} TEXT,
                 UNIQUE({mod_name_field})
                 );""",
-            ]
+            ] + super().GetInitBDCommands()
 
     def GetName(self):
         return module_name

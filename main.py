@@ -5,7 +5,7 @@ log_start_message = 'Бот успешно запущен!'
 
 import os
 
-from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages
+from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages, bd_table
 from bot_modules import mod_agregator, start, profile, backup, groups, access #, projects, , access, , tasks, needs, comments, messages, , languages
 
 g_Log = log
@@ -20,17 +20,17 @@ g_ModuleAgregator = mod_agregator.ModuleAgregator()
 
 mod_start_name = 'start'
 
+mod_access = access.ModuleAccess([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_access)
+
+mod_groups = groups.ModuleGroups([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_groups)
+
 mod_profile = profile.ModuleProfile([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_profile)
 
 mod_backup = backup.ModuleBackup([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_backup)
-
-mod_groups = groups.ModuleGroups([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
-g_ModuleAgregator.AddModule(mod_groups)
-
-mod_access = access.ModuleAccess([mod_start_name], g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
-g_ModuleAgregator.AddModule(mod_access)
 
 start_mod_name_list = [#, 'projects', 'groups', 'access', , 'languages']
         mod_profile.GetName(),
@@ -64,7 +64,7 @@ for m in modules:
     m.RegisterHandlers()
 
 # Юнит тесты модулей и файлов
-test_mods = [user_access]
+test_mods = [user_access, bd_table]
 for m in test_mods:
     m.Test()
 
