@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 # Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
-# Простой модуль с одним сообщением
+# Модуль для редактирования и просмотра таблицы в БД
 
 from bot_sys import keyboard, user_access
 from bot_modules import access_utils, mod_interface
@@ -48,7 +48,6 @@ class FSMs:
         self.m_FSMEditPhoto = a_FSMEditPhoto
         self.m_FSMEditAccess = a_FSMEditAccess
 
-
 # Предназначение поля в таблице
 class TableFieldDestiny(Enum):
     KEY = auto()
@@ -93,10 +92,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
  
 
     def GetButton(self, a_ButtonName):
-        return self.m_Buttons[a_ButtonName]
+        return self.m_Buttons.get(a_ButtonName, None)
 
     def GetMessage(self, a_MessageNames):
-        return self.m_Messages[a_MessageNames]
+        return self.m_Messages.get(a_MessageNames, None)
 
     def GetInitBDCommands(self):
         return super(). GetInitBDCommands() + [
@@ -264,65 +263,73 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 )
 
         # Список 
-        a_Prefix = RegisterSelectParent(self.GetButton(ButtonNames.LIST), user_access.AccessMode.VIEW)
+        a_ButtonName = self.GetButton(ButtonNames.LIST)
+        if a_ButtonName:
+            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.VIEW)
             bd_item_view.LastSelectAndShowBDItemRegisterHandlers(self.m_Bot, \
-            a_Prefix,\
-            parent_id_field, \
-            table_name,\
-            key_name, \
-            self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
-            GetButtonNameAndKeyValueAndAccess, \
-            self.GetMessage(Messages.SELECT), \
-            GetAccess, \
-            defaul_keyboard_func, \
-            access_mode = user_access.AccessMode.VIEW\
-            )
+                    a_Prefix,\
+                    parent_id_field, \
+                    table_name,\
+                    key_name, \
+                    self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
+                    GetButtonNameAndKeyValueAndAccess, \
+                    self.GetMessage(Messages.SELECT), \
+                    GetAccess, \
+                    defaul_keyboard_func, \
+                    access_mode = user_access.AccessMode.VIEW\
+                    )
         self.m_SelectPrefix = a_Prefix
 
         # Удаление 
-        a_Prefix = RegisterSelectParent(self.GetButton(ButtonNames.DEL), user_access.AccessMode.DELETE)
-        bd_item_delete.DeleteBDItemRegisterHandlers(self.m_Bot, \
-            a_Prefix, \
-            bd_item.GetCheckForPrefixFunc(a_Prefix), \
-            table_name, \
-            key_name, \
-            parent_id_field, \
-            self.m_PreDeleteFunc, \
-            self.m_PostDeleteFunc, \
-            GetButtonNameAndKeyValueAndAccess, \
-            self.GetMessage(Messages.SELECT), \
-            GetAccess, \
-            defaul_keyboard_func\
-            )
+        a_ButtonName = self.GetButton(ButtonNames.DEL)
+        if a_ButtonName:
+            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.DELETE)
+            bd_item_delete.DeleteBDItemRegisterHandlers(self.m_Bot, \
+                    a_Prefix, \
+                    bd_item.GetCheckForPrefixFunc(a_Prefix), \
+                    table_name, \
+                    key_name, \
+                    parent_id_field, \
+                    self.m_PreDeleteFunc, \
+                    self.m_PostDeleteFunc, \
+                    GetButtonNameAndKeyValueAndAccess, \
+                    self.GetMessage(Messages.SELECT), \
+                    GetAccess, \
+                    defaul_keyboard_func\
+                    )
 
         # Добавление 
-        a_Prefix = RegisterSelectParent(self.GetButton(ButtonNames.ADD), user_access.AccessMode.ADD)
-        bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
-            bd_item.GetCheckForPrefixFunc(a_Prefix), \
-            self.m_FSMs.m_FSMCreate, \
-            self.m_FSMs.m_FSMCreate.name,\
-            self.m_FSMs.m_FSMCreate.desc, \
-            self.m_FSMs.m_FSMCreate.photo,\
-            self.m_AddBDItemFunc, \
-            self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_NAME)), \
-            self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_DESC)), \
-            self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_PHOTO)), \
-            self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_CREATE)), \
-            a_Prefix,\
-            parent_table_name, \
-            parent_key_name, \
-            name_field, \
-            desc_field, \
-            photo_field, \
-            GetButtonNameAndKeyValueAndAccess, \
-            GetAccess, \
-            self.m_GetStartTaskKeyboardButtonsFunc\
-            )
+        a_ButtonName = self.GetButton(ButtonNames.ADD)
+        if a_ButtonName:
+            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.ADD)
+                    bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
+                    bd_item.GetCheckForPrefixFunc(a_Prefix), \
+                    self.m_FSMs.m_FSMCreate, \
+                    self.m_FSMs.m_FSMCreate.name,\
+                    self.m_FSMs.m_FSMCreate.desc, \
+                    self.m_FSMs.m_FSMCreate.photo,\
+                    self.m_AddBDItemFunc, \
+                    self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_NAME)), \
+                    self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_DESC)), \
+                    self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_PHOTO)), \
+                    self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_CREATE)), \
+                    a_Prefix,\
+                    parent_table_name, \
+                    parent_key_name, \
+                    name_field, \
+                    desc_field, \
+                    photo_field, \
+                    GetButtonNameAndKeyValueAndAccess, \
+                    GetAccess, \
+                    self.m_GetStartTaskKeyboardButtonsFunc\
+                    )
 
     # Редактирование
         edit_keyboard_func = self.m_GetEditTaskKeyboardButtonsFunc
         def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
-            a_Prefix = RegisterSelectParent(a_ButtonName, a_AccessMode)
+            if not a_ButtonName:
+                return
+            a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode)
             bd_item_edit.EditBDItemRegisterHandlers(self.m_Bot, \
                 a_Prefix, \
                 a_FSM, \
@@ -341,14 +348,16 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 field_type = a_FieldType\
                 )
 
-        self.m_Bot.RegisterMessageHandler(\
-            simple_message.InfoMessageTemplateLegacy(\
-                self.GetMessage(Messages.START_EDIT),\
-                edit_keyboard_func,\
-                GetAccess,\
-                access_mode = user_access.AccessMode.EDIT),\
-                bd_item.GetCheckForTextFunc(self.GetButton(ButtonNames.EDIT))\
-                )
+        a_ButtonName = self.GetButton(ButtonNames.EDIT)
+        if a_ButtonName:
+            self.m_Bot.RegisterMessageHandler(\
+                simple_message.InfoMessageTemplateLegacy(\
+                        self.GetMessage(Messages.START_EDIT),\
+                        edit_keyboard_func,\
+                        GetAccess,\
+                        access_mode = user_access.AccessMode.EDIT),\
+                        bd_item.GetCheckForTextFunc(a_ButtonName)\
+                        )
 
         RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.m_FSMs.m_FSMEditName, self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
         RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.m_FSMs.m_FSMEditDesc, self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
