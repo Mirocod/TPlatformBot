@@ -39,6 +39,8 @@ def MakeAiogramKeyboard(a_ButtonList : [[str]]):
 def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     buttons = []
     for b in a_ButtonList:
+        if not b.label:
+            continue
         if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
             buttons += [types.KeyboardButton(str(b.label))]
     step = GetButtonInRowCount(len(buttons))

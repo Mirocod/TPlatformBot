@@ -52,17 +52,20 @@ class SimpleMessageModule(mod_interface.IModule):
         btn = self.m_BotButtons.CreateMessage(f'{self.GetName()} {a_ButtonName}', a_ButtonDesc, self.m_Log.GetTimeNow())
         return btn
 
-    def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
-        def GetButtons(a_ModNameList):
-            buttons = []
-            for n in a_ModNameList:
-                m = self.m_ModuleAgregator.GetModule(n)
-                b = m.GetModuleButtons()
-                if not b is None or len(b) != 0:
-                    buttons += b
-            return buttons
+    def GetModule(self, a_ModName):
+        return self.m_ModuleAgregator.GetModule(a_ModName)
 
-        buttons = GetButtons(self.m_ChildModuleNameList)
+    def GetButtons(self, a_ModNameList):
+        buttons = []
+        for n in a_ModNameList:
+            m = self.m_ModuleAgregator.GetModule(n)
+            b = m.GetModuleButtons()
+            if not b is None or len(b) != 0:
+                buttons += b
+        return buttons
+
+    def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
+        buttons = self.GetButtons(self.m_ChildModuleNameList)
         return keyboard.MakeButtons(buttons, a_UserGroups)
 
     def GetInitBDCommands(self):

@@ -37,6 +37,9 @@ class Table:
     def GetFields(self):
         return self.TableFieldType
 
+    def GetFieldsCount(self):
+        return len(self.TableFieldType)
+
     def GetFieldByDestiny(self, a_Destiny):
         for f in self.m_Fields:
             if f.m_Destiny == a_Destiny:

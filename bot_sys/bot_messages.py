@@ -21,11 +21,17 @@ class BotMessage:
     def GetDesc(self):
         return self.m_MessageDesc
 
+    def UpdateDesc(self, a_Desc):
+        self.m_MessageDesc = a_Desc
+
     def GetLanguage(self):
         return self.m_Language
 
     def GetPhotoID(self):
         return self.m_PhotoID
+
+    def UpdatePhotoID(self, a_PhotoID):
+        self.m_PhotoID = a_PhotoID
 
     def __str__(self):
         msg = self.GetMessageForLang(self.m_Language)

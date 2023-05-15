@@ -66,7 +66,7 @@ class ModuleProfile(mod_simple_message.SimpleMessageModule):
         if not user_info is None:
             msg = self.m_StartMessage
             msg = msg.GetMessageForLang(lang).StaticCopy()
-            msg.m_MessageDesc = table.ReplaceAllFieldTags(msg.GetDesc(), user_info)
+            msg.UpdateDesc(table.ReplaceAllFieldTags(msg.GetDesc(), user_info))
             return simple_message.WorkFuncResult(msg, item_access = str(user_info[table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]))
         return await super().StartMessageHandler(a_Message, state)
 
