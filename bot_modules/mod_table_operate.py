@@ -3,9 +3,9 @@
 
 # Модуль для редактирования и просмотра таблицы в БД
 
-from bot_sys import keyboard, user_access
-from bot_modules import access_utils, mod_interface
-from template import simple_message, bd_item
+from bot_sys import keyboard, user_access, bd_table
+from bot_modules import access_utils, mod_simple_message
+from template import simple_message, bd_item, bd_item_select, bd_item_view, bd_item_delete, bd_item_add, bd_item_edit
 
 from enum import Enum
 from enum import auto
@@ -48,13 +48,9 @@ class FSMs:
         self.m_FSMEditPhoto = a_FSMEditPhoto
         self.m_FSMEditAccess = a_FSMEditAccess
 
-# Предназначение поля в таблице
-class TableFieldDestiny(Enum):
-    KEY = auto()
-
 class TableOperateModule(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_Table, a_Messages, a_Buttons, a_FSMs, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(a_Messages[0], a_Buttons[0], a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(a_Messages[Messages.START], a_Buttons[ButtonNames.START], a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_Table = a_Table
         self.m_FSMs = a_FSMs
         self.m_EditModuleNameList = a_EditModuleNameList
@@ -78,12 +74,12 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return self.GetButtonNameAndKeyValueAndAccess(a_Item)
         self.m_GetButtonNameAndKeyValueAndAccessFunc = GetButtonNameAndKeyValueAndAccess
 
-        async def PreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
-            return self.PreDelete(a_Item)
+        async def PreDelete(a_CallbackQuery, a_Item):
+            return await self.PreDelete(a_Item)
         self.m_PreDeleteFunc = PreDelete
 
-        async def PostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
-            return self.PostDelete(a_Item)
+        async def PostDelete(a_CallbackQuery, a_ItemID):
+            return await self.PostDelete(a_Item)
         self.m_PostDeleteFunc = PostDelete
 
         def AddBDItemFunc(a_ItemData, a_UserID):
@@ -141,12 +137,12 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
     def GetButtonNameAndKeyValueAndAccess(self, a_Item):
         return \
-                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.NAME)],
-                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],
+                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.NAME)],\
+                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],\
                 a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
 
-    def ShowMessageTemplate(self, a_MessageName : Message, keyboard_template_func = None):
-        async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
+    def ShowMessageTemplate(self, a_MessageName : Messages, keyboard_template_func = None):
+        async def ShowMessage(a_CallbackQuery, a_Item):
             if len(a_Item) < self.m_Table.GetFieldsCount():
                 return simple_message.WorkFuncResult(self.GetMessage(Messages.ERROR_FIND))
 
@@ -161,7 +157,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         return ShowMessage
 
     # TODO: delete?
-    def SimpleMessageTemplate(self, a_MessageName : Message):
+    def SimpleMessageTemplate(self, a_MessageName : Messages):
         async def ShowMessage(a_CallbackQuery, a_Item):
             return simple_message.WorkFuncResult(self.GetMessage(a_MessageName))
         return ShowMessage
@@ -250,17 +246,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         GetButtonNameAndKeyValueAndAccess = self.m_GetButtonNameAndKeyValueAndAccessFunc
         GetAccess = self.m_GetAccessFunc
 
-        defaul_keyboard_func = self.m_GetStartTaskKeyboardButtonsFunc
-
-        sql_request.RequestToBDRegisterHandlers(
-                self.m_Bot,
-                self.m_SqlRequestButtonName,
-                self.m_RequestStartMessage,
-                FSMRequestToBDAccess,
-                self.m_GetStartKeyboardButtonsFunc,
-                user_access.AccessMode.EDIT,
-                self.m_GetAccessFunc
-                )
+        defaul_keyboard_func = self.m_GetStartKeyboardButtonsFunc
 
         # Список 
         a_ButtonName = self.GetButton(ButtonNames.LIST)
@@ -302,7 +288,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         a_ButtonName = self.GetButton(ButtonNames.ADD)
         if a_ButtonName:
             a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.ADD)
-                    bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
+            bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
                     bd_item.GetCheckForPrefixFunc(a_Prefix), \
                     self.m_FSMs.m_FSMCreate, \
                     self.m_FSMs.m_FSMCreate.name,\
@@ -321,11 +307,11 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     photo_field, \
                     GetButtonNameAndKeyValueAndAccess, \
                     GetAccess, \
-                    self.m_GetStartTaskKeyboardButtonsFunc\
+                    self.m_GetStartKeyboardButtonsFunc\
                     )
 
     # Редактирование
-        edit_keyboard_func = self.m_GetEditTaskKeyboardButtonsFunc
+        edit_keyboard_func = self.m_GetEditKeyboardButtonsFunc
         def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
             if not a_ButtonName:
                 return
@@ -351,9 +337,11 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         a_ButtonName = self.GetButton(ButtonNames.EDIT)
         if a_ButtonName:
             self.m_Bot.RegisterMessageHandler(\
-                simple_message.InfoMessageTemplateLegacy(\
+                simple_message.InfoMessageTemplate(\
+                        self.m_Bot,\
                         self.GetMessage(Messages.START_EDIT),\
                         edit_keyboard_func,\
+                        None,\
                         GetAccess,\
                         access_mode = user_access.AccessMode.EDIT),\
                         bd_item.GetCheckForTextFunc(a_ButtonName)\

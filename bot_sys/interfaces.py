@@ -25,11 +25,11 @@ class IBot(ABC):
         pass
 
     @abstractmethod
-    def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
+    def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc=None, commands=None, regexp=None, content_types=None, state=None):
         pass
 
     @abstractmethod
-    def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
+    def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc=None, commands=None, regexp=None, content_types=None, state=None):
         pass
 
     @abstractmethod

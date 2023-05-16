@@ -29,9 +29,10 @@ async def AccessDeniedMessage(a_Bot, a_GetButtonsFunc, a_UserID, a_Message, user
     return await SendMessage(a_Bot, bot_messages.MakeBotMessage(access_utils.access_denied_message), a_GetButtonsFunc, None, a_UserID, a_Message, user_groups)
 
 class WorkFuncResult():
-    def __init__(self, a_BotMessage, item_access = None):
+    def __init__(self, a_BotMessage, keyboard_func = None, item_access = None):
         self.m_BotMessage = a_BotMessage
         self.item_access = item_access
+        self.keyboard_func = keyboard_func
 
 def InfoMessageTemplate(a_Bot, a_HelpMessage, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     async def GetMessage(a_Message : types.message, state = None):
@@ -51,6 +52,10 @@ def SimpleMessageTemplate(a_Bot, a_WorkFunc, a_GetButtonsFunc, a_GetInlineButton
         if res is None:
             return
 
+        keyboard_func = a_GetInlineButtonsFunc
+        if res.keyboard_func:
+            keyboard_func = res.keyboard_func
+
         msg = res.m_BotMessage
         if msg is None:
             return
@@ -65,6 +70,6 @@ def SimpleMessageTemplate(a_Bot, a_WorkFunc, a_GetButtonsFunc, a_GetInlineButton
                     msg.GetDesc(),
                     msg.GetPhotoID(),
                     ProxyGetButtonsTemplate(a_GetButtonsFunc)(a_Message, user_groups),
-                    ProxyGetButtonsTemplate(a_GetInlineButtonsFunc)(a_Message, user_groups)
+                    ProxyGetButtonsTemplate(keyboard_func)(a_Message, user_groups)
                     )
     return SimpleMessage

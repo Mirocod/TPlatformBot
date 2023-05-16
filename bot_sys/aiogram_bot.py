@@ -71,17 +71,17 @@ class AiogramBot(interfaces.IBot):
                         reply_markup = base_keyboard
                         )
 
-    def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
+    def RegisterMessageHandler(self, a_MessageHandler, a_CheckFunc=None, commands=None, regexp=None, content_types=None, state=None):
         if a_CheckFunc:
             self.m_Dispatcher.register_message_handler(a_MessageHandler, a_CheckFunc, commands=commands, regexp=regexp, content_types=content_types, state=state)
         else:
             self.m_Dispatcher.register_message_handler(a_MessageHandler, commands=commands, regexp=regexp, content_types=content_types, state=state)
 
-    def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc, commands=None, regexp=None, content_types=None, state=None):
+    def RegisterCallbackHandler(self, a_CallbackHandler, a_CheckFunc=None, commands=None, regexp=None, content_types=None, state=None):
         if a_CheckFunc:
-            self.register_callback_query_handler.register_message_handler(a_CallbackHandler, a_CheckFunc, commands=commands, regexp=regexp, content_types=content_types, state=state)
+            self.m_Dispatcher.register_callback_query_handler(a_CallbackHandler, a_CheckFunc, commands=commands, regexp=regexp, content_types=content_types, state=state)
         else:
-            self.register_callback_query_handler.register_message_handler(a_CallbackHandler, commands=commands, regexp=regexp, content_types=content_types, state=state)
+            self.m_Dispatcher.register_callback_query_handler(a_CallbackHandler, commands=commands, regexp=regexp, content_types=content_types, state=state)
 
     def StartPolling(self):
         executor.start_polling(self.m_Dispatcher)
