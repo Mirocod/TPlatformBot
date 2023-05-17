@@ -7,18 +7,22 @@ from bot_sys import user_access
 from bot_modules import mod_simple_message, profile
 from template import bd_item
 
-start_message = '''
+button_names = {
+    mod_simple_message.ButtonNames.START: "☰ Главное меню",
+}
+
+messages = {
+    mod_simple_message.Messages.START: f'''
 <b>Добро пожаловать!</b>
 
-Выберите возможные действия на кнопках ниже ⌨'''
-
-start_button_name = "☰ Главное меню"
+Выберите возможные действия на кнопках ниже ⌨''',
+}
 
 init_access = f'{user_access.user_access_group_all}=+'
 
 class ModuleStart(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetName(self):
         return 'start'

@@ -7,8 +7,17 @@ from bot_sys import keyboard, user_access
 from bot_modules import access_utils, mod_interface
 from template import simple_message, bd_item
 
+from enum import Enum
+from enum import auto
+
+class ButtonNames(Enum):
+    START = auto() 
+
+class Messages(Enum):
+    START = auto() 
+
 class SimpleMessageModule(mod_interface.IModule):
-    def __init__(self, a_StartMessage, a_StartButtonName, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+    def __init__(self, a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         self.m_ChildModuleNameList = a_ChildModuleNameList
         self.m_InitAccess = a_InitAccess
         self.m_Bot = a_Bot
@@ -17,8 +26,13 @@ class SimpleMessageModule(mod_interface.IModule):
         self.m_BotButtons = a_BotButtons
         self.m_Log = a_Log
 
-        self.m_StartButtonName = self.CreateButton('start', a_StartButtonName)
-        self.m_StartMessage = self.CreateMessage('start', a_StartMessage)
+        self.m_Buttons = {}
+        for name, button_name in a_Buttons.items():
+            self.m_Buttons[name] = self.CreateButton(name, button_name)
+
+        self.m_Messages = {}
+        for name, message in a_Messages.items():
+            self.m_Messages[name] = self.CreateMessage(name, message)
 
         async def StartMessageHandler(a_Message, state = None):
             return await self.StartMessageHandler(a_Message, state)
@@ -42,7 +56,13 @@ class SimpleMessageModule(mod_interface.IModule):
 
     # Основной обработчик главного сообщения
     async def StartMessageHandler(self, a_Message, state = None):
-        return simple_message.WorkFuncResult(self.m_StartMessage)
+        return simple_message.WorkFuncResult(self.GetMessage(Messages.START))
+
+    def GetButton(self, a_ButtonName):
+        return self.m_Buttons.get(a_ButtonName, None)
+
+    def GetMessage(self, a_MessageNames):
+        return self.m_Messages.get(a_MessageNames, None)
 
     def CreateMessage(self, a_MessageName, a_MessageDesc):
         msg = self.m_BotMessages.CreateMessage(f'{self.GetName()} {a_MessageName}', a_MessageDesc, self.m_Log.GetTimeNow())
@@ -78,12 +98,12 @@ class SimpleMessageModule(mod_interface.IModule):
 
     def GetModuleButtons(self):
         return [
-                keyboard.ButtonWithAccess(self.m_StartButtonName, user_access.AccessMode.VIEW, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.START), user_access.AccessMode.VIEW, self.GetAccess()),
                 ]
 
     def RegisterHandlers(self):
         self.m_Bot.RegisterMessageHandler(
                 self.m_StartMessageHandler, 
-                bd_item.GetCheckForTextFunc(self.m_StartButtonName)
+                bd_item.GetCheckForTextFunc(self.GetButton(ButtonNames.START))
                 )
 

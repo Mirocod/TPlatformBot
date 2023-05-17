@@ -11,7 +11,6 @@ from enum import Enum
 from enum import auto
 
 class ButtonNames(Enum):
-    START = auto() 
     LIST = auto() 
     ADD = auto() 
     EDIT = auto() 
@@ -19,10 +18,10 @@ class ButtonNames(Enum):
     EDIT_NAME = auto() 
     EDIT_DESC = auto() 
     EDIT_ACCESS = auto() 
+    EDIT_DEFAULT_ACCESS = auto() 
     DEL = auto() 
 
 class Messages(Enum):
-    START = auto() 
     SELECT = auto() 
     ERROR_FIND = auto() 
     OPEN = auto() 
@@ -36,35 +35,28 @@ class Messages(Enum):
     EDIT_NAME = auto() 
     EDIT_DESC = auto() 
     EDIT_ACCESS = auto() 
+    EDIT_DEFAULT_ACCESS = auto() 
     SUCCESS_EDIT = auto() 
     SELECT_TO_DELETE = auto() 
     SUCCESS_DELETE = auto() 
 
-class FSMs:
-    def __init__(self, a_FSMCreate, a_FSMEditName, a_FSMEditDesc, a_FSMEditPhoto, a_FSMEditAccess):
-        self.m_FSMCreate = a_FSMCreate
-        self.m_FSMEditName = a_FSMEditName
-        self.m_FSMEditDesc = a_FSMEditDesc
-        self.m_FSMEditPhoto = a_FSMEditPhoto
-        self.m_FSMEditAccess = a_FSMEditAccess
+class FSMs(Enum):
+    CREATE = auto() 
+    EDIT_PHOTO = auto() 
+    EDIT_NAME = auto() 
+    EDIT_DESC = auto() 
+    EDIT_ACCESS = auto() 
+    EDIT_DEFAULT_ACCESS = auto() 
 
 class TableOperateModule(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_Table, a_Messages, a_Buttons, a_FSMs, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(a_Messages[Messages.START], a_Buttons[ButtonNames.START], a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_Table = a_Table
         self.m_FSMs = a_FSMs
         self.m_EditModuleNameList = a_EditModuleNameList
         self.m_ChildModName = a_ChildModName
         self.m_ParentModName = a_ParentModName
         self.m_SelectPrefix = ''
-
-        self.m_Buttons = {}
-        for name, button_name in a_Buttons.items():
-            self.m_Buttons[name] = self.CreateButton(name, button_name)
-
-        self.m_Messages = {}
-        for name, message in a_Messages.items():
-            self.m_Messages[name] = self.CreateMessage(name, message)
 
         def GetEditKeyboardButtons(a_Message, a_UserGroups):
             return self.GetEditKeyboardButtons(a_Message, a_UserGroups)
@@ -86,12 +78,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return self.AddBDItemFunc(a_ItemData, a_UserID)
         self.m_AddBDItemFunc = AddBDItemFunc
  
-
-    def GetButton(self, a_ButtonName):
-        return self.m_Buttons.get(a_ButtonName, None)
-
-    def GetMessage(self, a_MessageNames):
-        return self.m_Messages.get(a_MessageNames, None)
+    def GetFSM(self, a_FSMName):
+        return self.m_FSMs.get(a_FSMName, None)
 
     def GetInitBDCommands(self):
         return super(). GetInitBDCommands() + [
@@ -242,6 +230,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         desc_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.DESC)
         photo_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PHOTO)
         access_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ACCESS)
+        def_access_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.DEFAULT_ACCESS)
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
 
         parent_table_name = None
@@ -287,7 +276,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                         GetAccess, \
                         defaul_keyboard_func\
                         )
-        self.m_SelectPrefix = a_Prefix
+            self.m_SelectPrefix = a_Prefix
 
         # Удаление 
         a_ButtonName = self.GetButton(ButtonNames.DEL)
@@ -314,10 +303,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
             bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
                     check_func, \
-                    self.m_FSMs.m_FSMCreate, \
-                    self.m_FSMs.m_FSMCreate.name,\
-                    self.m_FSMs.m_FSMCreate.desc, \
-                    self.m_FSMs.m_FSMCreate.photo,\
+                    self.GetFSM(FSMs.CREATE), \
+                    self.GetFSM(FSMs.CREATE).name,\
+                    self.GetFSM(FSMs.CREATE).desc, \
+                    self.GetFSM(FSMs.CREATE).photo,\
                     self.m_AddBDItemFunc, \
                     self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_NAME)), \
                     self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_DESC)), \
@@ -376,8 +365,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                         bd_item.GetCheckForTextFunc(a_ButtonName)\
                         )
 
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.m_FSMs.m_FSMEditName, self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.m_FSMs.m_FSMEditDesc, self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.m_FSMs.m_FSMEditPhoto, self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.m_FSMs.m_FSMEditAccess, self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
+        RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.GetFSM(FSMs.EDIT_NAME), self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
+        RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.GetFSM(FSMs.EDIT_DESC), self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
+        RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.GetFSM(FSMs.EDIT_PHOTO), self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
+        RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.GetFSM(FSMs.EDIT_ACCESS), self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
+        RegisterEdit(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), self.GetFSM(FSMs.EDIT_DEFAULT_ACCESS), self.GetMessage(Messages.EDIT_DEFAULT_ACCESS), def_access_field, bd_item.FieldType.text)
 

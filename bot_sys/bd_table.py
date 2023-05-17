@@ -16,6 +16,7 @@ class TableFieldDestiny(Enum):
     DESC = auto()
     PHOTO = auto()
     ACCESS = auto()
+    DEFAULT_ACCESS = auto()
     CREATE_DATE = auto()
     PARENT_ID = auto()
     OTHER = auto()

@@ -36,11 +36,19 @@ error_backup_message = '''
 backup_bd_button_name = "📀 Резервные копия базы"
 backup_log_button_name = "📃 Логи"
 
+button_names = {
+    mod_simple_message.ButtonNames.START: start_button_name,
+}
+
+messages = {
+    mod_simple_message.Messages.START: start_message,
+}
+
 init_access = f'{user_access.user_access_group_new}=-'
 
 class ModuleBackup(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_BackupBDButtonName = self.CreateButton('backup bd', backup_bd_button_name)
         self.m_BackupBDMessage = self.CreateMessage('backup bd', backup_bd_message)
 

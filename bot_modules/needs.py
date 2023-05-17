@@ -4,26 +4,26 @@
 # Потребности
 
 from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table
-from bot_modules import mod_table_operate
+from bot_modules import mod_table_operate, mod_simple_message
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-class FSMCreateNeeds(StatesGroup):
+class FSMCreateNeed(StatesGroup):
     name = State()
     desc = State()
     photo = State()
     
-class FSMEditNeedsPhotoItem(StatesGroup):
+class FSMEditNeedPhotoItem(StatesGroup):
     item_field = State()
 
-class FSMEditNeedsNameItem(StatesGroup):
+class FSMEditNeedNameItem(StatesGroup):
     item_field = State()
 
-class FSMEditNeedsDescItem(StatesGroup):
+class FSMEditNeedDescItem(StatesGroup):
     item_field = State()
 
-class FSMEditNeedsAccessItem(StatesGroup):
+class FSMEditNeedAccessItem(StatesGroup):
     item_field = State()
 # ---------------------------------------------------------
 # БД
@@ -50,13 +50,19 @@ table = bd_table.Table(table_name, [
 
 init_access = f'{user_access.user_access_group_new}=va'
 
-fsm = mod_table_operate.FSMs(FSMCreateNeeds, FSMEditNeedsNameItem, FSMEditNeedsDescItem, FSMEditNeedsPhotoItem, FSMEditNeedsAccessItem)
+fsm = {
+    mod_table_operate.FSMs.CREATE: FSMCreateNeed,
+    mod_table_operate.FSMs.EDIT_NAME: FSMEditNeedNameItem,
+    mod_table_operate.FSMs.EDIT_DESC: FSMEditNeedDescItem,
+    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditNeedPhotoItem,
+    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditNeedAccessItem,
+    }
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
 
 button_names = {
-    mod_table_operate.ButtonNames.START: "👉 Потребности",
+    mod_simple_message.ButtonNames.START: "👉 Потребности",
     mod_table_operate.ButtonNames.LIST: "📃 Список потребностей",
     mod_table_operate.ButtonNames.ADD: "☑ Добавить потребность",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать потребность",
@@ -68,8 +74,8 @@ button_names = {
 }
 
 messages = {
-    mod_table_operate.Messages.START: f'''
-<b>{button_names[mod_table_operate.ButtonNames.START]}</b>
+    mod_simple_message.Messages.START: f'''
+<b>{button_names[mod_simple_message.ButtonNames.START]}</b>
 
 ''',
     mod_table_operate.Messages.SELECT: '''

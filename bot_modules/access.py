@@ -3,8 +3,8 @@
 
 # Права пользователей
 
-from bot_sys import keyboard, user_access, bot_bd
-from bot_modules import mod_simple_message, access_utils
+from bot_sys import keyboard, user_access, bot_bd, bd_table
+from bot_modules import mod_simple_message, access_utils, mod_table_operate
 from template import simple_message, sql_request, bd_item
 
 from aiogram.dispatcher import FSMContext
@@ -29,8 +29,11 @@ mod_name_field = access_utils.mod_name_field
 moduleaccess_field = access_utils.moduleaccess_field
 mod_default_access_field = access_utils.mod_default_access_field
 
-#TODO: Автоматическое создание init_bd_cmds, необходимо table_name, mod_name_field ... объединить в объект
-
+table = bd_table.Table(table_name, [
+        bd_table.TableField(mod_name_field, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.STR),
+        bd_table.TableField(moduleaccess_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
+        bd_table.TableField(mod_default_access_field, bd_table.TableFieldDestiny.DEFAULT_ACCESS, bd_table.TableFieldType.STR),
+        ])
 # ---------------------------------------------------------
 # Сообщения
 
@@ -86,14 +89,31 @@ moduleaccess_edit_default_access_message = f'''
 
 Введите новую строку доступа:
 '''
+moduleaccess_success_edit_message = '''✅ Доступ к модулю успешно отредактирован!'''
 
-moduleaccess_success_edit_message = '''✅ Проект успешно отредактирован!'''
+button_names = {
+    mod_simple_message.ButtonNames.START: start_button_name,
+    mod_table_operate.ButtonNames.EDIT_ACCESS: "◇ Изменить доступ к модулю",
+    mod_table_operate.ButtonNames.EDIT_DEFAULT_ACCESS: "◈ Изменить доступ по умолчанию к модулю ",
+    }
+
+messages = {
+    mod_simple_message.Messages.START: start_message,
+    mod_table_operate.Messages.EDIT_ACCESS: moduleaccess_edit_access_message,
+    mod_table_operate.Messages.EDIT_DEFAULT_ACCESS: moduleaccess_edit_default_access_message,
+    mod_table_operate.Messages.SUCCESS_EDIT: moduleaccess_success_edit_message,
+}
+
+fsm = {
+    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditAccessItem,
+    mod_table_operate.FSMs.EDIT_DEFAULT_ACCESS: FSMEditDefaultAccessItem,
+    }
 
 init_access = f'{user_access.user_access_group_new}=-'
 
-class ModuleAccess(mod_simple_message.SimpleMessageModule):
+class ModuleAccess(mod_table_operate.TableOperateModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(table, messages, button_names, fsm, None, None, init_access, a_ChildModuleNameList, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
         self.m_RequestStartMessage = self.CreateMessage('equest start', request_start_message)
 
@@ -107,7 +127,7 @@ class ModuleAccess(mod_simple_message.SimpleMessageModule):
                 None,
                 self.m_GetAccessFunc
                 )
-
+    '''
     def GetInitBDCommands(self):
         return [
             f"""CREATE TABLE IF NOT EXISTS {table_name}(
@@ -117,7 +137,7 @@ class ModuleAccess(mod_simple_message.SimpleMessageModule):
                 UNIQUE({mod_name_field})
                 );""",
             ] + super().GetInitBDCommands()
-
+    '''
     def GetName(self):
         return module_name
 
@@ -144,8 +164,6 @@ class ModuleAccess(mod_simple_message.SimpleMessageModule):
                 self.m_HelpMessageHandler, 
                 bd_item.GetCheckForTextFunc(self.m_HelpButtonName)
                 )
-
-
 
 
 # ---------------------------------------------------------

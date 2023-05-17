@@ -32,7 +32,12 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
         ])
 
-start_message = f'''
+button_names = {
+    mod_simple_message.ButtonNames.START: "📰 Профиль",
+}
+
+messages = {
+    mod_simple_message.Messages.START: f'''
 <b>📰 Профиль:</b> 
 
 <b>ID:</b> #{key_name}
@@ -41,15 +46,14 @@ start_message = f'''
 <b>Имя2:</b> #{name2_field}
 <b>Код языка:</b> #{language_code_field}
 <b>Дата добавления:</b> #{create_datetime_field}
-'''
-
-start_button_name = "📰 Профиль"
+''',
+}
 
 init_access = f'{user_access.user_access_group_new}=+'
 
 class ModuleProfile(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetInitBDCommands(self):
         return super(). GetInitBDCommands() + [
@@ -64,7 +68,7 @@ class ModuleProfile(mod_simple_message.SimpleMessageModule):
         user_info = GetUserInfo(self.m_Bot, a_Message.from_user.id)
         lang = str(a_Message.from_user.language_code)
         if not user_info is None:
-            msg = self.m_StartMessage
+            msg = self.GetButton(mod_simple_message.ButtonNames.START)
             msg = msg.GetMessageForLang(lang).StaticCopy()
             msg.UpdateDesc(table.ReplaceAllFieldTags(msg.GetDesc(), user_info))
             return simple_message.WorkFuncResult(msg, item_access = str(user_info[table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]))

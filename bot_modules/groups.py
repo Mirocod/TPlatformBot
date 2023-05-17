@@ -29,12 +29,6 @@ create_datetime_field = 'createDateTime'
 # ---------------------------------------------------------
 # Сообщения
 
-start_message = '''
-<b>Группы пользователей находятся в стадии разработки</b>
-
-Пока можете воспользоваться хардкорным способом через запросы к БД
-'''
-
 request_start_message = '''
 **Задайте запрос к БД**
 
@@ -53,15 +47,26 @@ help_message = '''
 `user_in_groups(user_id, group_id)` - содержит соответсвия ID пользователей и групп
  '''
 
-start_button_name = "‍️️▦ Группы пользователей"
 sql_request_button_name = "⛃ Запрос к БД для редактирования групп"
 help_button_name = "📄 Информация по группам"
+
+button_names = {
+    mod_simple_message.ButtonNames.START: "‍️️▦ Группы пользователей",
+}
+
+messages = {
+    mod_simple_message.Messages.START: '''
+<b>Группы пользователей находятся в стадии разработки</b>
+
+Пока можете воспользоваться хардкорным способом через запросы к БД
+''',
+}
 
 init_access = f'{user_access.user_access_group_new}=-'
 
 class ModuleGroups(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(start_message, start_button_name, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
         self.m_RequestStartMessage = self.CreateMessage('equest start', request_start_message)
 

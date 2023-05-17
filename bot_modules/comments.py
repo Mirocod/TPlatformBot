@@ -4,7 +4,7 @@
 # Комментарии
 
 from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table
-from bot_modules import mod_table_operate
+from bot_modules import mod_table_operate, mod_simple_message
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -50,13 +50,19 @@ table = bd_table.Table(table_name, [
 
 init_access = f'{user_access.user_access_group_new}=va'
 
-fsm = mod_table_operate.FSMs(FSMCreateComment, FSMEditCommentNameItem, FSMEditCommentDescItem, FSMEditCommentPhotoItem, FSMEditCommentAccessItem)
+fsm = {
+    mod_table_operate.FSMs.CREATE: FSMCreateComment,
+    mod_table_operate.FSMs.EDIT_NAME: FSMEditCommentNameItem,
+    mod_table_operate.FSMs.EDIT_DESC: FSMEditCommentDescItem,
+    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditCommentPhotoItem,
+    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditCommentAccessItem,
+    }
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
 
 button_names = {
-    mod_table_operate.ButtonNames.START: "⚏ Комментарии",
+    mod_simple_message.ButtonNames.START: "⚏ Комментарии",
     mod_table_operate.ButtonNames.LIST: "📃 Список комментариев",
     mod_table_operate.ButtonNames.ADD: "☑ Добавить комментарий",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать комментарий",
@@ -68,8 +74,8 @@ button_names = {
 }
 
 messages = {
-    mod_table_operate.Messages.START: f'''
-<b>{button_names[mod_table_operate.ButtonNames.START]}</b>
+    mod_simple_message.Messages.START: f'''
+<b>{button_names[mod_simple_message.ButtonNames.START]}</b>
 
 ''',
     mod_table_operate.Messages.SELECT: '''
