@@ -147,7 +147,7 @@ class ModuleProjects(mod_table_operate.TableOperateModule):
 
     def GetModuleButtons(self):
         return super().GetModuleButtons() + [
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST), user_access.AccessMode.VIEW, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(mod_table_operate.ButtonNames.LIST), user_access.AccessMode.VIEW, self.GetAccess()),
                 ]
 
 

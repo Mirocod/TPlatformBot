@@ -47,7 +47,7 @@ def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
         cur_buttons = [
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
         ]
-        return keyboard.MakeInlineKeyboardButtons(cur_buttons, a_UserGroups)
+        return keyboard.MakeButtons(cur_buttons, a_UserGroups)
     return GetCancelKeyboardButtons
 
 def GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
@@ -56,7 +56,7 @@ def GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
             keyboard.ButtonWithAccess(skip_button_name, a_AccessMode, a_AccessFunc()),
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
         ]
-        return keyboard.MakeInlineKeyboardButtons(cur_buttons, a_UserGroups)
+        return keyboard.MakeButtons(cur_buttons, a_UserGroups)
     return GetSkipAndCancelKeyboardButtons
 
 def GetAllItemsTemplate(a_Bot, a_TableName):
@@ -91,7 +91,7 @@ def CheckAccessBDItemTemplate(a_Bot, a_TableName, a_KeyName, a_KeyValue, a_WorkF
             return simple_message.WorkFuncResult(bot_messages.MakeBotMessage(msg)), None
 
         result_work_func = await a_WorkFunc(a_CallbackQuery, item[0])
-        if result_work_func is None or result_work_func.string_message is None:
+        if result_work_func is None or result_work_func.m_BotMessage is None:
             return result_work_func, result_work_func
 
         if not result_work_func.item_access is None and not user_access.CheckAccessString(result_work_func.item_access, user_groups, a_AccessMode):

@@ -38,7 +38,7 @@ g_ModuleAgregator.AddModule(mod_profile)
 mod_backup = backup.ModuleBackup(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_backup)
 
-start_mod_name_list = [mod_start_name, mod_tasks_name, mod_needs_name, mod_comments_name]
+start_mod_name_list = [mod_start_name]#, mod_tasks_name, mod_needs_name, mod_comments_name]
 mod_project = projects.ModuleProjects(None, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_project)
 

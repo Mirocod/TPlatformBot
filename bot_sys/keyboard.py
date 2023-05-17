@@ -75,7 +75,7 @@ def MakeAiogramInlineKeyboard(a_ButtonList : [InlineButton]):
         r = []
         for b in row:
             r += [types.InlineKeyboardButton(text = str(b.label), callback_data = b.callback_data)]
-        buttons += r
+        buttons += [r]
     inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return inline_keyboard
 

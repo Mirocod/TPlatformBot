@@ -19,17 +19,10 @@ def GetBDFileName():
 def GetBDDateTimeNow():
     return 'datetime(\'now\')'
 
-def BDExecute(a_Commands):
-    for cmd in a_Commands:
-        SQLRequestToBD(cmd, commit = True)
-
-def SelectBDTemplate(a_TableName):
+def SelectBDTemplate(a_Bot, a_TableName):
     def SelectBD():
-        return SQLRequestToBD(f'SELECT * FROM {a_TableName}')
+        return a_Bot.SQLRequest(f'SELECT * FROM {a_TableName}')
     return SelectBD
-
-def SQLRequestToBD(a_Request : str, commit = False, return_error = False, param = None):
-    return SQLRequest(GetBDFileName(), a_Request, commit = commit, return_error = return_error, param = param)
 
 def RequestsExecute(a_BDFileName, a_Commands):
     for cmd in a_Commands:

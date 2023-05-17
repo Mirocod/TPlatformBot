@@ -38,12 +38,18 @@ class Table:
         return self.TableFieldType
 
     def GetFieldsCount(self):
-        return len(self.TableFieldType)
+        return len(self.m_Fields)
 
     def GetFieldByDestiny(self, a_Destiny):
         for f in self.m_Fields:
             if f.m_Destiny == a_Destiny:
                 return f
+        return None
+
+    def GetFieldNameByDestiny(self, a_Destiny):
+        f = self.GetFieldByDestiny(a_Destiny)
+        if f:
+            return f.m_Name
         return None
 
     def GetFieldIDByDestiny(self, a_Destiny):
@@ -78,23 +84,28 @@ def Test():
             ])
     assert table.GetName() == 'tname'
     assert table.GetFieldByDestiny(TableFieldDestiny.KEY).m_Name == 'f1'
+    assert table.GetFieldNameByDestiny(TableFieldDestiny.KEY) == 'f1'
     assert table.GetFieldByDestiny(TableFieldDestiny.KEY).m_Destiny == TableFieldDestiny.KEY
     assert table.GetFieldByDestiny(TableFieldDestiny.KEY).m_Type == TableFieldType.INT
     assert table.GetFieldIDByDestiny(TableFieldDestiny.KEY) == 0
     assert table.GetFieldByDestiny(TableFieldDestiny.NAME).m_Name == 'f2'
+    assert table.GetFieldNameByDestiny(TableFieldDestiny.NAME) == 'f2'
     assert table.GetFieldByDestiny(TableFieldDestiny.NAME).m_Destiny == TableFieldDestiny.NAME
     assert table.GetFieldByDestiny(TableFieldDestiny.NAME).m_Type == TableFieldType.STR
     assert table.GetFieldIDByDestiny(TableFieldDestiny.NAME) == 1
     assert table.GetFieldByDestiny(TableFieldDestiny.DESC).m_Name == 'f3'
+    assert table.GetFieldNameByDestiny(TableFieldDestiny.DESC) == 'f3'
     assert table.GetFieldByDestiny(TableFieldDestiny.DESC).m_Destiny == TableFieldDestiny.DESC
     assert table.GetFieldByDestiny(TableFieldDestiny.DESC).m_Type == TableFieldType.STR
     assert table.GetFieldIDByDestiny(TableFieldDestiny.DESC) == 2
 
     assert table.GetFieldByDestiny(TableFieldDestiny.PHOTO) == None
     assert table.GetFieldIDByDestiny(TableFieldDestiny.PHOTO) == None
+    assert table.GetFieldNameByDestiny(TableFieldDestiny.PHOTO) == None
+
+    assert table.GetFieldsCount() == 3
 
     assert table.GetInitTableRequest() == 'CREATE TABLE IF NOT EXISTS tname(f1 INTEGER PRIMARY KEY, f2 TEXT , f3 TEXT );'
 
     item = [10, 'i1', 'i2']
-    print( table.ReplaceAllFieldTags('#f1 #f2 #f3', item))
     assert table.ReplaceAllFieldTags('#f1 #f2 #f3', item) == '10 i1 i2'

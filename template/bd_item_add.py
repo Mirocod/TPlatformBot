@@ -14,7 +14,7 @@ cancel_message = '''
 def StartAddBDItemTemplate(a_Bot, a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD):
     async def StartAddBDItem(a_CallbackQuery, state):
         user_id = str(a_CallbackQuery.from_user.id)
-        user_groups = groups.GetUserGroupData(a_Bot, user_id)
+        user_groups = groups_utils.GetUserGroupData(a_Bot, user_id)
         parent_id = bd_item.GetKeyDataFromCallbackMessage(a_CallbackQuery, a_Prefix)
         res_of_work_func = None
         check = None
@@ -50,7 +50,7 @@ def FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableNa
         else:
             state_func = a_FSM.next
         user_id = str(a_Message.from_user.id)
-        user_groups = groups.GetUserGroupData(a_Bot, user_id)
+        user_groups = groups_utils.GetUserGroupData(a_Bot, user_id)
         error = None
         res_of_work_func = None
         check = None

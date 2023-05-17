@@ -3,7 +3,7 @@
 
 # Модуль для редактирования и просмотра таблицы в БД
 
-from bot_sys import keyboard, user_access, bd_table
+from bot_sys import keyboard, user_access, bd_table, bot_bd
 from bot_modules import access_utils, mod_simple_message
 from template import simple_message, bd_item, bd_item_select, bd_item_view, bd_item_delete, bd_item_add, bd_item_edit
 
@@ -75,15 +75,15 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         self.m_GetButtonNameAndKeyValueAndAccessFunc = GetButtonNameAndKeyValueAndAccess
 
         async def PreDelete(a_CallbackQuery, a_Item):
-            return await self.PreDelete(a_Item)
+            return await self.PreDelete(a_CallbackQuery, a_Item)
         self.m_PreDeleteFunc = PreDelete
 
         async def PostDelete(a_CallbackQuery, a_ItemID):
-            return await self.PostDelete(a_Item)
+            return await self.PostDelete(a_CallbackQuery, a_ItemID)
         self.m_PostDeleteFunc = PostDelete
 
         def AddBDItemFunc(a_ItemData, a_UserID):
-            return self.AddBDItemFunc(a_Item)
+            return self.AddBDItemFunc(a_ItemData, a_UserID)
         self.m_AddBDItemFunc = AddBDItemFunc
  
 
@@ -101,20 +101,20 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
         mod_buttons = super().GetStartKeyboardButtons(a_Message, a_UserGroups)
         cur_buttons = [
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST), user_access.AccessMode.VIEW, GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.ADD), user_access.AccessMode.ADD, GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.DEL), user_access.AccessMode.DELETE, GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT), user_access.AccessMode.EDIT, GetAccess())
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST), user_access.AccessMode.VIEW, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.ADD), user_access.AccessMode.ADD, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.DEL), user_access.AccessMode.DELETE, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT), user_access.AccessMode.EDIT, self.GetAccess())
                 ]
         return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
 
     def GetEditKeyboardButtons(self, a_Message, a_UserGroups):
         mod_buttons = self.GetButtons(self.m_EditModuleNameList)
         cur_buttons = [
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_PHOTO), user_access.AccessMode.VIEW, GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_NAME), user_access.AccessMode.ADD, GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DESC), user_access.AccessMode.DELETE, GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.EDIT, GetAccess())
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_PHOTO), user_access.AccessMode.VIEW, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_NAME), user_access.AccessMode.ADD, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DESC), user_access.AccessMode.DELETE, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.EDIT, self.GetAccess())
                 ]
         return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
 
@@ -131,7 +131,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return None
         child_mod = self.GetModule(self.m_ChildModName)
         cur_buttons = [
-                keyboard.InlineButton(child_mod.GetButton(ButtonNames.LIST), child_mod.GetSelectPrefix(), a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
+                keyboard.InlineButton(child_mod.GetButton(ButtonNames.LIST), child_mod.GetSelectPrefix(), a_ItemID, self.GetAccess(), user_access.AccessMode.VIEW),
                 ]
         return keyboard.MakeInlineKeyboardButtons(cur_buttons, a_UserGroups)
 
@@ -141,19 +141,22 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],\
                 a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
 
-    def ShowMessageTemplate(self, a_MessageName : Messages, keyboard_template_func = None):
+    def ShowMessageTemplate(self, a_Message, keyboard_template_func = None):
         async def ShowMessage(a_CallbackQuery, a_Item):
-            if len(a_Item) < self.m_Table.GetFieldsCount():
-                return simple_message.WorkFuncResult(self.GetMessage(Messages.ERROR_FIND))
-
-            msg = self.GetMessage(a_MessageName).StaticCopy()
-            msg.UpdateDesc(table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
-            msg.UpdatePhotoID(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)])
-
+            msg = a_Message.StaticCopy()
+            # TODO: добавить поддержку языка в a_MessageName
             keyboard_func = None
-            if keyboard_template_func:
-                keyboard_func = keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
-            return simple_message.WorkFuncResult(msg, item_access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)], keyboard_func = keyboard_func)
+            item_access = None
+            if a_Item:
+                if len(a_Item) < self.m_Table.GetFieldsCount():
+                    return simple_message.WorkFuncResult(self.GetMessage(Messages.ERROR_FIND))
+                msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
+                msg.UpdatePhotoID(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)])
+                item_access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
+                if keyboard_template_func:
+                    keyboard_func = keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
+
+            return simple_message.WorkFuncResult(msg, item_access = item_access, keyboard_func = keyboard_func)
         return ShowMessage
 
     # TODO: delete?
@@ -168,23 +171,29 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
         return simple_message.WorkFuncResult(self.GetMessage(Messages.SUCCESS_DELETE), None, item_access = access)
 
-    async def TaskPostDelete(self, a_CallbackQuery, a_ItemID):
+    async def PostDelete(self, a_CallbackQuery, a_ItemID):
         self.m_Log.Success(f'Задача №{a_ItemID} была удалена пользователем {a_CallbackQuery.from_user.id}.')
         #TODO: удалить вложенные 
         return simple_message.WorkFuncResult(self.GetMessage(Messages.SUCCESS_DELETE))
 
     def AddBDItemFunc(self, a_ItemData, a_UserID):
         table_name = self.m_Table.GetName()
-        name_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.NAME)
-        photo_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.PHOTO)
-        desc_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.DESC)
-        access_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.ACCESS)
-        create_datetime_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.CREATE_DATE)
-        parent_id_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        name_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.NAME)
+        photo_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PHOTO)
+        desc_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.DESC)
+        access_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ACCESS)
+        create_datetime_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.CREATE_DATE)
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
 
+        res, error = None, None
         def_access = access_utils.GetItemDefaultAccessForModule(self.m_Bot, self.GetName())
-        res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-                commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], def_access + f";{a_UserID}=+", a_ItemData[parent_id_field]))
+        #TODO сделать список полей, чтобы запрос генерировался автоматически.
+        if parent_id_field:
+            res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+                    commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], def_access + f";{a_UserID}=+", a_ItemData[parent_id_field]))
+        else:
+            res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+                    commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], def_access + f";{a_UserID}=+"))
 
         if error:
             self.m_Log.Error(f'Пользоватлель {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
@@ -193,55 +202,56 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         return res, error
 
-    def RegisterSelect(self, a_ButtonName, access_mode):
+    def RegisterSelect(self, a_ButtonName, access_mode, only_parent = False):
+        a_Prefix = None
         if self.m_ParentModName:
             parent_mod = self.GetModule(self.m_ParentModName)
             a_Prefix = parent_mod.RegisterSelect(a_ButtonName, access_mode)
-            a_Prefix =  bd_item_select.NextSelectBDItemRegisterHandlers(self.m_Bot, \
-                a_Prefix, \
-                self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.PARENT_ID), \
-                self.m_Table.GetName(), \
-                self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.KEY), \
-                self.m_GetButtonNameAndKeyValueAndAccessFunc, \
-                self.GetMessage(Messages.SELECT), \
-                self.m_GetAccessFunc,\
-                access_mode = access_mode\
-                )
+            if not only_parent:
+                a_Prefix =  bd_item_select.NextSelectBDItemRegisterHandlers(self.m_Bot, \
+                        a_Prefix, \
+                        self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID), \
+                        self.m_Table.GetName(), \
+                        self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY), \
+                        self.m_GetButtonNameAndKeyValueAndAccessFunc, \
+                        self.GetMessage(Messages.SELECT), \
+                        self.m_GetAccessFunc,\
+                        access_mode = access_mode\
+                        )
         else:
-            a_PrefixBase = a_ButtonName.GetDesc()
-            a_Prefix =   bd_item_select.FirstSelectBDItemRegisterHandlers(self.m_Bot, \
-                a_PrefixBase, \
-                a_ButtonName, \
-                self.m_Table.GetName(), \
-                self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.KEY), \
-                self.m_GetButtonNameAndKeyValueAndAccessFunc, \
-                self.GetMessage(Messages.SELECT), \
-                self.m_GetAccessFunc,\
-                access_mode = access_mode\
-                )
+            if not only_parent:
+                a_PrefixBase = a_ButtonName.GetDesc()
+                a_Prefix =   bd_item_select.FirstSelectBDItemRegisterHandlers(self.m_Bot, \
+                        a_PrefixBase, \
+                        a_ButtonName, \
+                        self.m_Table.GetName(), \
+                        self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY), \
+                        self.m_GetButtonNameAndKeyValueAndAccessFunc, \
+                        self.GetMessage(Messages.SELECT), \
+                        self.m_GetAccessFunc,\
+                        access_mode = access_mode\
+                        )
         return a_Prefix
 
     def RegisterHandlers(self):
         super().RegisterHandlers()
         table_name = self.m_Table.GetName()
-        key_name = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.KEY)
-        name_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.NAME)
-        desc_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.DESC)
-        photo_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.PHOTO)
-        access_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.ACCESS)
-        parent_id_field = self.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        key_name = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY)
+        name_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.NAME)
+        desc_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.DESC)
+        photo_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PHOTO)
+        access_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ACCESS)
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
 
         parent_table_name = None
         parent_key_name = None
         if self.m_ParentModName:
             parent_mod = self.GetModule(self.m_ParentModName)
             parent_table_name = parent_mod.m_Table.GetName()
-            parent_key_name = parent_mod.m_Table.GetFieldByDestiny(bd_table.TableFieldDestiny.KEY)
+            parent_key_name = parent_mod.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY)
 
         def GetViewItemInlineKeyboardTemplate(a_ItemID):
-            def GetViewItemInlineKeyboard(a_ItemID):
-                return self.GetViewItemInlineKeyboardTemplate(a_ItemID)
-            return GetViewItemInlineKeyboard
+            return self.GetViewItemInlineKeyboardTemplate(a_ItemID)
 
         GetButtonNameAndKeyValueAndAccess = self.m_GetButtonNameAndKeyValueAndAccessFunc
         GetAccess = self.m_GetAccessFunc
@@ -251,19 +261,31 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         # Список 
         a_ButtonName = self.GetButton(ButtonNames.LIST)
         if a_ButtonName:
-            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.VIEW)
-            bd_item_view.LastSelectAndShowBDItemRegisterHandlers(self.m_Bot, \
-                    a_Prefix,\
-                    parent_id_field, \
-                    table_name,\
-                    key_name, \
-                    self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
-                    GetButtonNameAndKeyValueAndAccess, \
-                    self.GetMessage(Messages.SELECT), \
-                    GetAccess, \
-                    defaul_keyboard_func, \
-                    access_mode = user_access.AccessMode.VIEW\
-                    )
+            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.VIEW, only_parent = True)
+            if a_Prefix:
+                bd_item_view.LastSelectAndShowBDItemRegisterHandlers(self.m_Bot, \
+                        a_Prefix,\
+                        parent_id_field, \
+                        table_name,\
+                        key_name, \
+                        self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
+                        GetButtonNameAndKeyValueAndAccess, \
+                        self.GetMessage(Messages.SELECT), \
+                        GetAccess, \
+                        defaul_keyboard_func, \
+                        access_mode = user_access.AccessMode.VIEW\
+                        )
+            else:
+                bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(self.m_Bot, \
+                        a_ButtonName, \
+                        table_name, \
+                        key_name, \
+                        self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
+                        GetButtonNameAndKeyValueAndAccess, \
+                        self.GetMessage(Messages.SELECT), \
+                        GetAccess, \
+                        defaul_keyboard_func\
+                        )
         self.m_SelectPrefix = a_Prefix
 
         # Удаление 
@@ -272,14 +294,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.DELETE)
             bd_item_delete.DeleteBDItemRegisterHandlers(self.m_Bot, \
                     a_Prefix, \
-                    bd_item.GetCheckForPrefixFunc(a_Prefix), \
                     table_name, \
                     key_name, \
-                    parent_id_field, \
                     self.m_PreDeleteFunc, \
                     self.m_PostDeleteFunc, \
-                    GetButtonNameAndKeyValueAndAccess, \
-                    self.GetMessage(Messages.SELECT), \
                     GetAccess, \
                     defaul_keyboard_func\
                     )
@@ -287,9 +305,12 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         # Добавление 
         a_ButtonName = self.GetButton(ButtonNames.ADD)
         if a_ButtonName:
-            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.ADD)
+            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.ADD, only_parent = True)
+            check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
+            if a_Prefix:
+                check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
             bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
-                    bd_item.GetCheckForPrefixFunc(a_Prefix), \
+                    check_func, \
                     self.m_FSMs.m_FSMCreate, \
                     self.m_FSMs.m_FSMCreate.name,\
                     self.m_FSMs.m_FSMCreate.desc, \
@@ -309,8 +330,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     GetAccess, \
                     self.m_GetStartKeyboardButtonsFunc\
                     )
-
-    # Редактирование
+        '''
+        # Редактирование
         edit_keyboard_func = self.m_GetEditKeyboardButtonsFunc
         def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
             if not a_ButtonName:
@@ -351,3 +372,5 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.m_FSMs.m_FSMEditDesc, self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
         RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.m_FSMs.m_FSMEditPhoto, self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
         RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.m_FSMs.m_FSMEditAccess, self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
+        '''
+
