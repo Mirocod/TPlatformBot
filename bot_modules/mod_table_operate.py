@@ -131,7 +131,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return None
         child_mod = self.GetModule(self.m_ChildModName)
         cur_buttons = [
-                keyboard.InlineButton(child_mod.GetButton(ButtonNames.LIST), child_mod.GetSelectPrefix(), a_ItemID, self.GetAccess(), user_access.AccessMode.VIEW),
+                keyboard.InlineButtonWithAccess(child_mod.GetButton(ButtonNames.LIST), child_mod.GetSelectPrefix(), a_ItemID, self.GetAccess(), user_access.AccessMode.VIEW),
                 ]
         return keyboard.MakeInlineKeyboardButtons(cur_buttons, a_UserGroups)
 
@@ -141,22 +141,23 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],\
                 a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
 
-    def ShowMessageTemplate(self, a_Message, keyboard_template_func = None):
+    def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None):
         async def ShowMessage(a_CallbackQuery, a_Item):
             msg = a_Message.StaticCopy()
             # TODO: добавить поддержку языка в a_MessageName
-            keyboard_func = None
+            Inline_keyboard_func = None
             item_access = None
             if a_Item:
-                if len(a_Item) < self.m_Table.GetFieldsCount():
+                if len(a_Item) < self.m_Table.GetFieldsCount() - 1: # Для проектов это нужно. Там на 1 меньше поле. TODO разделить отправку сообщений item_access и Inline_keyboard_func
                     return simple_message.WorkFuncResult(self.GetMessage(Messages.ERROR_FIND))
-                msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
-                msg.UpdatePhotoID(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)])
+                elif len(a_Item) == self.m_Table.GetFieldsCount():
+                    msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
+                    msg.UpdatePhotoID(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)])
                 item_access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
-                if keyboard_template_func:
-                    keyboard_func = keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
+                if Inline_keyboard_template_func:
+                    Inline_keyboard_func = Inline_keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
 
-            return simple_message.WorkFuncResult(msg, item_access = item_access, keyboard_func = keyboard_func)
+            return simple_message.WorkFuncResult(msg, item_access = item_access, Inline_keyboard_func = Inline_keyboard_func)
         return ShowMessage
 
     # TODO: delete?
