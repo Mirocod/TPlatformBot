@@ -3,36 +3,27 @@
 
 # Потребности
 
-from bot_sys import bot_bd, log, keyboard, user_access
-from bot_modules import start, access, groups, projects, tasks, comments
-from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add, bd_item_select
-
-from aiogram import types
+from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table
+from bot_modules import mod_table_operate
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import Dispatcher
-import sqlite3
 
-class FSMCreateNeed(StatesGroup):
+class FSMCreateNeeds(StatesGroup):
     name = State()
     desc = State()
     photo = State()
     
-class FSMEditNeedPhotoItem(StatesGroup):
-    item_id = State()
+class FSMEditNeedsPhotoItem(StatesGroup):
     item_field = State()
 
-class FSMEditNeedNameItem(StatesGroup):
-    item_id = State()
+class FSMEditNeedsNameItem(StatesGroup):
     item_field = State()
 
-class FSMEditNeedDescItem(StatesGroup):
-    item_id = State()
+class FSMEditNeedsDescItem(StatesGroup):
     item_field = State()
 
-class FSMEditNeedAccessItem(StatesGroup):
-    item_id = State()
+class FSMEditNeedsAccessItem(StatesGroup):
     item_field = State()
 # ---------------------------------------------------------
 # БД
@@ -47,340 +38,111 @@ access_field = 'needAccess'
 create_datetime_field = 'needCreateDateTime'
 parent_id_field = 'taskID'
 
-init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
-    {key_name} INTEGER PRIMARY KEY,
-    {name_field} TEXT,
-    {desc_field} TEXT,
-    {photo_field} TEXT,
-    {access_field} TEXT,
-    {create_datetime_field} TEXT,
-    {parent_id_field} INTEGER
-    )''',
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=va', '{user_access.user_access_group_new}=va');"
-]
+table = bd_table.Table(table_name, [
+        bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
+        bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR),
+        bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
+        bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
+        bd_table.TableField(parent_id_field, bd_table.TableFieldDestiny.PARENT_ID, bd_table.TableFieldType.INT),
+        ])
 
-select_needs_prefix = ''
+init_access = f'{user_access.user_access_group_new}=va'
+
+fsm = mod_table_operate.FSMs(FSMCreateNeeds, FSMEditNeedsNameItem, FSMEditNeedsDescItem, FSMEditNeedsPhotoItem, FSMEditNeedsAccessItem)
 
 # ---------------------------------------------------------
-# Сообщения
+# Сообщения и кнопки
 
-needs_button_name = "👉 Потребности"
-base_need_message = f'''
-<b>{needs_button_name}</b>
+button_names = {
+    mod_table_operate.ButtonNames.START: "👉 Потребности",
+    mod_table_operate.ButtonNames.LIST: "📃 Список потребностей",
+    mod_table_operate.ButtonNames.ADD: "☑ Добавить потребность",
+    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать потребность",
+    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у потребности",
+    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у потребности",
+    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у потребности",
+    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к потребности",
+    mod_table_operate.ButtonNames.DEL: "❌ Удалить потребность",
+}
 
-'''
+messages = {
+    mod_table_operate.Messages.START: f'''
+<b>{button_names[mod_table_operate.ButtonNames.START]}</b>
 
-list_need_button_name = "📃 Список потребностей"
-select_need_message = '''
+''',
+    mod_table_operate.Messages.SELECT: '''
 Пожалуйста, выберите потребность:
-'''
-
-error_find_proj_message = '''
+''',
+    mod_table_operate.Messages.ERROR_FIND: '''
 ❌ Ошибка, потребность не найдена
-'''
-
-need_open_message = f'''
+''',
+    mod_table_operate.Messages.OPEN: f'''
 <b>Потребность:  #{name_field}</b>
 
 #{desc_field}
 
 Время создания: #{create_datetime_field}
-'''
-
-# Создание потребностей
-
-add_need_button_name = "☑ Добавить потребность"
-need_create_name_message = '''
+''',
+    mod_table_operate.Messages.CREATE_NAME: '''
 Создание потребности. Шаг №1
 
 Введите название потребности:
-'''
-
-need_create_desc_message = '''
+''',
+    mod_table_operate.Messages.CREATE_DESC: '''
 Создание потребности. Шаг №2
 
 Введите описание потребности:
-'''
-
-need_create_photo_message = '''
+''',
+    mod_table_operate.Messages.CREATE_PHOTO: '''
 Создание потребности. Шаг №3
 
 Загрузите обложку для потребности (Фото):
 Она будет отображаться в её описании.
-'''
-
-need_success_create_message = '''✅ Потребность успешно добавлена!'''
-
-# Редактирование потребностей.
-
-edit_need_button_name = "🛠 Редактировать потребность"
-need_start_edit_message= '''
+''',
+    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Потребность успешно добавлена!''',
+    mod_table_operate.Messages.START_EDIT: '''
 Пожалуйста, выберите действие:
-'''
-
-need_select_to_edit_message = '''
+''',
+    mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите потребность, которую вы хотите отредактировать.
-'''
-
-edit_need_photo_button_name = "☐ Изменить изображение у потребности"
-need_edit_photo_message = '''
+''',
+    mod_table_operate.Messages.EDIT_PHOTO: '''
 Загрузите новую обложку для потребности (Фото):
 Она будет отображаться в её описании.
-'''
-
-edit_need_name_button_name = "≂ Изменить название у потребности"
-need_edit_name_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_NAME: f'''
 Текущее название потребности:
 #{name_field}
 
 Введите новое название потребности:
-'''
-
-edit_need_desc_button_name = "𝌴 Изменить описание у потребности"
-need_edit_desc_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_DESC: f'''
 Текущее описание потребности:
 #{desc_field}
 
 Введите новое описание потребности:
-'''
-
-edit_need_access_button_name = "✋ Изменить доступ к потребности"
-need_edit_access_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_ACCESS: f'''
 Текущий доступ к потребности:
 #{access_field}
 
 {user_access.user_access_readme}
 
 Введите новую строку доступа:
-'''
-
-need_success_edit_message = '''✅ Потребность успешно отредактирована!'''
-
-# Удаление потребностей
-
-del_need_button_name = "❌ Удалить потребность"
-need_select_to_delete_message = '''
+''',
+    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Потребность успешно отредактирован!''',
+    mod_table_operate.Messages.SELECT_TO_DELETE: '''
 Выберите потребность, которую вы хотите удалить.
-Все сообщения в этой потребности так же будут удалены!
-'''
+Все комментарии в этой потребности так же будут удалены!
+''',
+    mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Потребность успешно удалёна!''',
+}
 
-need_success_delete_message = '''✅ Потребность успешно удалена!'''
+class ModuleNeeds(mod_table_operate.TableOperateModule):
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(table, messages, button_names, fsm, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
-# ---------------------------------------------------------
-# Работа с кнопками
-
-def GetEditNeedKeyboardButtons(a_Message, a_UserGroups):
-    cur_buttons = GetModuleButtons() + [
-        keyboard.ButtonWithAccess(edit_need_photo_button_name, user_access.AccessMode.EDIT, GetAccess()),
-        keyboard.ButtonWithAccess(edit_need_name_button_name, user_access.AccessMode.EDIT, GetAccess()),
-        keyboard.ButtonWithAccess(edit_need_desc_button_name, user_access.AccessMode.EDIT, GetAccess()),
-        keyboard.ButtonWithAccess(edit_need_access_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
-        ]
-    mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
-
-def GetStartNeedKeyboardButtons(a_Message, a_UserGroups):
-    cur_buttons = [
-        keyboard.ButtonWithAccess(list_need_button_name, user_access.AccessMode.VIEW, GetAccess()),
-        keyboard.ButtonWithAccess(add_need_button_name, user_access.AccessMode.ADD, GetAccess()),
-        keyboard.ButtonWithAccess(del_need_button_name, user_access.AccessMode.DELETE, GetAccess()),
-        keyboard.ButtonWithAccess(edit_need_button_name, user_access.AccessMode.EDIT, GetAccess())
-        ]
-    mods = [start, projects, tasks, comments]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
-
-def GetViewItemInlineKeyboardTemplate(a_ItemID):
-    def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
-        cur_buttons = [
-                keyboard.InlineButtonWithAccess(comments.list_comment_button_name, comments.select_comments_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
-                ]
-        return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
-    return GetViewItemInlineKeyboard
-# ---------------------------------------------------------
-# Обработка сообщений
-
-# стартовое сообщение
-async def NeedsOpen(a_Message : types.message, state = None):
-    return simple_message.WorkFuncResult(base_need_message)
-
-def GetButtonNameAndKeyValueAndAccess(a_Item):
-    # needName needID needAccess
-    return a_Item[1], a_Item[0], a_Item[4]
-
-def ShowMessageTemplate(a_StringMessage, keyboard_template_func = None):
-    async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
-        if (len(a_Item) < 6):
-            return simple_message.WorkFuncResult(error_find_proj_message)
-
-        msg = a_StringMessage.\
-                replace(f'#{name_field}', a_Item[1]).\
-                replace(f'#{desc_field}', a_Item[2]).\
-                replace(f'#{create_datetime_field}', a_Item[5]).\
-                replace(f'#{access_field}', a_Item[4])
-        keyboard_func = None
-        if keyboard_template_func:
-            keyboard_func = keyboard_template_func(a_Item[0])
-        return simple_message.WorkFuncResult(msg, photo_id = a_Item[3], item_access = a_Item[4], keyboard_func = keyboard_func)
-    return ShowMessage
-
-def SimpleMessageTemplateLegacy(a_StringMessage):
-    async def ShowMessage(a_CallbackQuery : types.CallbackQuery, a_Item):
-        return simple_message.WorkFuncResult(a_StringMessage)
-    return ShowMessage
-
-# Удаление потребностей 
-
-async def NeedPreDelete(a_CallbackQuery : types.CallbackQuery, a_Item):
-    if (len(a_Item) < 6):
-        return simple_message.WorkFuncResult(error_find_proj_message)
-    access = a_Item[4]
-    return simple_message.WorkFuncResult('', None, item_access = access)
-
-async def NeedPostDelete(a_CallbackQuery : types.CallbackQuery, a_ItemID):
-    log.Success(f'Потребность №{a_ItemID} была удалена пользователем {a_CallbackQuery.from_user.id}.')
-    #TODO: удалить вложенные 
-    return simple_message.WorkFuncResult(need_success_delete_message)
-
-# ---------------------------------------------------------
-# Работа с базой данных потребностей
-
-def AddBDItemFunc(a_ItemData, a_UserID):
-    print(a_ItemData)
-    res, error = bot_bd.SQLRequestToBD(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-            commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], access.GetItemDefaultAccessForModule(module_name) + f";{a_UserID}=+", a_ItemData[parent_id_field]))
-
-    if error:
-        log.Error(f'Пользоватлель {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
-    else:
-        log.Success(f'Пользоватлель {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {access.GetItemDefaultAccessForModule(module_name)}).')
-
-    return res, error
-
-# ---------------------------------------------------------
-# API
-
-# Инициализация БД
-def GetInitBDCommands():
-    return init_bd_cmds
-
-def GetAccess():
-    return access.GetAccessForModule(module_name)
-
-# Доступные кнопки
-def GetModuleButtons():
-    return [keyboard.ButtonWithAccess(needs_button_name, user_access.AccessMode.VIEW, GetAccess())]
-
-# Обработка кнопок
-def RegisterHandlers(dp : Dispatcher):
-    defaul_keyboard_func = GetStartNeedKeyboardButtons
-    def RegisterSelectParent(a_ButtonName, access_mode):
-        a_PrefixBase = a_ButtonName
-        a_Prefix =  bd_item_select.FirstSelectBDItemRegisterHandlers(dp, \
-                a_PrefixBase, \
-                a_ButtonName, \
-                projects.table_name, \
-                projects.key_name, \
-                projects.GetButtonNameAndKeyValueAndAccess, \
-                projects.select_project_message, \
-                projects.GetAccess, \
-                access_mode = access_mode\
-                )
-        a_Prefix =  bd_item_select.NextSelectBDItemRegisterHandlers(dp, \
-                a_Prefix, \
-                tasks.parent_id_field, \
-                tasks.table_name, \
-                tasks.key_name, \
-                tasks.GetButtonNameAndKeyValueAndAccess, \
-                tasks.select_task_message, \
-                tasks.GetAccess, \
-                access_mode = access_mode\
-                )
-        return a_Prefix
-
-
-    # Стартовое сообщение
-    dp.register_message_handler(simple_message.SimpleMessageTemplateLegacy(NeedsOpen, defaul_keyboard_func, GetAccess), text = needs_button_name)
-
-    # Список потребностей
-    a_Prefix = RegisterSelectParent(list_need_button_name, user_access.AccessMode.VIEW)
-    bd_item_view.LastSelectAndShowBDItemRegisterHandlers(dp, \
-            a_Prefix, parent_id_field, \
-            table_name, key_name, \
-            ShowMessageTemplate(need_open_message, GetViewItemInlineKeyboardTemplate), \
-            GetButtonNameAndKeyValueAndAccess, \
-            select_need_message, \
-            GetAccess, \
-            defaul_keyboard_func, \
-            access_mode = user_access.AccessMode.VIEW\
-            )
-    global select_needs_prefix
-    select_needs_prefix = a_Prefix
-
-    # Удаление потребностей
-    a_Prefix = RegisterSelectParent(del_need_button_name, user_access.AccessMode.DELETE)
-    bd_item_delete.DeleteBDItemRegisterHandlers(dp, \
-            a_Prefix, \
-            bd_item.GetCheckForPrefixFunc(a_Prefix), \
-            table_name, \
-            key_name, \
-            parent_id_field, \
-            NeedPreDelete, \
-            NeedPostDelete, \
-            GetButtonNameAndKeyValueAndAccess, \
-            select_need_message, \
-            GetAccess, \
-            defaul_keyboard_func\
-            )
-
-    # Добавление потребностей
-    a_Prefix = RegisterSelectParent(add_need_button_name, user_access.AccessMode.ADD)
-    bd_item_add.AddBDItem3RegisterHandlers(dp, \
-            bd_item.GetCheckForPrefixFunc(a_Prefix), \
-            FSMCreateNeed, \
-            FSMCreateNeed.name,\
-            FSMCreateNeed.desc, \
-            FSMCreateNeed.photo,\
-            AddBDItemFunc, \
-            SimpleMessageTemplateLegacy(need_create_name_message), \
-            SimpleMessageTemplateLegacy(need_create_desc_message), \
-            SimpleMessageTemplateLegacy(need_create_photo_message), \
-            SimpleMessageTemplateLegacy(need_success_create_message), \
-            a_Prefix,\
-            tasks.table_name, \
-            tasks.key_name, \
-            name_field, \
-            desc_field, \
-            photo_field, \
-            GetButtonNameAndKeyValueAndAccess, \
-            GetAccess, \
-            GetStartNeedKeyboardButtons\
-            )
-
-    def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
-        a_Prefix = RegisterSelectParent(a_ButtonName, a_AccessMode)
-        bd_item_edit.EditBDItemRegisterHandlers(dp, \
-                a_Prefix, \
-                a_FSM, \
-                bd_item.GetCheckForPrefixFunc(a_Prefix), \
-                need_select_to_edit_message, \
-                ShowMessageTemplate(a_EditMessage), \
-                ShowMessageTemplate(need_success_edit_message), \
-                table_name, \
-                key_name, \
-                parent_id_field, \
-                a_FieldName, \
-                GetButtonNameAndKeyValueAndAccess, \
-                GetAccess, \
-                edit_keyboard_func, \
-                access_mode = a_AccessMode, \
-                field_type = a_FieldType\
-                )
-
-    # Редактирование потребностей
-    edit_keyboard_func = GetEditNeedKeyboardButtons
-    dp.register_message_handler(simple_message.InfoMessageTemplateLegacy(need_start_edit_message, edit_keyboard_func, GetAccess, access_mode = user_access.AccessMode.EDIT), text = edit_need_button_name)
-
-    RegisterEdit(edit_need_photo_button_name, FSMEditNeedPhotoItem, need_edit_photo_message, photo_field, bd_item.FieldType.photo)
-    RegisterEdit(edit_need_name_button_name, FSMEditNeedNameItem, need_edit_name_message, name_field, bd_item.FieldType.text)
-    RegisterEdit(edit_need_desc_button_name, FSMEditNeedDescItem, need_edit_desc_message, desc_field, bd_item.FieldType.text)
-    RegisterEdit(edit_need_access_button_name, FSMEditNeedAccessItem, need_edit_access_message, access_field, bd_item.FieldType.text)
+    def GetName(self):
+        return module_name
