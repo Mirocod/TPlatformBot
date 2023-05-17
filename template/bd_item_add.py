@@ -100,6 +100,7 @@ def AddBDItem3RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMD
         reg_func = a_Bot.RegisterCallbackHandler
     reg_func(StartAddBDItemTemplate(a_Bot, a_FSM, a_FSMName, a_AddNameMessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), a_StartCheckFunc)
 
+    # TODO: Сделать возможность не указывать все поля. пусть a_FSMName и a_NameField например могут быть пустыми. Возможно лучше вообще передавать список полей и их fsm
     a_Bot.RegisterMessageHandler(NextAddBDItemTemplate(a_Bot, a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_NameField, a_AddDescMessageFunc, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMName)
     a_Bot.RegisterMessageHandler(NextAddBDItemTemplate(a_Bot, a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_DescField, a_AddPhotoMessageFunc, a_AccessFunc, keyboard_skip_and_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMDesc)
     a_Bot.RegisterMessageHandler(FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)

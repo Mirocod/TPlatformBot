@@ -6,7 +6,7 @@ log_start_message = 'Бот успешно запущен!'
 import os
 
 from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages, bd_table
-from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs #, projects, , access, , , , comments, messages, , languages
+from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments #, projects, , access, , , , , messages, , languages
 
 g_Log = log
 g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
@@ -38,17 +38,21 @@ g_ModuleAgregator.AddModule(mod_profile)
 mod_backup = backup.ModuleBackup(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_backup)
 
-start_mod_name_list = [mod_start_name, mod_tasks_name, mod_needs_name]#, , , mod_comments_name]
+start_mod_name_list = [mod_start_name, mod_tasks_name, mod_needs_name, mod_comments_name]
 mod_project = projects.ModuleProjects(None, mod_tasks_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_project)
 
-start_mod_name_list = [mod_start_name, mod_projects_name, mod_needs_name]#, , mod_comments_name]
+start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_needs_name, mod_comments_name]
 mod_tasks = tasks.ModuleTasks(mod_projects_name, mod_needs_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_tasks)
 
-start_mod_name_list = [mod_start_name, mod_projects_name, mod_tasks_name]#, , mod_comments_name]
-mod_needs= needs.ModuleNeeds(mod_tasks_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_comments_name]
+mod_needs= needs.ModuleNeeds(mod_tasks_name, mod_comments_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_needs)
+
+start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_needs_name]
+mod_comments= comments.ModuleComments(mod_needs_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_comments)
 
 start_mod_name_list = [#, '', , '', , 'languages']
         mod_profile.GetName(),

@@ -66,8 +66,8 @@ button_names = {
 }
 
 messages = {
-    mod_table_operate.Messages.START: '''
-<b>🟥 Проекты</b>
+    mod_table_operate.Messages.START: f'''
+<b>{button_names[mod_table_operate.ButtonNames.START]}</b>
 
 ''',
     mod_table_operate.Messages.SELECT: '''
