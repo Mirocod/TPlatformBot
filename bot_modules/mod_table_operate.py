@@ -109,7 +109,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
 
     def GetEditKeyboardButtons(self, a_Message, a_UserGroups):
-        mod_buttons = self.GetButtons(self.m_EditModuleNameList)
+        mod_buttons = keyboard.MakeButtons(self.GetButtons(self.m_EditModuleNameList), a_UserGroups)
         cur_buttons = [
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_PHOTO), user_access.AccessMode.VIEW, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_NAME), user_access.AccessMode.ADD, self.GetAccess()),
@@ -206,7 +206,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         a_Prefix = None
         if self.m_ParentModName:
             parent_mod = self.GetModule(self.m_ParentModName)
-            a_Prefix = parent_mod.RegisterSelect(a_ButtonName, access_mode)
+            a_Prefix = parent_mod.RegisterSelect(a_ButtonName, access_mode, only_parent = False)
             if not only_parent:
                 a_Prefix =  bd_item_select.NextSelectBDItemRegisterHandlers(self.m_Bot, \
                         a_Prefix, \
@@ -306,9 +306,11 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         a_ButtonName = self.GetButton(ButtonNames.ADD)
         if a_ButtonName:
             a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.ADD, only_parent = True)
+
             check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
             if a_Prefix:
                 check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
+
             bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
                     check_func, \
                     self.m_FSMs.m_FSMCreate, \
@@ -330,17 +332,22 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     GetAccess, \
                     self.m_GetStartKeyboardButtonsFunc\
                     )
-        '''
+
         # Редактирование
         edit_keyboard_func = self.m_GetEditKeyboardButtonsFunc
         def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
             if not a_ButtonName:
                 return
-            a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode)
+
+            a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode, only_parent = True)
+
+            check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
+            if a_Prefix:
+                check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
             bd_item_edit.EditBDItemRegisterHandlers(self.m_Bot, \
                 a_Prefix, \
                 a_FSM, \
-                bd_item.GetCheckForPrefixFunc(a_Prefix), \
+                check_func, \
                 self.GetMessage(Messages.SELECT_TO_EDIT), \
                 self.ShowMessageTemplate(a_EditMessage), \
                 self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_EDIT)), \
@@ -372,5 +379,4 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.m_FSMs.m_FSMEditDesc, self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
         RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.m_FSMs.m_FSMEditPhoto, self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
         RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.m_FSMs.m_FSMEditAccess, self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
-        '''
 

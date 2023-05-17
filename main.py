@@ -71,7 +71,6 @@ g_BotButtons.UpdateSignal(g_Log.GetTimeNow())
 #messages.FlushMessages()
 
 for m in modules:
-    print(m)
     m.RegisterHandlers()
 
 # Юнит тесты модулей и файлов
