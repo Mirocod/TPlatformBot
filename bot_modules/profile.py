@@ -68,7 +68,7 @@ class ModuleProfile(mod_simple_message.SimpleMessageModule):
         user_info = GetUserInfo(self.m_Bot, a_Message.from_user.id)
         lang = str(a_Message.from_user.language_code)
         if not user_info is None:
-            msg = self.GetButton(mod_simple_message.ButtonNames.START)
+            msg = self.GetMessage(mod_simple_message.Messages.START)
             msg = msg.GetMessageForLang(lang).StaticCopy()
             msg.UpdateDesc(table.ReplaceAllFieldTags(msg.GetDesc(), user_info))
             return simple_message.WorkFuncResult(msg, item_access = str(user_info[table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]))

@@ -4,8 +4,9 @@
 # Работа с кнопками и клавиатурой
 
 from bot_sys import user_access
-from aiogram import types, Bot, Dispatcher
+
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import types
 
 class ButtonWithAccess:
     def __init__(self, a_Label, a_AccessMode : user_access.AccessMode, a_AccessString):
@@ -47,9 +48,6 @@ def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
 def MakeKeyboard(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     return MakeAiogramKeyboard(MakeButtons(a_ButtonList, a_UserGroups))
 
-def MakeKeyboardRemove():
-    return types.ReplyKeyboardRemove()
-
 def MakeKeyboardForMods(a_ModList, a_UserGroups):
     buttons = GetButtons(a_ModList)
     return MakeKeyboard(buttons, a_UserGroups)
@@ -79,3 +77,27 @@ def MakeInlineKeyboardButtons(a_ButtonList : [InlineButtonWithAccess], a_UserGro
 
 def MakeInlineKeyboard(a_ButtonList : [InlineButtonWithAccess], a_UserGroups):
     return MakeAiogramInlineKeyboard(MakeInlineKeyboardButtons(a_ButtonList, a_UserGroups))
+
+# -------------------------------
+
+
+def MakeKeyboardRemove():
+    return types.ReplyKeyboardRemove()
+
+def MakeAiogramInlineKeyboards(a_ButtonList : [InlineButton]): 
+    buttons = []
+    for row in a_ButtonList:
+        r = []
+        for b in row:
+            r += [types.InlineKeyboardButton(text = str(b.label), callback_data = b.callback_data)]
+        buttons += [r]
+
+    button_list_chunks = Chunks(buttons, 20)
+    result = []
+    for c in button_list_chunks:
+        result += [InlineKeyboardMarkup(inline_keyboard=c)]
+
+    return result
+
+def MakeAiogramKeyboard(a_ButtonList : [[str]]):
+    return types.ReplyKeyboardMarkup(keyboard=a_ButtonList, resize_keyboard = True)

@@ -140,6 +140,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 if len(a_Item) < self.m_Table.GetFieldsCount() - 1: # Для проектов это нужно. Там на 1 меньше поле. TODO разделить отправку сообщений item_access и Inline_keyboard_func
                     return simple_message.WorkFuncResult(self.GetMessage(Messages.ERROR_FIND))
                 elif len(a_Item) == self.m_Table.GetFieldsCount():
+                    lang = str(a_CallbackQuery.from_user.language_code)
+                    msg = msg.GetMessageForLang(lang).StaticCopy()
                     msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
                     photo_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)
                     if photo_field:

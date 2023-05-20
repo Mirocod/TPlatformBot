@@ -9,24 +9,6 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import executor
 
-def MakeAiogramInlineKeyboards(a_ButtonList : [InlineButton]): 
-    buttons = []
-    for row in a_ButtonList:
-        r = []
-        for b in row:
-            r += [types.InlineKeyboardButton(text = str(b.label), callback_data = b.callback_data)]
-        buttons += [r]
-
-    button_list_chunks = keyboard.Chunks(buttons, 20)
-    result = []
-    for c in button_list_chunks:
-        result += [InlineKeyboardMarkup(inline_keyboard=c)]
-
-    return result
-
-def MakeAiogramKeyboard(a_ButtonList : [[str]]):
-    return types.ReplyKeyboardMarkup(keyboard=a_ButtonList, resize_keyboard = True)
-
 class AiogramBot(interfaces.IBot):
     def __init__(self, a_TelegramBotApiToken, a_BDFileName, a_RootIDs, a_Log):
         self.m_TelegramBotApiToken = a_TelegramBotApiToken

@@ -184,6 +184,7 @@ class ModuleMessages(mod_table_operate.TableOperateModule):
             for msg_name, message in msg_dict.items():
                 self.AddOrIgnoreMessage(message)
 
+        table_name = self.m_Table.GetName()
         msgs_bd = bd_item.GetAllItemsTemplate(self.m_Bot, table_name)()
         if msgs_bd:
             for m in msgs_bd:

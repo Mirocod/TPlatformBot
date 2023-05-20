@@ -76,9 +76,8 @@ class BotMessages:
             a_MessageLang = self.a_DefaultLanguage
         cur_msg = BotMessage(self, a_MessageName, a_MessageDesc, a_MessageLang, a_MessagePhotoID, a_DateTime)
         msg = self.GetMessages()
-        if not msg.get(self.a_DefaultLanguage, None):
-            msg[self.a_DefaultLanguage] = {}
-        if not msg[self.a_DefaultLanguage].get(a_MessageName, None):
-            msg[self.a_DefaultLanguage][a_MessageName] = cur_msg
+        if not msg.get(a_MessageLang, None):
+            msg[a_MessageLang] = {}
+        msg[a_MessageLang][a_MessageName] = cur_msg
         return cur_msg
 
