@@ -10,37 +10,37 @@ from template import bd_item
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-class FSMCreateMessage(StatesGroup):
+class FSMCreateButton(StatesGroup):
     name = State()
     desc = State()
     photo = State()
     
-class FSMEditMessagePhotoItem(StatesGroup):
+class FSMEditButtonPhotoItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditMessageNameItem(StatesGroup):
+class FSMEditButtonNameItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditMessageDescItem(StatesGroup):
+class FSMEditButtonDescItem(StatesGroup):
     item_id = State()
     item_field = State()
 
-class FSMEditMessageAccessItem(StatesGroup):
+class FSMEditButtonAccessItem(StatesGroup):
     item_id = State()
     item_field = State()
 # ---------------------------------------------------------
 # БД
-module_name = 'messages'
+module_name = 'buttons'
 
 table_name = module_name
-key_name = 'messageID'
-name_field = 'messageName'
-desc_field = 'messageDesc'
-photo_field = 'messagePhoto'
-access_field = 'messageAccess'
-create_datetime_field = 'messageCreateDateTime'
+key_name = 'buttonID'
+name_field = 'buttonName'
+desc_field = 'buttonDesc'
+photo_field = 'buttonPhoto'
+access_field = 'buttonAccess'
+create_datetime_field = 'buttonCreateDateTime'
 parent_id_field = 'languageID'
 
 table_name_field = bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR)
@@ -63,26 +63,26 @@ table = bd_table.Table(table_name, [
 init_access = f'{user_access.user_access_group_all}=-'
 
 fsm = {
-    mod_table_operate.FSMs.CREATE: FSMCreateMessage,
-    mod_table_operate.FSMs.EDIT_NAME: FSMEditMessageNameItem,
-    mod_table_operate.FSMs.EDIT_DESC: FSMEditMessageDescItem,
-    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditMessagePhotoItem,
-    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditMessageAccessItem,
+    mod_table_operate.FSMs.CREATE: FSMCreateButton,
+    mod_table_operate.FSMs.EDIT_NAME: FSMEditButtonNameItem,
+    mod_table_operate.FSMs.EDIT_DESC: FSMEditButtonDescItem,
+    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditButtonPhotoItem,
+    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditButtonAccessItem,
     }
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
 
 button_names = {
-    mod_simple_message.ButtonNames.START: "✉ Сообщения",
-    mod_table_operate.ButtonNames.LIST: "📃 Список сообщений",
-    mod_table_operate.ButtonNames.ADD: "☑ Добавить сообщение",
-    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать сообщение",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у сообщения",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у сообщения",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у сообщения",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к сообщению",
-    mod_table_operate.ButtonNames.DEL: "❌ Удалить сообщение",
+    mod_simple_message.ButtonNames.START: "❍ Названия кнопок",
+    mod_table_operate.ButtonNames.LIST: "📃 Список названий кнопок",
+    mod_table_operate.ButtonNames.ADD: "☑ Добавить название кнопки",
+    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать названия кнопок",
+    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у названия кнопок",
+    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у названия кнопок",
+    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у названия кнопок",
+    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к названию кнопки",
+    mod_table_operate.ButtonNames.DEL: "❌ Удалить название кнопки",
 }
 
 messages = {
@@ -91,73 +91,73 @@ messages = {
 
 ''',
     mod_table_operate.Messages.SELECT: '''
-Пожалуйста, выберите сообщение:
+Пожалуйста, выберите название кнопки:
 ''',
     mod_table_operate.Messages.ERROR_FIND: '''
-❌ Ошибка, сообщение не найден
+❌ Ошибка, название кнопки не найдено
 ''',
     mod_table_operate.Messages.OPEN: f'''
-<b>Сообщение:  #{name_field}</b>
+<b>Название кнопки:  #{name_field}</b>
 
 #{desc_field}
 
 Время создания: #{create_datetime_field}
 ''',
     mod_table_operate.Messages.CREATE_NAME: '''
-Создание сообщения. Шаг №1
+Создание названия кнопки Шаг №1
 
-Введите название сообщения:
+Введите название название кнопки:
 ''',
     mod_table_operate.Messages.CREATE_DESC: '''
-Создание сообщения. Шаг №2
+Создание названия кнопки. Шаг №2
 
-Введите описание сообщения:
+Введите описание название кнопки:
 ''',
     mod_table_operate.Messages.CREATE_PHOTO: '''
-Создание сообщения. Шаг №3
-
-Загрузите обложку для сообщения (Фото):
-Она будет отображаться в его описании.
+Создание названия кнопки
+Загрузите обложку для названия кнопок (Фото):
+На данный момент не поддерживается!
+Нажмите пропустить
 ''',
-    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Сообщение успешно добавлено!''',
+    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Название кнопки успешно добавлено!''',
     mod_table_operate.Messages.START_EDIT: '''
 Пожалуйста, выберите действие:
 ''',
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
-Выберите сообщение, который вы хотите отредактировать.
+Выберите название кнопки, который вы хотите отредактировать.
 ''',
     mod_table_operate.Messages.EDIT_PHOTO: '''
-Загрузите новую обложку для сообщения (Фото):
+Загрузите новую обложку для названия кнопок (Фото):
 Она будет отображаться в его описании.
 ''',
     mod_table_operate.Messages.EDIT_NAME: f'''
-Текущее название сообщения:
+Текущее название названия кнопок:
 #{name_field}
 
-Введите новое название сообщения:
+Введите новое название названия кнопки:
 ''',
     mod_table_operate.Messages.EDIT_DESC: f'''
-Текущее описание сообщения:
+Текущее описание названия кнопок:
 #{desc_field}
 
-Введите новое описание сообщения:
+Введите новое описание названия кнопки:
 ''',
     mod_table_operate.Messages.EDIT_ACCESS: f'''
-Текущий доступ к сообщениеу:
+Текущий доступ к названию кнопки:
 #{access_field}
 
 {user_access.user_access_readme}
 
 Введите новую строку доступа:
 ''',
-    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Сообщение успешно отредактировано!''',
+    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Название кнопки успешно отредактировано!''',
     mod_table_operate.Messages.SELECT_TO_DELETE: '''
-Выберите сообщение, который вы хотите удалить.
+Выберите название кнопки, которое вы хотите удалить.
 ''',
-    mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Сообщение успешно удалено!''',
+    mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Название кнопки успешно удалено!''',
 }
 
-class ModuleMessages(mod_table_operate.TableOperateModule):
+class ModuleButtons(mod_table_operate.TableOperateModule):
     def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         super().__init__(table, messages, button_names, fsm, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
@@ -178,7 +178,7 @@ class ModuleMessages(mod_table_operate.TableOperateModule):
                 commit = True, return_error = True, param = (a_Message.m_PhotoID, a_Message.m_MessageName, a_Message.m_MessageDesc, access_utils.GetItemDefaultAccessForModule(self.m_Bot, module_name), lang_id))
 
     def FlushMessages(self):
-        msg = self.m_BotMessages.GetMessages()
+        msg = self.m_BotButtons.GetMessages()
         for lang, msg_dict in msg.items():
             for msg_name, message in msg_dict.items():
                 self.AddOrIgnoreMessage(message)
@@ -192,9 +192,9 @@ class ModuleMessages(mod_table_operate.TableOperateModule):
                 photo_id = m[3]
                 lang_id = m[6]
                 lang_name = self.GetModule(self.m_ParentModName).GetLangName(lang_id)
-                self.m_BotMessages.CreateMessage(name, desc, self.m_Log.GetTimeNow(), a_MessagePhotoID = photo_id, a_MessageLang = lang_name)
+                self.m_BotButtons.CreateMessage(name, desc, self.m_Log.GetTimeNow(), a_MessagePhotoID = photo_id, a_MessageLang = lang_name)
 
-        self.m_BotMessages.UpdateSignal(self.m_Log.GetTimeNow())
+        self.m_BotButtons.UpdateSignal(self.m_Log.GetTimeNow())
 
     def OnChange(self):
         self.FlushMessages()

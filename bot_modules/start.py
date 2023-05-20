@@ -7,6 +7,8 @@ from bot_sys import user_access
 from bot_modules import mod_simple_message, profile
 from template import bd_item
 
+module_name = 'start'
+
 button_names = {
     mod_simple_message.ButtonNames.START: "☰ Главное меню",
 }
@@ -25,7 +27,7 @@ class ModuleStart(mod_simple_message.SimpleMessageModule):
         super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetName(self):
-        return 'start'
+        return module_name
 
     # Основной обработчик главного сообщения
     async def StartMessageHandler(self, a_Message, state = None):

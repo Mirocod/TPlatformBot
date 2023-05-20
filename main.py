@@ -6,7 +6,7 @@ log_start_message = 'Бот успешно запущен!'
 import os
 
 from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages, bd_table
-from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments, languages, messages
+from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments, languages, messages, buttons
 
 g_Log = log
 g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
@@ -18,14 +18,14 @@ g_BotButtons = bot_messages.BotMessages(default_language)
 
 g_ModuleAgregator = mod_agregator.ModuleAgregator()
 
-mod_start_name = 'start'
-mod_tasks_name = 'tasks'
-mod_needs_name = 'needs'
-mod_comments_name = 'comments'
-mod_projects_name = 'projects'
-mod_languages_name = 'languages'
-mod_messages_name = 'messages'
-mod_buttons_name = 'buttons'
+mod_start_name = start.module_name
+mod_tasks_name = tasks.module_name
+mod_needs_name = needs.module_name
+mod_comments_name = comments.module_name
+mod_projects_name = projects.module_name
+mod_languages_name = languages.module_name
+mod_messages_name = messages.module_name
+mod_buttons_name = buttons.module_name
 
 start_mod_list = [mod_start_name]
 
@@ -57,13 +57,17 @@ start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_
 mod_comments= comments.ModuleComments(mod_needs_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_comments)
 
-start_mod_name_list = [mod_start_name, mod_messages_name]#, mod_messages_name, mod_buttons_name
+start_mod_name_list = [mod_start_name, mod_messages_name, mod_buttons_name]
 mod_languages = languages.ModuleLanguages(None, mod_messages_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_languages)
 
-start_mod_name_list = [mod_start_name]#, mod_messages_name, mod_buttons_name
+start_mod_name_list = [mod_start_name]
 mod_messages = messages.ModuleMessages(mod_languages_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_messages)
+
+start_mod_name_list = [mod_start_name]
+mod_buttons = buttons.ModuleButtons(mod_languages_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_buttons)
 
 start_mod_name_list = [
         mod_profile.GetName(),
@@ -94,6 +98,7 @@ g_BotButtons.UpdateSignal(g_Log.GetTimeNow())
 
 mod_languages.FlushLanguages()
 mod_messages.FlushMessages()
+mod_buttons.FlushMessages()
 
 for m in modules:
     m.RegisterHandlers()
