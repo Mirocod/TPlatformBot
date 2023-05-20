@@ -69,7 +69,7 @@ class ModuleBackup(mod_simple_message.SimpleMessageModule):
                 )
         self.m_BackupLogMessageHandler = file_message.BackupFileTemplate(
                 self.m_Bot,
-                self.m_Bot.GetLog().g_log_file_name,
+                self.m_Bot.GetLog().GetFileName(),
                 self.m_BackupLogMessage,
                 self.m_GetAccessFunc,
                 self.m_GetStartKeyboardButtonsFunc,
@@ -87,7 +87,7 @@ class ModuleBackup(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.m_BackupBDButtonName, user_access.AccessMode.EDIT, self.GetAccess()), 
                 keyboard.ButtonWithAccess(self.m_BackupLogButtonName , user_access.AccessMode.EDIT, self.GetAccess())
                 ]
-        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def RegisterHandlers(self):
         super().RegisterHandlers()

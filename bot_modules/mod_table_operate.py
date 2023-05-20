@@ -94,10 +94,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.DEL), user_access.AccessMode.DELETE, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT), user_access.AccessMode.EDIT, self.GetAccess()),
                 ]
-        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def GetEditKeyboardButtons(self, a_Message, a_UserGroups):
-        mod_buttons = keyboard.MakeButtons(self.GetButtons(self.m_EditModuleNameList), a_UserGroups)
+        mod_buttons = keyboard.MakeButtons(self.m_Bot, self.GetButtons(self.m_EditModuleNameList), a_UserGroups)
         cur_buttons = [
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_PHOTO), user_access.AccessMode.VIEW, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_NAME), user_access.AccessMode.ADD, self.GetAccess()),
@@ -105,7 +105,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.DELETE, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), user_access.AccessMode.EDIT, self.GetAccess()),
                 ]
-        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def GetViewItemInlineKeyboardTemplate(self, a_ItemID):
         def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
@@ -122,7 +122,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         cur_buttons = [
                 keyboard.InlineButtonWithAccess(child_mod.GetButton(ButtonNames.LIST), child_mod.GetSelectPrefix(), a_ItemID, self.GetAccess(), user_access.AccessMode.VIEW),
                 ]
-        return keyboard.MakeInlineKeyboardButtons(cur_buttons, a_UserGroups)
+        return keyboard.MakeInlineKeyboardButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def GetButtonNameAndKeyValueAndAccess(self, a_Item):
         return \

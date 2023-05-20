@@ -26,7 +26,7 @@ class AiogramBot(interfaces.IBot):
         return self.m_Log
 
     def SQLRequest(self, a_Request : str, commit = False, return_error = False, param = None):
-        return bot_bd.SQLRequest(self.m_BDFileName, a_Request, commit = commit, return_error = return_error, param = param)
+        return bot_bd.SQLRequest(self.m_Log, self.m_BDFileName, a_Request, commit = commit, return_error = return_error, param = param)
 
     async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_KeyboardButtons, a_InlineKeyboardButtons, parse_mode = None):
         if not parse_mode:
@@ -40,20 +40,34 @@ class AiogramBot(interfaces.IBot):
         if inline_keyboards:
                 base_keyboards = inline_keyboards
         if a_PhotoIDs and a_PhotoIDs != 0 and a_PhotoIDs != '0':
-            for k in base_keyboards:
-                await self.m_TBot.send_photo(
+            if base_keyboards:
+                for k in base_keyboards:
+                    await self.m_TBot.send_photo(
                         a_UserID,
                         a_PhotoIDs,
                         a_Message,
                         reply_markup = k
                         )
+            else:
+                await self.m_TBot.send_photo(
+                        a_UserID,
+                        a_PhotoIDs,
+                        a_Message
+                        )
         else:
             #print('SendMessage', a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons, base_keyboard)
-            for k in base_keyboards:
-                await self.m_TBot.send_message(
+            if base_keyboards:
+                for k in base_keyboards:
+                    await self.m_TBot.send_message(
                         a_UserID,
                         a_Message,
                         reply_markup = k,
+                        parse_mode = parse_mode
+                        )
+            else:
+                await self.m_TBot.send_message(
+                        a_UserID,
+                        a_Message,
                         parse_mode = parse_mode
                         )
 

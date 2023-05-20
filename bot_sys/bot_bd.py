@@ -6,16 +6,6 @@ from bot_sys import log
 
 # Работа с базой данных
 
-# Имя файла БД
-g_bd_file_name = 'bot.db'
-def GetBDFileName():
-    return g_bd_file_name
-
-# ---------------------------------------------------------
-# Функции работы с базой
-
-# ---------------------------------------------------------
-
 def GetBDDateTimeNow():
     return 'datetime(\'now\')'
 
@@ -24,16 +14,12 @@ def SelectBDTemplate(a_Bot, a_TableName):
         return a_Bot.SQLRequest(f'SELECT * FROM {a_TableName}')
     return SelectBD
 
-def RequestsExecute(a_BDFileName, a_Commands):
-    for cmd in a_Commands:
-        SQLRequest(a_BDFileName, cmd, commit = True)
-
-def RequestSelectTemplate(a_BDFileName, a_TableName):
+def RequestSelectTemplate(a_Bot, a_TableName):
     def SelectBD():
-        return SQLRequest(a_BDFileName, f'SELECT * FROM {a_TableName}')
+        return a_Bot.SQLRequest(f'SELECT * FROM {a_TableName}')
     return SelectBD
 
-def SQLRequest(a_BDFileName, a_Request : str, commit = False, return_error = False, param = None):
+def SQLRequest(a_Log, a_BDFileName, a_Request : str, commit = False, return_error = False, param = None):
     db = sqlite3.connect(a_BDFileName)
     cursor = db.cursor()
     result = []
@@ -47,11 +33,12 @@ def SQLRequest(a_BDFileName, a_Request : str, commit = False, return_error = Fal
         if commit: 
             db.commit()
     except sqlite3.Error as e:
-        log.Error(f'Ошибка при обработке запроса [{a_Request}]:{str(e)}')
+        a_Log.Error(f'Ошибка при обработке запроса [{a_Request}]:{str(e)}')
         error = "Ошибка sqlite3:" + str(e)
     cursor.close()
     db.close()
-    if not error and commit: log.Success(f'Выполнен запрос [{a_Request}]')
+    if not error and commit: 
+        a_Log.Success(f'Выполнен запрос [{a_Request}]')
     if return_error:
         return result, error
     return result

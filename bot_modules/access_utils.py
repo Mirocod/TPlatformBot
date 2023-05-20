@@ -20,7 +20,7 @@ def GetAccessForModuleRequest(module_name, access, default_access):
     return f"INSERT OR IGNORE INTO {table_name} ({mod_name_field}, {moduleaccess_field}, {mod_default_access_field}) VALUES ('{module_name}', '{access}', '{default_access}');"
 
 def GetModulesAccessList(a_Bot):
-    return bot_bd.RequestSelectTemplate(a_Bot.m_BDFileName, table_name)()
+    return bot_bd.RequestSelectTemplate(a_Bot, table_name)()
 
 def GetAccessForModule(a_Bot, a_ModuleName):
     alist = GetModulesAccessList(a_Bot)

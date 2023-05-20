@@ -42,21 +42,21 @@ def GetKeyDataFromCallbackMessage(a_Message, a_Prefix):
         key_item_id = str(a_Message.data).replace(a_Prefix, '')
     return key_item_id
 
-def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
+def GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, a_AccessMode):
     def GetCancelKeyboardButtons(a_Message, a_UserGroups):
         cur_buttons = [
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
         ]
-        return keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return keyboard.MakeButtons(a_Bot, cur_buttons, a_UserGroups)
     return GetCancelKeyboardButtons
 
-def GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
+def GetSkipAndCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, a_AccessMode):
     def GetSkipAndCancelKeyboardButtons(a_Message, a_UserGroups):
         cur_buttons = [
             keyboard.ButtonWithAccess(skip_button_name, a_AccessMode, a_AccessFunc()),
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc()),
         ]
-        return keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return keyboard.MakeButtons(a_Bot, cur_buttons, a_UserGroups)
     return GetSkipAndCancelKeyboardButtons
 
 def GetAllItemsTemplate(a_Bot, a_TableName):
@@ -94,7 +94,7 @@ def CheckAccessBDItemTemplate(a_Bot, a_TableName, a_KeyName, a_KeyValue, a_WorkF
         if result_work_func is None or result_work_func.m_BotMessage is None:
             return result_work_func, result_work_func
 
-        if not result_work_func.item_access is None and not user_access.CheckAccessString(result_work_func.item_access, user_groups, a_AccessMode):
+        if not result_work_func.item_access is None and not user_access.CheckAccess(a_Bot.GetRootIDs(), result_work_func.item_access, user_groups, a_AccessMode):
             return simple_message.WorkFuncResult(bot_messages.MakeBotMessage(access_utils.access_denied_message)), None
 
         return None, result_work_func

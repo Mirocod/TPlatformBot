@@ -3,7 +3,7 @@
 
 # Потребности
 
-from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table
+from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message
 
 from aiogram.dispatcher import FSMContext

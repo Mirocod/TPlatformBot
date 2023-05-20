@@ -34,13 +34,13 @@ def GetButtonInRowCount(a_AllKeyCount):
     return min(max(int(math.sqrt(a_AllKeyCount) // 1), 1), 3)
 
 # TODO перенести KeyboardButton в MakeAiogramKeyboard
-def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
+def MakeButtons(a_Bot, a_ButtonList : [ButtonWithAccess], a_UserGroups):
     buttons = []
     for b in a_ButtonList:
         if not b.label:
             continue
         label = str(b.label)
-        if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
+        if user_access.CheckAccess(a_Bot.GetRootIDs(), b.access_string, a_UserGroups, b.access_mode):
             buttons += [types.KeyboardButton(label)]
     step = GetButtonInRowCount(len(buttons))
     return Chunks(buttons, step)
@@ -65,18 +65,15 @@ class InlineButtonWithAccess:
         self.access_string = a_AccessString
         self.access_mode = a_AccessMode
 
-def MakeInlineKeyboardButtons(a_ButtonList : [InlineButtonWithAccess], a_UserGroups): 
+def MakeInlineKeyboardButtons(a_Bot, a_ButtonList : [InlineButtonWithAccess], a_UserGroups): 
     buttons = []
     for b in a_ButtonList:
-        if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
+        if user_access.CheckAccess(a_Bot.GetRootIDs(), b.access_string, a_UserGroups, b.access_mode):
             data = f'{b.callback_prefix}{b.callback_data}'
             assert len(data) < 41 # Телеграм больше не поддерживает
             buttons += [InlineButton(b.label, data)]
     step = GetButtonInRowCount(len(buttons))
     return Chunks(buttons, step)
-
-def MakeInlineKeyboard(a_ButtonList : [InlineButtonWithAccess], a_UserGroups):
-    return MakeAiogramInlineKeyboard(MakeInlineKeyboardButtons(a_ButtonList, a_UserGroups))
 
 # -------------------------------
 

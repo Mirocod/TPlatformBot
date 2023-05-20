@@ -61,7 +61,7 @@ def MakeBotMessage(a_MessageDesc):
 
 class BotMessages:
     def __init__(self, a_DefaultLanguage):
-        self.a_DefaultLanguage = a_DefaultLanguage
+        self.m_DefaultLanguage = a_DefaultLanguage
         self.m_Messages = {}
         self.m_LastUpdate = None
 
@@ -73,7 +73,7 @@ class BotMessages:
 
     def CreateMessage(self, a_MessageName, a_MessageDesc, a_DateTime, a_MessagePhotoID = 0, a_MessageLang = None):
         if not a_MessageLang:
-            a_MessageLang = self.a_DefaultLanguage
+            a_MessageLang = self.m_DefaultLanguage
         cur_msg = BotMessage(self, a_MessageName, a_MessageDesc, a_MessageLang, a_MessagePhotoID, a_DateTime)
         msg = self.GetMessages()
         if not msg.get(a_MessageLang, None):

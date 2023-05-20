@@ -5,11 +5,15 @@ log_start_message = 'Бот успешно запущен!'
 
 import os
 
-from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages, bd_table
+from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_access
 from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments, languages, messages, buttons
 
-g_Log = log
-g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
+bd_file_name = 'bot.db'
+
+log_file_name = 'log.txt'
+
+g_Log = log.Log(log_file_name)
+g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bd_file_name, config.GetRootIDs(), g_Log)
 
 default_language = 'ru'
 

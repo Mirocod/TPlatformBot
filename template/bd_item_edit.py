@@ -38,7 +38,7 @@ def EditBDItemRegisterHandlers(a_Bot, a_PrevPrefix, a_FSM, a_StartCheckFunc, a_S
     if a_ParentIDFieldName:
         reg_func = a_Bot.RegisterCallbackHandler
 
-    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
+    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, access_mode)
     a_Prefix = bd_item.HashPrefix(f'edit_{a_TableName}_{a_KeyName}_{a_FieldName}:')
     sel_handler = bd_item_select.SelectDBItemTemplate(a_Bot, a_TableName, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_Prefix, access_mode)
     reg_func(sel_handler, a_StartCheckFunc)

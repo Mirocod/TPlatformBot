@@ -93,8 +93,8 @@ def FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableNa
     return simple_message.SimpleMessageTemplate(a_Bot, FinishAddBDItem, a_ButtonFunc, None, a_AccessFunc, access_mode)
 
 def AddBDItem3RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMDesc, a_FSMPhoto, a_AddBDItemFunc, a_AddNameMessageFunc, a_AddDescMessageFunc, a_AddPhotoMessageFunc, a_FinishMessageFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_NameField, a_DescField, a_PhotoField, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD):
-    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
-    keyboard_skip_and_cancel = bd_item.GetSkipAndCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
+    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, access_mode)
+    keyboard_skip_and_cancel = bd_item.GetSkipAndCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, access_mode)
     reg_func = a_Bot.RegisterMessageHandler
     if a_ParentTableName:
         reg_func = a_Bot.RegisterCallbackHandler
@@ -106,7 +106,7 @@ def AddBDItem3RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMD
     a_Bot.RegisterMessageHandler(FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)
 
 def AddBDItem1RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_AddBDItemFunc, a_AddMessageFunc, a_FinishMessageFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, a_FieldType, access_mode = user_access.AccessMode.ADD):
-    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_AccessFunc, access_mode)
+    keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, access_mode)
     reg_func = a_Bot.RegisterMessageHandler
     if a_ParentTableName:
         reg_func = a_Bot.RegisterCallbackHandler

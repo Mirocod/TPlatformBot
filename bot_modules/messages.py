@@ -3,7 +3,7 @@
 
 # Сообщения
 
-from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table, bot_messages
+from bot_sys import bot_bd, keyboard, user_access, bd_table, bot_messages
 from bot_modules import mod_table_operate, mod_simple_message, access_utils
 from template import bd_item
 

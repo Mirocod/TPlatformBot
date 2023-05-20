@@ -13,34 +13,32 @@ cancel_message = '''
 🚫 Запрос к БД отменён
 '''
 
-def GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode):
+def GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, a_AccessMode):
     def GetCancelKeyboardButtons(a_Message, a_UserGroups):
         print ('canсel_button_name', canсel_button_name)
         cur_buttons = [
             keyboard.ButtonWithAccess(canсel_button_name, a_AccessMode, a_AccessFunc())
         ]
-        return keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return keyboard.MakeButtons(a_Bot, cur_buttons, a_UserGroups)
     return GetCancelKeyboardButtons
-
-# TODO CheckAccessString -> CheckAccess
 
 def RequestToBDTemplate(a_Bot, a_StartMessage, a_GetButtonsFunc, a_AccessFunc, a_FSM, a_AccessMode):
     async def RequestToBDStart(a_Message):
         user_id = str(a_Message.from_user.id)
         user_groups = groups_utils.GetUserGroupData(a_Bot, user_id)
-        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, a_AccessMode):
+        if not user_access.CheckAccess(a_Bot.GetRootIDs(), a_AccessFunc(), user_groups, a_AccessMode):
             return await simple_message.AccessDeniedMessage(a_Bot, a_GetButtonsFunc, user_id, a_Message, user_groups)
 
         await a_FSM.sqlRequest.set()
         print ('a_FSM.sqlRequest.set()', a_StartMessage)
-        await simple_message.SendMessage(a_Bot, a_StartMessage, GetCancelKeyboardButtonsTemplate(a_AccessFunc, a_AccessMode), None, user_id, a_Message, user_groups, parse_mode='Markdown')
+        await simple_message.SendMessage(a_Bot, a_StartMessage, GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, a_AccessMode), None, user_id, a_Message, user_groups, parse_mode='Markdown')
     return RequestToBDStart
 
 def RequestToBDFinishTemplate(a_Bot, a_GetButtonsFunc, a_AccessFunc, a_AccessMode):
     async def RequestToBDFinish(a_Message, state):
         user_id = str(a_Message.from_user.id)
         user_groups = groups_utils.GetUserGroupData(a_Bot, user_id)
-        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, a_AccessMode):
+        if not user_access.CheckAccess(a_Bot.GetRootIDs(), a_AccessFunc(), user_groups, a_AccessMode):
             return await simple_message.AccessDeniedMessage(a_Bot, a_GetButtonsFunc, user_id, a_Message, user_groups)
 
         result = ''

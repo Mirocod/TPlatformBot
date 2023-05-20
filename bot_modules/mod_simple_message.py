@@ -89,7 +89,7 @@ class SimpleMessageModule(mod_interface.IModule):
 
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
         buttons = self.GetButtons(self.m_ChildModuleNameList)
-        return keyboard.MakeButtons(buttons, a_UserGroups)
+        return keyboard.MakeButtons(self.m_Bot, buttons, a_UserGroups)
 
     def GetInitBDCommands(self):
         return [

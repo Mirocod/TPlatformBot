@@ -54,10 +54,6 @@ def CheckAccessItem(a_AccessItem : str, a_AccessMode : AccessMode):
     return False
 
 # Возвращает возможность доступа пользователю a_UserGroups в элемент с правами a_AccessValue по режиму доступа a_AccessMode
-def CheckAccessString(a_AccessValue : str, a_UserGroups : UserGroups, a_AccessMode : AccessMode):
-    return CheckAccess(config.GetRootIDs(), a_AccessValue, a_UserGroups, a_AccessMode)
-
-# Возвращает возможность доступа пользователю a_UserGroups в элемент с правами a_AccessValue по режиму доступа a_AccessMode
 def CheckAccess(a_RootIDs, a_AccessValue : str, a_UserGroups : UserGroups, a_AccessMode : AccessMode):
     if a_UserGroups.user_id in a_RootIDs:
         return True

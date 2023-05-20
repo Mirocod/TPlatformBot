@@ -146,7 +146,7 @@ class ModuleAccess(mod_table_operate.TableOperateModule):
                 keyboard.ButtonWithAccess(self.m_SqlRequestButtonName, user_access.AccessMode.EDIT, self.GetAccess()), 
                 keyboard.ButtonWithAccess(self.m_HelpButtonName , user_access.AccessMode.VIEW, self.GetAccess())
                 ]
-        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def RegisterHandlers(self):
         super().RegisterHandlers()

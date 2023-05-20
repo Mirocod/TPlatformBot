@@ -24,7 +24,7 @@ def GetBDItemsListKeyboardButtonsTemplate(a_Bot, a_TableName : str, a_ParentIDFi
             if bname:
                 b = keyboard.InlineButtonWithAccess(bname, a_NextPrefix, key_value, access, access_mode)
                 items_button_list += [b]
-        return keyboard.MakeInlineKeyboardButtons(items_button_list, a_UserGroups)
+        return keyboard.MakeInlineKeyboardButtons(a_Bot, items_button_list, a_UserGroups)
     return GetBDItemsListKeyboardButtons
 
 def SelectDBItemTemplate(a_Bot, a_TableName : str, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_NextPrefix, access_mode = user_access.AccessMode.VIEW):

@@ -11,7 +11,7 @@ def BackupFileTemplate(a_Bot, a_Path, a_CaptionMessage, a_AccessFunc, a_GetButto
     async def BackupFile(a_Message):
         user_id = str(a_Message.from_user.id)
         user_groups= groups_utils.GetUserGroupData(a_Bot, user_id)
-        if not user_access.CheckAccessString(a_AccessFunc(), user_groups, access_mode):
+        if not user_access.CheckAccess(a_Bot.GetRootIDs(), a_AccessFunc(), user_groups, access_mode):
             return await simple_message.AccessDeniedMessage(a_Bot, a_GetButtonsFunc, user_id, a_Message, user_groups)
 
         document = await GetFile(a_Bot, a_Path)

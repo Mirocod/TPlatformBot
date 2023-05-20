@@ -3,7 +3,7 @@
 
 # Языки
 
-from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table
+from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message, access_utils
 from template import bd_item
 
@@ -166,7 +166,7 @@ class ModuleLanguages(mod_table_operate.TableOperateModule):
         for lang_name, lang_id in self.m_LanguageIDs:
             if a_LangID == lang_id:
                 return lang_name
-        return user_messages.default_language
+        return self.m_BotMessages.m_DefaultLanguage
 
     def FlushLanguages(self):
         msg = self.m_BotMessages.GetMessages()
