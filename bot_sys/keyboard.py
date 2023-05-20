@@ -41,8 +41,9 @@ def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
     for b in a_ButtonList:
         if not b.label:
             continue
+        label = str(b.label)
         if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
-            buttons += [types.KeyboardButton(str(b.label))]
+            buttons += [types.KeyboardButton(label)]
     step = GetButtonInRowCount(len(buttons))
     return Chunks(buttons, step)
 
@@ -83,7 +84,9 @@ def MakeInlineKeyboardButtons(a_ButtonList : [InlineButtonWithAccess], a_UserGro
     buttons = []
     for b in a_ButtonList:
         if user_access.CheckAccessString(b.access_string, a_UserGroups, b.access_mode):
-            buttons += [InlineButton(b.label, f'{b.callback_prefix}{b.callback_data}')]
+            data = f'{b.callback_prefix}{b.callback_data}'
+            assert len(data) < 41 # Телеграм больше не поддерживает
+            buttons += [InlineButton(b.label, data)]
     step = GetButtonInRowCount(len(buttons))
     return Chunks(buttons, step)
 

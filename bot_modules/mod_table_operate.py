@@ -92,7 +92,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST), user_access.AccessMode.VIEW, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.ADD), user_access.AccessMode.ADD, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.DEL), user_access.AccessMode.DELETE, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT), user_access.AccessMode.EDIT, self.GetAccess())
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT), user_access.AccessMode.EDIT, self.GetAccess()),
                 ]
         return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
 
@@ -102,7 +102,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_PHOTO), user_access.AccessMode.VIEW, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_NAME), user_access.AccessMode.ADD, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DESC), user_access.AccessMode.DELETE, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.EDIT, self.GetAccess())
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.DELETE, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), user_access.AccessMode.EDIT, self.GetAccess()),
                 ]
         return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
 
@@ -140,7 +141,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     return simple_message.WorkFuncResult(self.GetMessage(Messages.ERROR_FIND))
                 elif len(a_Item) == self.m_Table.GetFieldsCount():
                     msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
-                    msg.UpdatePhotoID(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)])
+                    photo_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)
+                    if photo_field:
+                        msg.UpdatePhotoID(a_Item[photo_field])
                 item_access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
                 if Inline_keyboard_template_func:
                     Inline_keyboard_func = Inline_keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
@@ -330,10 +333,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 return
 
             a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode, only_parent = True)
-
             check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
             if a_Prefix:
                 check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
+            #print(a_ButtonName, a_Prefix, check_func)
             bd_item_edit.EditBDItemRegisterHandlers(self.m_Bot, \
                 a_Prefix, \
                 a_FSM, \

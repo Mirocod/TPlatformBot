@@ -13,10 +13,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 class FSMRequestToBDAccess(StatesGroup):
     sqlRequest = State()
 
-
 class FSMEditAccessItem(StatesGroup):
     item_field = State()
-
 
 class FSMEditDefaultAccessItem(StatesGroup):
     item_field = State()
@@ -80,7 +78,7 @@ moduleaccess_edit_access_message = f'''
 Введите новую строку доступа:
 '''
 
-edit_moduleaccess_default_access_button_name = "◈ Изменить доступ по умолчанию к модулю "
+edit_moduleaccess_default_access_button_name = "◈ Изменить доступ по умолчанию"
 moduleaccess_edit_default_access_message = f'''
 Текущий доступ по умолчанию к модулю #{mod_name_field}:
 #{mod_default_access_field}
@@ -93,12 +91,17 @@ moduleaccess_success_edit_message = '''✅ Доступ к модулю успе
 
 button_names = {
     mod_simple_message.ButtonNames.START: start_button_name,
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "◇ Изменить доступ к модулю",
-    mod_table_operate.ButtonNames.EDIT_DEFAULT_ACCESS: "◈ Изменить доступ по умолчанию к модулю ",
+    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать доступ",
+    mod_table_operate.ButtonNames.EDIT_ACCESS: edit_moduleaccess_access_button_name,
+    mod_table_operate.ButtonNames.EDIT_DEFAULT_ACCESS: edit_moduleaccess_default_access_button_name,
     }
 
 messages = {
     mod_simple_message.Messages.START: start_message,
+    mod_table_operate.Messages.START_EDIT: '''
+Пожалуйста, выберите действие:
+''',
+    mod_table_operate.Messages.SELECT_TO_EDIT: moduleaccess_select_to_edit_message,
     mod_table_operate.Messages.EDIT_ACCESS: moduleaccess_edit_access_message,
     mod_table_operate.Messages.EDIT_DEFAULT_ACCESS: moduleaccess_edit_default_access_message,
     mod_table_operate.Messages.SUCCESS_EDIT: moduleaccess_success_edit_message,
@@ -127,17 +130,13 @@ class ModuleAccess(mod_table_operate.TableOperateModule):
                 None,
                 self.m_GetAccessFunc
                 )
-    '''
-    def GetInitBDCommands(self):
-        return [
-            f"""CREATE TABLE IF NOT EXISTS {table_name}(
-                {mod_name_field} TEXT,
-                {moduleaccess_field} TEXT,
-                {mod_default_access_field} TEXT,
-                UNIQUE({mod_name_field})
-                );""",
-            ] + super().GetInitBDCommands()
-    '''
+
+    def GetButtonNameAndKeyValueAndAccess(self, a_Item):
+        return \
+                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],\
+                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],\
+                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
+
     def GetName(self):
         return module_name
 
