@@ -71,8 +71,10 @@ class BotMessages:
     def UpdateSignal(self, a_DateTime):
         self.m_LastUpdate = a_DateTime
 
-    def CreateMessage(self, a_MessageName, a_MessageDesc, a_DateTime):
-        cur_msg = BotMessage(self, a_MessageName, a_MessageDesc, self.a_DefaultLanguage, 0, a_DateTime)
+    def CreateMessage(self, a_MessageName, a_MessageDesc, a_DateTime, a_MessagePhotoID = 0, a_MessageLang = None):
+        if not a_MessageLang:
+            a_MessageLang = self.a_DefaultLanguage
+        cur_msg = BotMessage(self, a_MessageName, a_MessageDesc, a_MessageLang, a_MessagePhotoID, a_DateTime)
         msg = self.GetMessages()
         if not msg.get(self.a_DefaultLanguage, None):
             msg[self.a_DefaultLanguage] = {}

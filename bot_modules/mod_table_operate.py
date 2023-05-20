@@ -166,6 +166,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
     async def PostDelete(self, a_CallbackQuery, a_ItemID):
         self.m_Log.Success(f'Задача №{a_ItemID} была удалена пользователем {a_CallbackQuery.from_user.id}.')
         #TODO: удалить вложенные 
+        self.OnChange()
         return simple_message.WorkFuncResult(self.GetMessage(Messages.SUCCESS_DELETE))
 
     def AddBDItemFunc(self, a_ItemData, a_UserID):
@@ -187,6 +188,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
                     commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], def_access + f";{a_UserID}=+"))
 
+        self.OnChange()
         if error:
             self.m_Log.Error(f'Пользоватлель {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
         else:
@@ -332,6 +334,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             if not a_ButtonName:
                 return
 
+            def OnChange():
+                return self.OnChange()
+
             a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode, only_parent = True)
             check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
             if a_Prefix:
@@ -351,6 +356,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 GetButtonNameAndKeyValueAndAccess, \
                 GetAccess, \
                 edit_keyboard_func, \
+                OnChange,\
                 access_mode = a_AccessMode, \
                 field_type = a_FieldType\
                 )
@@ -374,3 +380,5 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.GetFSM(FSMs.EDIT_ACCESS), self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
         RegisterEdit(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), self.GetFSM(FSMs.EDIT_DEFAULT_ACCESS), self.GetMessage(Messages.EDIT_DEFAULT_ACCESS), def_access_field, bd_item.FieldType.text)
 
+    def OnChange(self):
+        pass

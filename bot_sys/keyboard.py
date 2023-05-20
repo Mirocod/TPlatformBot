@@ -30,10 +30,7 @@ def Chunks(a_List, a_ChunkSize):
     return chunk_list
 
 def GetButtonInRowCount(a_AllKeyCount):
-    return min(max(int(math.sqrt(a_AllKeyCount) // 1), 1), 4)
-
-def MakeAiogramKeyboard(a_ButtonList : [[str]]):
-    return types.ReplyKeyboardMarkup(keyboard=a_ButtonList, resize_keyboard = True)
+    return min(max(int(math.sqrt(a_AllKeyCount) // 1), 1), 3)
 
 # TODO перенести KeyboardButton в MakeAiogramKeyboard
 def MakeButtons(a_ButtonList : [ButtonWithAccess], a_UserGroups):
@@ -70,16 +67,6 @@ class InlineButtonWithAccess:
         self.access_string = a_AccessString
         self.access_mode = a_AccessMode
 
-def MakeAiogramInlineKeyboard(a_ButtonList : [InlineButton]): 
-    buttons = []
-    for row in a_ButtonList:
-        r = []
-        for b in row:
-            r += [types.InlineKeyboardButton(text = str(b.label), callback_data = b.callback_data)]
-        buttons += [r]
-    inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_keyboard
-
 def MakeInlineKeyboardButtons(a_ButtonList : [InlineButtonWithAccess], a_UserGroups): 
     buttons = []
     for b in a_ButtonList:
@@ -90,5 +77,5 @@ def MakeInlineKeyboardButtons(a_ButtonList : [InlineButtonWithAccess], a_UserGro
     step = GetButtonInRowCount(len(buttons))
     return Chunks(buttons, step)
 
-def MakeInlineKeyboard(a_ButtonList : [InlineButtonWithAccess], a_UserGroups): 
+def MakeInlineKeyboard(a_ButtonList : [InlineButtonWithAccess], a_UserGroups):
     return MakeAiogramInlineKeyboard(MakeInlineKeyboardButtons(a_ButtonList, a_UserGroups))

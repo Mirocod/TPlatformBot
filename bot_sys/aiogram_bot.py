@@ -9,6 +9,24 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import executor
 
+def MakeAiogramInlineKeyboards(a_ButtonList : [InlineButton]): 
+    buttons = []
+    for row in a_ButtonList:
+        r = []
+        for b in row:
+            r += [types.InlineKeyboardButton(text = str(b.label), callback_data = b.callback_data)]
+        buttons += [r]
+
+    button_list_chunks = keyboard.Chunks(buttons, 20)
+    result = []
+    for c in button_list_chunks:
+        result += [InlineKeyboardMarkup(inline_keyboard=c)]
+
+    return result
+
+def MakeAiogramKeyboard(a_ButtonList : [[str]]):
+    return types.ReplyKeyboardMarkup(keyboard=a_ButtonList, resize_keyboard = True)
+
 class AiogramBot(interfaces.IBot):
     def __init__(self, a_TelegramBotApiToken, a_BDFileName, a_RootIDs, a_Log):
         self.m_TelegramBotApiToken = a_TelegramBotApiToken
@@ -31,27 +49,29 @@ class AiogramBot(interfaces.IBot):
     async def SendMessage(self, a_UserID, a_Message, a_PhotoIDs, a_KeyboardButtons, a_InlineKeyboardButtons, parse_mode = None):
         if not parse_mode:
             parse_mode = types.ParseMode.HTML
-        inline_keyboard = None
+        inline_keyboards = None
         if a_InlineKeyboardButtons:
-            inline_keyboard = keyboard.MakeAiogramInlineKeyboard(a_InlineKeyboardButtons)
-        base_keyboard = None
+            inline_keyboards = keyboard.MakeAiogramInlineKeyboards(a_InlineKeyboardButtons)
+        base_keyboards = None
         if a_KeyboardButtons:
-            base_keyboard = keyboard.MakeAiogramKeyboard(a_KeyboardButtons)
-        if inline_keyboard:
-                base_keyboard = inline_keyboard
+            base_keyboards = [keyboard.MakeAiogramKeyboard(a_KeyboardButtons)]
+        if inline_keyboards:
+                base_keyboards = inline_keyboards
         if a_PhotoIDs and a_PhotoIDs != 0 and a_PhotoIDs != '0':
-            await self.m_TBot.send_photo(
+            for k in base_keyboards:
+                await self.m_TBot.send_photo(
                         a_UserID,
                         a_PhotoIDs,
                         a_Message,
-                        reply_markup = base_keyboard
+                        reply_markup = k
                         )
         else:
             #print('SendMessage', a_UserID, a_Message, a_PhotoIDs, a_InlineKeyboardButtons, a_KeyboardButtons, base_keyboard)
-            await self.m_TBot.send_message(
+            for k in base_keyboards:
+                await self.m_TBot.send_message(
                         a_UserID,
                         a_Message,
-                        reply_markup = base_keyboard,
+                        reply_markup = k,
                         parse_mode = parse_mode
                         )
 

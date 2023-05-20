@@ -6,7 +6,7 @@ log_start_message = 'Бот успешно запущен!'
 import os
 
 from bot_sys import config, log, bot_bd, user_access, aiogram_bot, bot_messages, bd_table
-from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments #, projects, , access, , , , , messages, , languages
+from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments, languages, messages
 
 g_Log = log
 g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bot_bd.GetBDFileName(), config.GetRootIDs(), g_Log)
@@ -23,6 +23,9 @@ mod_tasks_name = 'tasks'
 mod_needs_name = 'needs'
 mod_comments_name = 'comments'
 mod_projects_name = 'projects'
+mod_languages_name = 'languages'
+mod_messages_name = 'messages'
+mod_buttons_name = 'buttons'
 
 start_mod_list = [mod_start_name]
 
@@ -54,24 +57,34 @@ start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_
 mod_comments= comments.ModuleComments(mod_needs_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_comments)
 
-start_mod_name_list = [#, '', , '', , 'languages']
+start_mod_name_list = [mod_start_name, mod_messages_name]#, mod_messages_name, mod_buttons_name
+mod_languages = languages.ModuleLanguages(None, mod_messages_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_languages)
+
+start_mod_name_list = [mod_start_name]#, mod_messages_name, mod_buttons_name
+mod_messages = messages.ModuleMessages(mod_languages_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_messages)
+
+start_mod_name_list = [
         mod_profile.GetName(),
         mod_backup.GetName(),
         mod_groups.GetName(),
         mod_access.GetName(),
         mod_project.GetName(),
+        mod_languages.GetName(),
         ]
 mod_start = start.ModuleStart(start_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_start)
 
-# Первичная инициализация модулей. Все модули должны быть прописаны в списке modules
-modules = g_ModuleAgregator.GetModList() # [start] #tasks, access, profile, projects, groups, backup, needs, comments, messages, languages]
+# Первичная инициализация модулей.
+modules = g_ModuleAgregator.GetModList() 
 
 init_bd_cmds = []
 for m in modules:
     c = m.GetInitBDCommands()
     if not c is None:
         init_bd_cmds += c
+
 # Первичная инициализация базы данных
 for c in init_bd_cmds:
     g_Bot.SQLRequest(c, commit = True)
@@ -79,8 +92,8 @@ for c in init_bd_cmds:
 g_BotMessages.UpdateSignal(g_Log.GetTimeNow())
 g_BotButtons.UpdateSignal(g_Log.GetTimeNow())
 
-#languages.FlushLanguages()
-#messages.FlushMessages()
+mod_languages.FlushLanguages()
+mod_messages.FlushMessages()
 
 for m in modules:
     m.RegisterHandlers()

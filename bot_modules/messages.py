@@ -3,16 +3,12 @@
 
 # Сообщения
 
-from bot_sys import bot_bd, log, keyboard, user_access, user_messages
-from bot_modules import start, access, groups, languages
-from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add, bd_item_select
-
-from aiogram import types
+from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table, bot_messages
+from bot_modules import mod_table_operate, mod_simple_message, access_utils
+from template import bd_item
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import Dispatcher
-import sqlite3
 
 class FSMCreateMessage(StatesGroup):
     name = State()
@@ -47,126 +43,164 @@ access_field = 'messageAccess'
 create_datetime_field = 'messageCreateDateTime'
 parent_id_field = 'languageID'
 
-init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
-    {key_name} INTEGER PRIMARY KEY,
-    {name_field} TEXT,
-    {desc_field} TEXT,
-    {photo_field} TEXT,
-    {access_field} TEXT,
-    {create_datetime_field} TEXT,
-    {parent_id_field} INTEGER,
-    UNIQUE({key_name}),
-    UNIQUE({name_field}, {parent_id_field})
-    )''',
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
-]
+table_name_field = bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR)
+table_parent_id_field = bd_table.TableField(parent_id_field, bd_table.TableFieldDestiny.PARENT_ID, bd_table.TableFieldType.INT)
 
-select_messages_prefix = ''
+table = bd_table.Table(table_name, [
+        bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
+        table_name_field,
+        bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
+        bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
+        table_parent_id_field,
+        ],
+        [
+            [table_name_field, table_parent_id_field],
+        ]
+)
+
+init_access = f'{user_access.user_access_group_all}=-'
+
+fsm = {
+    mod_table_operate.FSMs.CREATE: FSMCreateMessage,
+    mod_table_operate.FSMs.EDIT_NAME: FSMEditMessageNameItem,
+    mod_table_operate.FSMs.EDIT_DESC: FSMEditMessageDescItem,
+    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditMessagePhotoItem,
+    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditMessageAccessItem,
+    }
 
 # ---------------------------------------------------------
-# Сообщения
+# Сообщения и кнопки
 
-messages_button_name = "✉ Сообщения"
-base_message_message = '''
-<b>✎ Сообщения</b>
+button_names = {
+    mod_simple_message.ButtonNames.START: "✉ Сообщения",
+    mod_table_operate.ButtonNames.LIST: "📃 Список сообщений",
+    mod_table_operate.ButtonNames.ADD: "☑ Добавить сообщение",
+    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать сообщение",
+    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у сообщения",
+    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у сообщения",
+    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у сообщения",
+    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к сообщению",
+    mod_table_operate.ButtonNames.DEL: "❌ Удалить сообщение",
+}
 
-'''
+messages = {
+    mod_simple_message.Messages.START: f'''
+<b>{button_names[mod_simple_message.ButtonNames.START]}</b>
 
-list_message_button_name = "📃 Список сообщений"
-select_message_message = '''
+''',
+    mod_table_operate.Messages.SELECT: '''
 Пожалуйста, выберите сообщение:
-'''
-
-error_find_proj_message = '''
-❌ Ошибка, сообщенийа не найдена
-'''
-
-message_open_message = f'''
+''',
+    mod_table_operate.Messages.ERROR_FIND: '''
+❌ Ошибка, сообщение не найден
+''',
+    mod_table_operate.Messages.OPEN: f'''
 <b>Сообщение:  #{name_field}</b>
 
 #{desc_field}
 
 Время создания: #{create_datetime_field}
-'''
-
-# Создание сообщения
-
-add_message_button_name = "☑ Добавить сообщение"
-message_create_name_message = '''
+''',
+    mod_table_operate.Messages.CREATE_NAME: '''
 Создание сообщения. Шаг №1
 
 Введите название сообщения:
-'''
-
-message_create_desc_message = '''
+''',
+    mod_table_operate.Messages.CREATE_DESC: '''
 Создание сообщения. Шаг №2
 
 Введите описание сообщения:
-'''
-
-message_create_photo_message = '''
+''',
+    mod_table_operate.Messages.CREATE_PHOTO: '''
 Создание сообщения. Шаг №3
 
 Загрузите обложку для сообщения (Фото):
-Она будет отображаться в её описании.
-'''
-
-message_success_create_message = '''✅ Сообщение успешно добавлено!'''
-
-# Редактирование сообщения.
-
-edit_message_button_name = "🛠 Редактировать сообщение"
-message_start_edit_message= '''
+Она будет отображаться в его описании.
+''',
+    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Сообщение успешно добавлено!''',
+    mod_table_operate.Messages.START_EDIT: '''
 Пожалуйста, выберите действие:
-'''
-
-message_select_to_edit_message = '''
-Выберите сообщение, которую вы хотите отредактировать.
-'''
-
-edit_message_photo_button_name = "☐ Изменить изображение у сообщения"
-message_edit_photo_message = '''
+''',
+    mod_table_operate.Messages.SELECT_TO_EDIT: '''
+Выберите сообщение, который вы хотите отредактировать.
+''',
+    mod_table_operate.Messages.EDIT_PHOTO: '''
 Загрузите новую обложку для сообщения (Фото):
-Она будет отображаться в её описании.
-'''
-
-edit_message_name_button_name = "≂ Изменить название у сообщения"
-message_edit_name_message = f'''
+Она будет отображаться в его описании.
+''',
+    mod_table_operate.Messages.EDIT_NAME: f'''
 Текущее название сообщения:
 #{name_field}
 
 Введите новое название сообщения:
-'''
-
-edit_message_desc_button_name = "𝌴 Изменить описание у сообщения"
-message_edit_desc_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_DESC: f'''
 Текущее описание сообщения:
 #{desc_field}
 
 Введите новое описание сообщения:
-'''
-
-edit_message_access_button_name = "✋ Изменить доступ к сообщению"
-message_edit_access_message = f'''
-Текущий доступ к сообщению:
+''',
+    mod_table_operate.Messages.EDIT_ACCESS: f'''
+Текущий доступ к сообщениеу:
 #{access_field}
 
 {user_access.user_access_readme}
 
 Введите новую строку доступа:
+''',
+    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Сообщение успешно отредактировано!''',
+    mod_table_operate.Messages.SELECT_TO_DELETE: '''
+Выберите сообщение, который вы хотите удалить.
+''',
+    mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Сообщение успешно удалено!''',
+}
+
+class ModuleMessages(mod_table_operate.TableOperateModule):
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(table, messages, button_names, fsm, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        self.m_LanguageIDs = {}
+
+    def GetName(self):
+        return module_name
+
+    def AddOrIgnoreMessage(self, a_Message):
+        table_name = self.m_Table.GetName()
+        name_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.NAME)
+        photo_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PHOTO)
+        desc_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.DESC)
+        access_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ACCESS)
+        create_datetime_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.CREATE_DATE)
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+
+        lang_id = self.GetModule(self.m_ParentModName).GetLangID(a_Message.m_Language)
+        return self.m_Bot.SQLRequest(f'INSERT OR IGNORE INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+                commit = True, return_error = True, param = (a_Message.m_PhotoID, a_Message.m_MessageName, a_Message.m_MessageDesc, access_utils.GetItemDefaultAccessForModule(self.m_Bot, module_name), lang_id))
+
+    def FlushMessages(self):
+        msg = self.m_BotMessages.GetMessages()
+        for lang, msg_dict in msg.items():
+            for msg_name, message in msg_dict.items():
+                self.AddOrIgnoreMessage(message)
+
+        msgs_bd = bd_item.GetAllItemsTemplate(self.m_Bot, table_name)()
+        if msgs_bd:
+            for m in msgs_bd:
+                name = m[1]
+                desc = m[2]
+                photo_id = m[3]
+                lang_id = m[6]
+                lang_name = self.GetModule(self.m_ParentModName).GetLangName(lang_id)
+                self.m_BotMessages.CreateMessage(name, desc, self.m_Log.GetTimeNow(), a_MessagePhotoID = photo_id, a_MessageLang = lang_name)
+
+        self.m_BotMessages.UpdateSignal(self.m_Log.GetTimeNow())
+
+    def OnChange(self):
+        self.FlushMessages()
+
+
 '''
-
-message_success_edit_message = '''✅ Сообщение успешно отредактировано!'''
-
-# Удаление сообщения
-
-del_message_button_name = "❌ Удалить сообщение"
-message_select_to_delete_message = '''
-Выберите сообщение, которую вы хотите удалить.
-'''
-
-message_success_delete_message = '''✅ Сообщение успешно удалено!'''
-
 # ---------------------------------------------------------
 # Работа с кнопками
 
@@ -399,3 +433,4 @@ def RegisterHandlers(dp : Dispatcher):
     RegisterEdit(edit_message_name_button_name, FSMEditMessageNameItem, message_edit_name_message, name_field, bd_item.FieldType.text)
     RegisterEdit(edit_message_desc_button_name, FSMEditMessageDescItem, message_edit_desc_message, desc_field, bd_item.FieldType.text)
     RegisterEdit(edit_message_access_button_name, FSMEditMessageAccessItem, message_edit_access_message, access_field, bd_item.FieldType.text)
+'''

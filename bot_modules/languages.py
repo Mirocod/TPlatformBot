@@ -3,16 +3,12 @@
 
 # Языки
 
-from bot_sys import bot_bd, log, keyboard, user_access, user_messages
-from bot_modules import start, access, groups, messages
-from template import bd_item_view, simple_message, bd_item_delete, bd_item_edit, bd_item, bd_item_add
-
-from aiogram import types
+from bot_sys import bot_bd, keyboard, user_access, user_messages, bd_table
+from bot_modules import mod_table_operate, mod_simple_message, access_utils
+from template import bd_item
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import Dispatcher
-import sqlite3
 
 class FSMCreateLanguage(StatesGroup):
     name = State()
@@ -25,7 +21,7 @@ class FSMEditLanguagePhotoItem(StatesGroup):
 class FSMEditLanguageNameItem(StatesGroup):
     item_field = State()
 
-class FSMEditLanguageDeskItem(StatesGroup):
+class FSMEditLanguageDescItem(StatesGroup):
     item_field = State()
 
 class FSMEditLanguageAccessItem(StatesGroup):
@@ -42,156 +38,161 @@ photo_field = 'languagePhoto'
 access_field = 'languageAccess'
 create_datetime_field = 'languageCreateDateTime'
 
-init_bd_cmds = [f'''CREATE TABLE IF NOT EXISTS {table_name}(
-    {key_name} INTEGER PRIMARY KEY,
-    {name_field} TEXT,
-    {desc_field} TEXT,
-    {photo_field} TEXT,
-    {access_field} TEXT,
-    {create_datetime_field} TEXT,
-    UNIQUE({key_name}),
-    UNIQUE({name_field})
-    )''',
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_all}=-', '{user_access.user_access_group_all}=-');"
-]
+table_name_field = bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR)
+
+table = bd_table.Table(table_name, [
+        bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
+        table_name_field,
+        bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
+        bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
+        ],
+        [
+            [table_name_field],
+        ]
+)
+
+init_access = f'{user_access.user_access_group_all}=-'
+
+fsm = {
+    mod_table_operate.FSMs.CREATE: FSMCreateLanguage,
+    mod_table_operate.FSMs.EDIT_NAME: FSMEditLanguageNameItem,
+    mod_table_operate.FSMs.EDIT_DESC: FSMEditLanguageDescItem,
+    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditLanguagePhotoItem,
+    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditLanguageAccessItem,
+    }
 
 # ---------------------------------------------------------
-# Сообщения
+# Сообщения и кнопки
 
-languages_button_name = "⚑ Языки"
-base_language_message = f'''
-<b>{languages_button_name}</b>
+button_names = {
+    mod_simple_message.ButtonNames.START: "⚑ Языки",
+    mod_table_operate.ButtonNames.LIST: "📃 Список языков",
+    mod_table_operate.ButtonNames.ADD: "✅ Добавить язык",
+    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать язык",
+    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение в языке",
+    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название в языке",
+    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание в языке",
+    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к языку",
+    mod_table_operate.ButtonNames.DEL: "❌ Удалить язык",
+}
 
-'''
+messages = {
+    mod_simple_message.Messages.START: f'''
+<b>{button_names[mod_simple_message.ButtonNames.START]}</b>
 
-list_language_button_name = "📃 Список языков"
-select_language_message = '''
+''',
+    mod_table_operate.Messages.SELECT: '''
 Пожалуйста, выберите язык:
-'''
-
-error_find_proj_message = '''
+''',
+    mod_table_operate.Messages.ERROR_FIND: '''
 ❌ Ошибка, язык не найден
-'''
-
-language_open_message = f'''
+''',
+    mod_table_operate.Messages.OPEN: f'''
 <b>Язык:  #{name_field}</b>
 
 #{desc_field}
 
 Время создания: #{create_datetime_field}
-'''
-
-# Создание языка
-
-add_language_button_name = "✅ Добавить язык"
-language_create_name_message = '''
+''',
+    mod_table_operate.Messages.CREATE_NAME: '''
 Создание языка. Шаг №1
 
 Введите название языка:
-'''
-
-language_create_desc_message = '''
+''',
+    mod_table_operate.Messages.CREATE_DESC: '''
 Создание языка. Шаг №2
 
 Введите описание языка:
-'''
-
-language_create_photo_message = '''
+''',
+    mod_table_operate.Messages.CREATE_PHOTO: '''
 Создание языка. Шаг №3
 
 Загрузите обложку для языка (Фото):
 Она будет отображаться в его описании.
-'''
-
-language_success_create_message = '''✅ Язык успешно добавлен!'''
-
-# Редактирование языка.
-
-edit_language_button_name = "🛠 Редактировать язык"
-language_start_edit_message= '''
+''',
+    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Язык успешно добавлен!''',
+    mod_table_operate.Messages.START_EDIT: '''
 Пожалуйста, выберите действие:
-'''
-
-language_select_to_edit_message = '''
+''',
+    mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите язык, который вы хотите отредактировать.
-'''
-
-edit_language_photo_button_name = "☐ Изменить изображение в языке"
-language_edit_photo_message = '''
+''',
+    mod_table_operate.Messages.EDIT_PHOTO: '''
 Загрузите новую обложку для языка (Фото):
 Она будет отображаться в его описании.
-'''
-
-edit_language_name_button_name = "≂ Изменить название в языке"
-language_edit_name_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_NAME: f'''
 Текущее название языка:
 #{name_field}
 
 Введите новое название языка:
-'''
-
-edit_language_desc_button_name = "𝌴 Изменить описание в языке"
-language_edit_desc_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_DESC: f'''
 Текущее описание языка:
 #{desc_field}
 
 Введите новое описание языка:
-'''
-
-edit_language_access_button_name = "✋ Изменить доступ к языку"
-language_edit_access_message = f'''
+''',
+    mod_table_operate.Messages.EDIT_ACCESS: f'''
 Текущий доступ к языку:
 #{access_field}
 
 {user_access.user_access_readme}
 
 Введите новую строку доступа:
+''',
+    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Язык успешно отредактирован!''',
+    mod_table_operate.Messages.SELECT_TO_DELETE: '''
+Выберите язык, который вы хотите удалить.
+Все задачи и потребности в этом языке так же будут удалены!
+''',
+    mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Язык успешно удалён!''',
+}
+
+class ModuleLanguages(mod_table_operate.TableOperateModule):
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(table, messages, button_names, fsm, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        self.m_LanguageIDs = {}
+
+    def GetName(self):
+        return module_name
+
+    def GetLangID(self, a_Lang):
+        return self.m_LanguageIDs.get(a_Lang, None)
+
+    def GetLangName(self, a_LangID):
+        for lang_name, lang_id in self.m_LanguageIDs:
+            if a_LangID == lang_id:
+                return lang_name
+        return user_messages.default_language
+
+    def FlushLanguages(self):
+        msg = self.m_BotMessages.GetMessages()
+        for lang, msg_dict in msg.items():
+            self.AddOrIgnoreLang(lang)
+        langs = bd_item.GetAllItemsTemplate(self.m_Bot, table_name)()
+        if langs:
+            for l in langs:
+                self.m_LanguageIDs[l[1]] = str(l[0])
+        print('FlushLanguages', self.m_LanguageIDs)
+
+    def AddOrIgnoreLang(self, a_Lang : str):
+        table_name = self.m_Table.GetName()
+        name_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.NAME)
+        photo_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PHOTO)
+        desc_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.DESC)
+        access_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ACCESS)
+        create_datetime_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.CREATE_DATE)
+
+        res, error = self.m_Bot.SQLRequest(f'INSERT OR IGNORE INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
+                commit = True, return_error = True, param = (0, a_Lang, '', access_utils.GetItemDefaultAccessForModule(self.m_Bot, module_name)))
+
+    def OnChange(self):
+        self.FlushLanguages()
+
 '''
-
-language_success_edit_message = '''✅ Язык успешно отредактирован!'''
-
-# Удаление языка
-
-del_language_button_name = "❌ Удалить язык"
-language_select_to_delete_message = '''
-Выберите язык, которое вы хотите удалить.
-'''
-
-language_success_delete_message = '''✅ Язык успешно удален!'''
-
-# ---------------------------------------------------------
-# Работа с кнопками
-
-def GetEditLanguageKeyboardButtons(a_Language, a_UserGroups):
-    cur_buttons = GetModuleButtons() + [
-        keyboard.ButtonWithAccess(edit_language_photo_button_name, user_access.AccessMode.EDIT, GetAccess()),
-        keyboard.ButtonWithAccess(edit_language_name_button_name, user_access.AccessMode.EDIT, GetAccess()),
-        keyboard.ButtonWithAccess(edit_language_desc_button_name, user_access.AccessMode.EDIT, GetAccess()),
-        keyboard.ButtonWithAccess(edit_language_access_button_name, user_access.AccessMode.ACCEES_EDIT, GetAccess()),
-        ]
-    mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
-
-def GetStartLanguageKeyboardButtons(a_Language, a_UserGroups):
-    cur_buttons = [
-        keyboard.ButtonWithAccess(list_language_button_name, user_access.AccessMode.VIEW, GetAccess()),
-        keyboard.ButtonWithAccess(add_language_button_name, user_access.AccessMode.ADD, GetAccess()),
-        keyboard.ButtonWithAccess(del_language_button_name, user_access.AccessMode.DELETE, GetAccess()),
-        keyboard.ButtonWithAccess(edit_language_button_name, user_access.AccessMode.EDIT, GetAccess())
-        ]
-    mods = [start, messages]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
-
-def GetViewItemInlineKeyboardTemplate(a_ItemID):
-    def GetViewItemInlineKeyboard(a_Message, a_UserGroups):
-        cur_buttons = [
-                keyboard.InlineButtonWithAccess(messages.list_message_button_name, messages.select_messages_prefix, a_ItemID, GetAccess(), user_access.AccessMode.VIEW),
-                ]
-        return keyboard.MakeInlineKeyboard(cur_buttons, a_UserGroups)
-    return GetViewItemInlineKeyboard
-# ---------------------------------------------------------
-# Обработка языков
-
 # стартовое язык
 async def LanguagesOpen(a_Language : types.message, state = None):
     return simple_message.WorkFuncResult(base_language_message)
@@ -257,28 +258,28 @@ def AddOrIgnoreLang(a_Lang : str):
     res, error = bot_bd.SQLRequestToBD(f'INSERT OR IGNORE INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
             commit = True, return_error = True, param = (0, a_Lang, '', access.GetItemDefaultAccessForModule(module_name)))
 
-g_languages = {}
+m_LanguageIDs = {}
 def GetLangID(a_Lang):
-    global g_languages
-    return g_languages.get(a_Lang, None)
+    global m_LanguageIDs
+    return m_LanguageIDs.get(a_Lang, None)
 
 def GetLangName(a_LangID):
-    global g_languages
-    for lang_name, lang_id in g_languages:
+    global m_LanguageIDs
+    for lang_name, lang_id in m_LanguageIDs:
         if a_LangID == lang_id:
             return lang_name
     return user_messages.default_language
 
 def FlushLanguages():
-    global g_languages
+    global m_LanguageIDs
     msg = user_messages.GetMessages()
     for lang, msg_dict in msg.items():
         AddOrIgnoreLang(lang)
     langs = bd_item.GetAllItemsTemplate(table_name)()
     if langs:
         for l in langs:
-            g_languages[l[1]] = str(l[0])
-    print('FlushLanguages', g_languages)
+            m_LanguageIDs[l[1]] = str(l[0])
+    print('FlushLanguages', m_LanguageIDs)
 
 # Инициализация БД
 def GetInitBDCommands():
@@ -375,3 +376,4 @@ def RegisterHandlers(dp : Dispatcher):
     RegisterEdit(edit_language_name_button_name, FSMEditLanguageNameItem, language_edit_name_message, name_field, bd_item.FieldType.text)
     RegisterEdit(edit_language_desc_button_name, FSMEditLanguageDeskItem, language_edit_desc_message, desc_field, bd_item.FieldType.text)
     RegisterEdit(edit_language_access_button_name, FSMEditLanguageAccessItem, language_edit_access_message, access_field, bd_item.FieldType.text)
+'''

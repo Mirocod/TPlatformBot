@@ -28,9 +28,10 @@ class TableField:
         self.m_Type = a_Type
 
 class Table:
-    def __init__(self, a_TableName, a_Fields : [TableField]):
+    def __init__(self, a_TableName, a_Fields : [TableField], a_UniqueFields = None):
         self.m_TableName = a_TableName
         self.m_Fields = a_Fields
+        self.m_UniqueFields = a_UniqueFields
 
     def GetName(self):
         return self.m_TableName
@@ -62,13 +63,19 @@ class Table:
 
     def GetInitTableRequest(self):
         request = f'CREATE TABLE IF NOT EXISTS {self.GetName()}('
-        fields = []
+        items = []
         for f in self.m_Fields:
-            key_str = ''
+            item = f.m_Name + ' ' + str(f.m_Type.value)
             if f.m_Destiny == TableFieldDestiny.KEY:
-                key_str = 'PRIMARY KEY'
-            fields += [' '.join([f.m_Name, str(f.m_Type.value), key_str])]
-        return request + ', '.join(fields) + ');'
+                item += ' PRIMARY KEY'
+            items += [item]
+        if self.m_UniqueFields:
+            for u in self.m_UniqueFields:
+                fields = []
+                for f in u:
+                    fields += [f.m_Name]
+                items += ['UNIQUE(' + ', '.join(fields) +')']
+        return request + ', '.join(items) + ');'
 
     def ReplaceAllFieldTags(self, a_String, a_BDItem):
         result = a_String
@@ -78,11 +85,16 @@ class Table:
         return result
 
 def Test():
+    f1 = TableField('f1', TableFieldDestiny.KEY, TableFieldType.INT)
+    f2 = TableField('f2', TableFieldDestiny.NAME, TableFieldType.STR)
+    f3 = TableField('f3', TableFieldDestiny.DESC, TableFieldType.STR)
     table = Table('tname', [
-            TableField('f1', TableFieldDestiny.KEY, TableFieldType.INT),
-            TableField('f2', TableFieldDestiny.NAME, TableFieldType.STR),
-            TableField('f3', TableFieldDestiny.DESC, TableFieldType.STR),
-            ])
+            f1,
+            f2,
+            f3
+            ],
+            [[f1], [f2, f3]]
+            )
     assert table.GetName() == 'tname'
     assert table.GetFieldByDestiny(TableFieldDestiny.KEY).m_Name == 'f1'
     assert table.GetFieldNameByDestiny(TableFieldDestiny.KEY) == 'f1'
@@ -106,7 +118,8 @@ def Test():
 
     assert table.GetFieldsCount() == 3
 
-    assert table.GetInitTableRequest() == 'CREATE TABLE IF NOT EXISTS tname(f1 INTEGER PRIMARY KEY, f2 TEXT , f3 TEXT );'
+    print(table.GetInitTableRequest())
+    assert table.GetInitTableRequest() == 'CREATE TABLE IF NOT EXISTS tname(f1 INTEGER PRIMARY KEY, f2 TEXT, f3 TEXT, UNIQUE(f1), UNIQUE(f2, f3));'
 
     item = [10, 'i1', 'i2']
     assert table.ReplaceAllFieldTags('#f1 #f2 #f3', item) == '10 i1 i2'
