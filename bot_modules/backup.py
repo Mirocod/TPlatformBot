@@ -3,32 +3,21 @@
 
 # Бэкапы пользователя
 
-from bot_sys import bot_bd, log, config, keyboard, user_access
-from bot_modules import start, access, groups
-from template import file_message, simple_message
-
-from aiogram import Bot, types
-
-import sqlite3
-
-from aiogram.dispatcher import Dispatcher
-
-bot = Bot(token=config.GetTelegramBotApiToken(), parse_mode=types.ParseMode.HTML)
+from bot_sys import user_access, keyboard
+from bot_modules import mod_simple_message, profile
+from template import bd_item, file_message
 
 # ---------------------------------------------------------
 # БД
 module_name = 'backup'
 
-init_bd_cmds = [
-f"INSERT OR IGNORE INTO module_access (modName, modAccess, itemDefaultAccess) VALUES ('{module_name}', '{user_access.user_access_group_new}=-', '{user_access.user_access_group_new}=-');"
-]
-
 # ---------------------------------------------------------
 # Сообщения
-
-backup_message = '''
+start_message = '''
 <b>Здесь вы можете выполнить специальные операции по сервисному обслуживанию</b>
 '''
+
+start_button_name = "📦 Резервные копии и логи"
 
 backup_bd_message = '''
 <b>📀 Резервная копия базы данных</b>
@@ -44,44 +33,69 @@ error_backup_message = '''
 <b>❌ Ошибка резервного копирования</b>
 '''
 
-backup_button_name = "📦 Резервные копии и логи"
 backup_bd_button_name = "📀 Резервные копия базы"
 backup_log_button_name = "📃 Логи"
 
-# ---------------------------------------------------------
-# Работа с кнопками
+button_names = {
+    mod_simple_message.ButtonNames.START: start_button_name,
+}
 
-def GetBackupKeyboardButtons(a_Message, a_UserGroups):
-    cur_buttons = [
-        keyboard.ButtonWithAccess(backup_bd_button_name, user_access.AccessMode.EDIT, GetAccess()), 
-        keyboard.ButtonWithAccess(backup_log_button_name, user_access.AccessMode.EDIT, GetAccess())
-    ]
-    mods = [start]
-    return keyboard.MakeKeyboard(keyboard.GetButtons(mods) + cur_buttons, a_UserGroups)
+messages = {
+    mod_simple_message.Messages.START: start_message,
+}
 
-# ---------------------------------------------------------
-# Обработка сообщений
+init_access = f'{user_access.user_access_group_new}=-'
 
-# ---------------------------------------------------------
-# Работа с базой данных пользователей
+class ModuleBackup(mod_simple_message.SimpleMessageModule):
+    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        self.m_BackupBDButtonName = self.CreateButton('backup bd', backup_bd_button_name)
+        self.m_BackupBDMessage = self.CreateMessage('backup bd', backup_bd_message)
 
-# ---------------------------------------------------------
-# API
+        self.m_BackupLogButtonName = self.CreateButton('backup log', backup_log_button_name)
+        self.m_BackupLogMessage = self.CreateMessage('backup log', backup_log_message)
 
-# Инициализация БД
-def GetInitBDCommands():
-    return init_bd_cmds
+        self.m_BackupErrorMessage = self.CreateMessage('backup error', error_backup_message)
 
-def GetAccess():
-    return access.GetAccessForModule(module_name)
+        self.m_BackupBDMessageHandler = file_message.BackupFileTemplate(
+                self.m_Bot,
+                self.m_Bot.m_BDFileName,
+                self.m_BackupBDMessage,
+                self.m_GetAccessFunc,
+                self.m_GetStartKeyboardButtonsFunc,
+                None,
+                self.m_BackupErrorMessage,
+                access_mode = user_access.AccessMode.EDIT
+                )
+        self.m_BackupLogMessageHandler = file_message.BackupFileTemplate(
+                self.m_Bot,
+                self.m_Bot.GetLog().GetFileName(),
+                self.m_BackupLogMessage,
+                self.m_GetAccessFunc,
+                self.m_GetStartKeyboardButtonsFunc,
+                None,
+                self.m_BackupErrorMessage,
+                access_mode = user_access.AccessMode.EDIT
+                )
 
-# Доступные кнопки
-def GetModuleButtons():
-    return [keyboard.ButtonWithAccess(backup_button_name, user_access.AccessMode.VIEW, GetAccess())]
+    def GetName(self):
+        return module_name
 
-# Обработка кнопок
-def RegisterHandlers(dp : Dispatcher):
-    dp.register_message_handler(simple_message.InfoMessageTemplate(backup_message, GetBackupKeyboardButtons, GetAccess), text = backup_button_name)
+    def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
+        mod_buttons = super().GetStartKeyboardButtons(a_Message, a_UserGroups)
+        cur_buttons = [
+                keyboard.ButtonWithAccess(self.m_BackupBDButtonName, user_access.AccessMode.EDIT, self.GetAccess()), 
+                keyboard.ButtonWithAccess(self.m_BackupLogButtonName , user_access.AccessMode.EDIT, self.GetAccess())
+                ]
+        return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
-    dp.register_message_handler(file_message.BackupFileTemplate(bot_bd.GetBDFileName(), backup_bd_message, GetAccess, GetBackupKeyboardButtons, error_backup_message), text = backup_bd_button_name)
-    dp.register_message_handler(file_message.BackupFileTemplate(log.g_log_file_name, backup_log_message, GetAccess, GetBackupKeyboardButtons, error_backup_message), text = backup_log_button_name)
+    def RegisterHandlers(self):
+        super().RegisterHandlers()
+        self.m_Bot.RegisterMessageHandler(
+                self.m_BackupBDMessageHandler, 
+                bd_item.GetCheckForTextFunc(self.m_BackupBDButtonName)
+                )
+        self.m_Bot.RegisterMessageHandler(
+                self.m_BackupLogMessageHandler, 
+                bd_item.GetCheckForTextFunc(self.m_BackupLogButtonName)
+                )

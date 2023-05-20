@@ -10,48 +10,52 @@
 # Error      - Ошибка.
 # Success - Успех.
 
-# Файл лога
-g_log_file_name = 'log.txt'
-
 from bot_sys import config
 import colorama
 import datetime
 colorama.init()
 
-def GetTimeNow():
-    return datetime.datetime.now()
+class Log:
+    def __init__(self, a_FileName):
+        self.m_FileName = a_FileName
 
-def GetTime():
-    now = GetTimeNow()
-    time = now.strftime(f"[%d.%m.%Y, %H:%M]")
-    return time
+    def GetFileName(self):
+        return self.m_FileName
 
-def Info(a_LogMessage):
-    time = GetTime()
-    WriteToFile(f'{time} | {a_LogMessage}')
-    print(f"{time} {colorama.Back.BLUE}{colorama.Style.BRIGHT} ИНФО {colorama.Style.RESET_ALL} | {a_LogMessage}")
+    def GetTimeNow(self):
+        return datetime.datetime.now()
 
-def Warn(a_LogMessage):
-    time = GetTime()
-    WriteToFile(f'{time} | {a_LogMessage}')
-    print(f"{time} {colorama.Back.YELLOW}{colorama.Style.BRIGHT} ВНИМАНИЕ {colorama.Style.RESET_ALL} | {a_LogMessage}")
+    def GetTime(self):
+        now = self.GetTimeNow()
+        time = now.strftime(f"[%d.%m.%Y, %H:%M]")
+        return time
 
-def Error(a_LogMessage):
-    time = GetTime()
-    WriteToFile(f'{time} | {a_LogMessage}')
-    print(f"{time} {colorama.Back.RED}{colorama.Style.BRIGHT} ОШИБКА {colorama.Style.RESET_ALL} | {a_LogMessage}")
+    def Info(self, a_LogMessage):
+        time = self.GetTime()
+        self.WriteToFile(f'{time} | {a_LogMessage}')
+        print(f"{time} {colorama.Back.BLUE}{colorama.Style.BRIGHT} ИНФО {colorama.Style.RESET_ALL} | {a_LogMessage}")
 
-def Success(a_LogMessage):
-    time = GetTime()
-    WriteToFile(f'{time} | {a_LogMessage}')
-    print(f"{time} {colorama.Back.GREEN}{colorama.Style.BRIGHT} УСПЕХ {colorama.Style.RESET_ALL} | {a_LogMessage}")
+    def Warn(self, a_LogMessage):
+        time = self.GetTime()
+        self.WriteToFile(f'{time} | {a_LogMessage}')
+        print(f"{time} {colorama.Back.YELLOW}{colorama.Style.BRIGHT} ВНИМАНИЕ {colorama.Style.RESET_ALL} | {a_LogMessage}")
+    
+    def Error(self, a_LogMessage):
+        time = self.GetTime()
+        self.WriteToFile(f'{time} | {a_LogMessage}')
+        print(f"{time} {colorama.Back.RED}{colorama.Style.BRIGHT} ОШИБКА {colorama.Style.RESET_ALL} | {a_LogMessage}")
 
-def WriteToFile(a_LogMessage):
-    if config.g_log_to_file != True:
-        return
+    def Success(self, a_LogMessage):
+        time = self.GetTime()
+        self.WriteToFile(f'{time} | {a_LogMessage}')
+        print(f"{time} {colorama.Back.GREEN}{colorama.Style.BRIGHT} УСПЕХ {colorama.Style.RESET_ALL} | {a_LogMessage}")
 
-    f = open(g_log_file_name, 'a+')
-    f.write(a_LogMessage)
-    f.write('\n')
-    f.close()
+    def WriteToFile(self, a_LogMessage):
+        if not self.m_FileName:
+            return
+    
+        f = open(self.m_FileName, 'a+')
+        f.write(a_LogMessage)
+        f.write('\n')
+        f.close()
 
