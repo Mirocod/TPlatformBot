@@ -10,11 +10,11 @@
 # Error      - Ошибка.
 # Success - Успех.
 
-from bot_sys import config
 import colorama
 import datetime
 colorama.init()
 
+# TODO: Сообщения в файл не различются по Info Warn Error Success . Нужно добавить чтобы они различались
 class Log:
     def __init__(self, a_FileName):
         self.m_FileName = a_FileName
