@@ -4,7 +4,7 @@
 # Стартовое меню
 
 from bot_sys import user_access
-from bot_modules import mod_simple_message, profile
+from bot_modules import mod_simple_message, users
 from template import bd_item
 
 module_name = 'start'
@@ -37,7 +37,7 @@ class ModuleStart(mod_simple_message.SimpleMessageModule):
         last_name = str(a_Message.from_user.last_name)
         is_bot = str(a_Message.from_user.is_bot)
         language_code = str(a_Message.from_user.language_code)
-        profile.AddUser(self.m_Bot, user_id, user_name, first_name, last_name, is_bot, language_code)
+        users.AddUser(self.m_Bot, user_id, user_name, first_name, last_name, is_bot, language_code)
         self.m_Log.Info(f'Пользователь {user_id} {user_name} авторизовался в боте. Полные данные {a_Message.from_user}.')
         return await super().StartMessageHandler(a_Message, state)
 

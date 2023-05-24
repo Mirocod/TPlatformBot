@@ -4,7 +4,7 @@
 import os
 
 from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_access
-from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments, languages, messages, buttons
+from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments, languages, messages, buttons, users
 
 log_start_message = 'Бот успешно запущен!'
 
@@ -30,59 +30,62 @@ mod_projects_name = projects.module_name
 mod_languages_name = languages.module_name
 mod_messages_name = messages.module_name
 mod_buttons_name = buttons.module_name
+mod_users_name = users.module_name
 
 start_mod_list = [mod_start_name]
 mod_access = access.ModuleAccess(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_access)
 
-start_mod_name_list = [mod_start_name]
-mod_groups = users_groups_agregator.ModuleUsersGroupsAgregator(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
-g_ModuleAgregator.AddModule(mod_groups)
+mod_users = users.ModuleUsers(None, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_users)
 
-start_mod_list = [mod_start_name]
+child_mod_name_list = [mod_start_name, mod_users_name]
+mod_users_groups_agregator = users_groups_agregator.ModuleUsersGroupsAgregator(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_users_groups_agregator)
+
 mod_profile = profile.ModuleProfile(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_profile)
 
 mod_backup = backup.ModuleBackup(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_backup)
 
-start_mod_name_list = [mod_start_name, mod_tasks_name, mod_needs_name, mod_comments_name]
-mod_project = projects.ModuleProjects(None, mod_tasks_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name, mod_tasks_name, mod_needs_name, mod_comments_name]
+mod_project = projects.ModuleProjects(None, mod_tasks_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_project)
 
-start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_needs_name, mod_comments_name]
-mod_tasks = tasks.ModuleTasks(mod_projects_name, mod_needs_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name]#, mod_projects_name, mod_needs_name, mod_comments_name]
+mod_tasks = tasks.ModuleTasks(mod_projects_name, mod_needs_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_tasks)
 
-start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_comments_name]
-mod_needs= needs.ModuleNeeds(mod_tasks_name, mod_comments_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_comments_name]
+mod_needs= needs.ModuleNeeds(mod_tasks_name, mod_comments_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_needs)
 
-start_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_needs_name]
-mod_comments= comments.ModuleComments(mod_needs_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_needs_name]
+mod_comments= comments.ModuleComments(mod_needs_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_comments)
 
-start_mod_name_list = [mod_start_name, mod_messages_name, mod_buttons_name]
-mod_languages = languages.ModuleLanguages(None, mod_messages_name, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name, mod_messages_name, mod_buttons_name]
+mod_languages = languages.ModuleLanguages(None, mod_messages_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_languages)
 
-start_mod_name_list = [mod_start_name]
-mod_messages = messages.ModuleMessages(mod_languages_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name]
+mod_messages = messages.ModuleMessages(mod_languages_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_messages)
 
-start_mod_name_list = [mod_start_name]
-mod_buttons = buttons.ModuleButtons(mod_languages_name, None, start_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+child_mod_name_list = [mod_start_name]
+mod_buttons = buttons.ModuleButtons(mod_languages_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_buttons)
 
-start_mod_name_list = [
+child_mod_name_list = [
         mod_profile.GetName(),
         mod_backup.GetName(),
-        mod_groups.GetName(),
+        mod_users_groups_agregator.GetName(),
         mod_access.GetName(),
         mod_project.GetName(),
         mod_languages.GetName(),
         ]
-mod_start = start.ModuleStart(start_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_start = start.ModuleStart(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_start)
 
 # Первичная инициализация модулей.

@@ -51,7 +51,7 @@ sql_request_button_name = "⛃ Запрос к БД для редактиров�
 help_button_name = "📄 Информация по группам"
 
 button_names = {
-    mod_simple_message.ButtonNames.START: "‍️️▦ Группы пользователей",
+    mod_simple_message.ButtonNames.START: "‍️️▦ Группы и пользователи",
 }
 
 messages = {
