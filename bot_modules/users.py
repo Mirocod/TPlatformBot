@@ -1,11 +1,11 @@
 # -*- coding: utf8 -*-
 # Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
-# Проекты
+# Пользователи
 
 from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message
-from bot_modules import users_groups_agregator, access_utils, groups_utils
+from bot_modules import access_utils, groups_utils, groups, user_in_groups
 
 # ---------------------------------------------------------
 # БД
@@ -34,7 +34,7 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
         ])
 
-init_access = f'{user_access.user_access_group_new}=-'
+init_access = f'{user_access.user_access_group_new}=v'
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
@@ -71,8 +71,6 @@ messages = {
 <b>Имя2:</b> #{name2_field}
 <b>Код языка:</b> #{language_code_field}
 <b>Дата добавления:</b> #{create_datetime_field}
-
-Время создания: #{create_datetime_field}
 ''',
     mod_table_operate.Messages.CREATE_NAME: '''
 Создание пользователя. Шаг №1
@@ -146,10 +144,10 @@ def AddUser(a_Bot, a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, 
     user_groups = groups_utils.GetUserGroupData(a_Bot, a_UserID)
     # Если пользователь не состоит ни в одной группе, то добавляем его в группу user_access.user_access_group_new
     if len(user_groups.group_names_list) == 0:
-        new_group_id = a_Bot.SQLRequest(f'SELECT {users_groups_agregator.key_table_groups_name} FROM {users_groups_agregator.table_groups_name} WHERE {users_groups_agregator.name_table_groups_field} = ?', 
+        new_group_id = a_Bot.SQLRequest(f'SELECT {groups.key_name} FROM {groups.table_name} WHERE {groups.name_field} = ?', 
                 param = [user_access.user_access_group_new])
         if new_group_id and new_group_id[0]:
-            a_Bot.SQLRequest(f"INSERT OR IGNORE INTO {users_groups_agregator.table_user_in_groups_name} ({users_groups_agregator.user_id_field}, {users_groups_agregator.key_table_groups_name}, {users_groups_agregator.access_field}, {users_groups_agregator.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
+            a_Bot.SQLRequest(f"INSERT OR IGNORE INTO {user_in_groups.table_name} ({user_in_groups.name_field}, {user_in_groups.parent_id_field}, {user_in_groups.access_field}, {user_in_groups.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
                     commit=True, param = (a_UserID, new_group_id[0][0], access_utils.GetItemDefaultAccessForModule(a_Bot, module_name)))
 
 def GetUserInfo(a_Bot, a_UserID):

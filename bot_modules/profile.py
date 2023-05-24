@@ -4,7 +4,7 @@
 # Профиль пользователя
 
 from bot_sys import user_access, bot_bd, bd_table
-from bot_modules import mod_simple_message, access, access_utils, groups_utils, users_groups_agregator, users
+from bot_modules import mod_simple_message, access, access_utils, groups_utils, users
 from template import bd_item, simple_message
 
 # ---------------------------------------------------------

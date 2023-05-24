@@ -4,7 +4,7 @@
 # Группы пользователей
 
 from bot_sys import keyboard, user_access, bot_bd
-from bot_modules import mod_simple_message
+from bot_modules import mod_simple_message, users, groups, user_in_groups
 from template import simple_message, sql_request, bd_item
 
 from aiogram.dispatcher import FSMContext
@@ -17,28 +17,19 @@ class FSMRequestToBD(StatesGroup):
 # БД
 module_name = 'users_groups_agregator'
 
-table_groups_name = 'user_groups'
-table_user_in_groups_name = 'user_in_groups'
-
-key_table_groups_name = 'group_id'
-name_table_groups_field = 'groupName'
-user_id_field = 'user_id'
-access_field = 'access'
-create_datetime_field = 'createDateTime'
-
 # ---------------------------------------------------------
 # Сообщения
 
-request_start_message = '''
+request_start_message = f'''
 **Задайте запрос к БД**
 
 Можете воспользоваться следующими шаблонами:
-1. `SELECT * FROM users` - Все пользователи
-2. `SELECT group_id, groupName FROM user_groups` - Все группы пользоватлей
-3. `INSERT INTO user_groups(groupName) VALUES('GROUPNAME')` - добавление группы с именем GROUPNAME
-4. `SELECT group_id FROM user_in_groups WHERE user_id = USERID`- Все ID групп в которых состоит пользователь с USERID
-5. `SELECT groupName FROM user_groups WHERE group_id=(SELECT groupid FROM user_in_groups WHERE user_id = USERID)` - Все имена групп пользователя с USERID
-6. `INSERT INTO user_in_groups(user_id, group_id) VALUES(USERID, GROUPID)` - добавление пользователя USERID в группу с GROUPID
+1. `SELECT * FROM {users.table_name}` - Все пользователи
+2. `SELECT {groups.key_name}, {groups.name_field} FROM {groups.table_name}` - Все группы пользоватлей
+3. `INSERT INTO {groups.table_name}({groups.name_field}) VALUES('GROUPNAME')` - добавление группы с именем GROUPNAME
+4. `SELECT {user_in_groups.parent_id_field} FROM {user_in_groups.table_name} WHERE {user_in_groups.name_field} = USERID`- Все ID групп в которых состоит пользователь с USERID
+5. `SELECT {groups.name_field} FROM {groups.table_name} WHERE {groups.name_field}=(SELECT groupid FROM {user_in_groups.table_name} WHERE {user_in_groups.name_field} = USERID)` - Все имена групп пользователя с USERID
+6. `INSERT INTO {user_in_groups.table_name}({user_in_groups.name_field}, {user_in_groups.parent_id_field}) VALUES(USERID, GROUPID)` - добавление пользователя USERID в группу с GROUPID
 '''
 
 help_message = '''
@@ -80,26 +71,6 @@ class ModuleUsersGroupsAgregator(mod_simple_message.SimpleMessageModule):
                 None,
                 self.m_GetAccessFunc
                 )
-
-    def GetInitBDCommands(self):
-        return super(). GetInitBDCommands() + [
-            f"""CREATE TABLE IF NOT EXISTS {table_groups_name}(
-                {key_table_groups_name} INTEGER PRIMARY KEY NOT NULL,
-                {name_table_groups_field} TEXT,
-                {access_field} TEXT,
-                {create_datetime_field} TEXT,
-                UNIQUE({key_table_groups_name}),
-                UNIQUE({name_table_groups_field})
-            );""",
-            f"""CREATE TABLE IF NOT EXISTS {table_user_in_groups_name}(
-                {user_id_field} INTEGER,
-                {key_table_groups_name} INTEGER,
-                {access_field} TEXT,
-                {create_datetime_field} TEXT,
-                UNIQUE({user_id_field}, {key_table_groups_name})
-            );""",
-            f"INSERT OR IGNORE INTO {table_groups_name} ({name_table_groups_field}, {access_field}, {create_datetime_field}) VALUES ('{user_access.user_access_group_new}', '{user_access.user_access_group_new}=-', {bot_bd.GetBDDateTimeNow()});"
-            ]
 
     def GetName(self):
         return module_name

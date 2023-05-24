@@ -123,9 +123,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         return self.m_FSMs.get(a_FSMName, None)
 
     def GetInitBDCommands(self):
-        return super(). GetInitBDCommands() + [
+        return  [
             self.m_Table.GetInitTableRequest(),
-            ]
+            ] + super().GetInitBDCommands()
 
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
         mod_buttons = super().GetStartKeyboardButtons(a_Message, a_UserGroups)
@@ -166,10 +166,16 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         return keyboard.MakeInlineKeyboardButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def GetButtonNameAndKeyValueAndAccess(self, a_Item):
+        key_name_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)
+        name_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.NAME)
+        access_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)
+        assert key_name_id != None
+        assert name_field_id != None
+        assert access_field_id != None
         return \
-                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.NAME)],\
-                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)],\
-                a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
+                a_Item[name_field_id],\
+                a_Item[key_name_id],\
+                a_Item[access_field_id]
 
     def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None):
         async def ShowMessage(a_CallbackQuery, a_Item):

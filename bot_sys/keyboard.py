@@ -40,6 +40,7 @@ def MakeButtons(a_Bot, a_ButtonList : [ButtonWithAccess], a_UserGroups):
         if not b.label:
             continue
         label = str(b.label)
+        #print('MakeButtons', a_Bot.GetRootIDs(), b.access_string, a_UserGroups.user_id, a_UserGroups.group_names_list, b.access_mode)
         if user_access.CheckAccess(a_Bot.GetRootIDs(), b.access_string, a_UserGroups, b.access_mode):
             buttons += [types.KeyboardButton(label)]
     step = GetButtonInRowCount(len(buttons))

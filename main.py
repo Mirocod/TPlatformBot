@@ -4,7 +4,8 @@
 import os
 
 from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_access
-from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments, languages, messages, buttons, users
+from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments
+from bot_modules import languages, messages, buttons, users, groups, user_in_groups
 
 log_start_message = 'Бот успешно запущен!'
 
@@ -31,6 +32,8 @@ mod_languages_name = languages.module_name
 mod_messages_name = messages.module_name
 mod_buttons_name = buttons.module_name
 mod_users_name = users.module_name
+mod_groups_name = groups.module_name
+mod_user_in_groups_name = user_in_groups.module_name
 
 start_mod_list = [mod_start_name]
 mod_access = access.ModuleAccess(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
@@ -39,7 +42,14 @@ g_ModuleAgregator.AddModule(mod_access)
 mod_users = users.ModuleUsers(None, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_users)
 
-child_mod_name_list = [mod_start_name, mod_users_name]
+child_mod_name_list = [mod_start_name, mod_users_name, mod_user_in_groups_name]
+mod_groups = groups.ModuleGroups(None, mod_user_in_groups_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_groups)
+
+mod_user_in_groups = user_in_groups.ModuleUserInGroups(mod_groups_name, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_user_in_groups)
+
+child_mod_name_list = [mod_start_name, mod_users_name, mod_groups_name, mod_user_in_groups_name]
 mod_users_groups_agregator = users_groups_agregator.ModuleUsersGroupsAgregator(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_users_groups_agregator)
 

@@ -3,7 +3,7 @@
 
 # Простые информационные сообщения
 
-from bot_sys import user_access
+from bot_sys import user_access, bot_messages
 from bot_modules import access_utils, groups_utils
 from aiogram import types
 
