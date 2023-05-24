@@ -13,11 +13,6 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 class FSMRequestToBDAccess(StatesGroup):
     sqlRequest = State()
 
-class FSMEditAccessItem(StatesGroup):
-    item_field = State()
-
-class FSMEditDefaultAccessItem(StatesGroup):
-    item_field = State()
 # ---------------------------------------------------------
 # БД
 module_name = 'access'
@@ -107,16 +102,11 @@ messages = {
     mod_table_operate.Messages.SUCCESS_EDIT: moduleaccess_success_edit_message,
 }
 
-fsm = {
-    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditAccessItem,
-    mod_table_operate.FSMs.EDIT_DEFAULT_ACCESS: FSMEditDefaultAccessItem,
-    }
-
 init_access = f'{user_access.user_access_group_new}=-'
 
 class ModuleAccess(mod_table_operate.TableOperateModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, fsm, None, None, init_access, a_ChildModuleNameList, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(table, messages, button_names, None, None, init_access, a_ChildModuleNameList, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
         self.m_RequestStartMessage = self.CreateMessage('equest start', request_start_message)
 

@@ -4,7 +4,7 @@
 # Профиль пользователя
 
 from bot_sys import user_access, bot_bd, bd_table
-from bot_modules import mod_simple_message, groups, access, access_utils, groups_utils
+from bot_modules import mod_simple_message, access, access_utils, groups_utils, users_groups_agregator
 from template import bd_item, simple_message
 
 # ---------------------------------------------------------
@@ -85,10 +85,10 @@ def AddUser(a_Bot, a_UserID, a_UserName, a_UserName1, a_UserName2, a_UserIsBot, 
     user_groups = groups_utils.GetUserGroupData(a_Bot, a_UserID)
     # Если пользователь не состоит ни в одной группе, то добавляем его в группу user_access.user_access_group_new
     if len(user_groups.group_names_list) == 0:
-        new_group_id = a_Bot.SQLRequest(f'SELECT {groups.key_table_groups_name} FROM {groups.table_groups_name} WHERE {groups.name_table_groups_field} = ?', 
+        new_group_id = a_Bot.SQLRequest(f'SELECT {users_groups_agregator.key_table_groups_name} FROM {users_groups_agregator.table_groups_name} WHERE {users_groups_agregator.name_table_groups_field} = ?', 
                 param = [user_access.user_access_group_new])
         if new_group_id and new_group_id[0]:
-            a_Bot.SQLRequest(f"INSERT OR IGNORE INTO {groups.table_user_in_groups_name} ({groups.user_id_field}, {groups.key_table_groups_name}, {groups.access_field}, {groups.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
+            a_Bot.SQLRequest(f"INSERT OR IGNORE INTO {users_groups_agregator.table_user_in_groups_name} ({users_groups_agregator.user_id_field}, {users_groups_agregator.key_table_groups_name}, {users_groups_agregator.access_field}, {users_groups_agregator.create_datetime_field}) VALUES (?, ?, ?, {bot_bd.GetBDDateTimeNow()});", 
                     commit=True, param = (a_UserID, new_group_id[0][0], access_utils.GetItemDefaultAccessForModule(a_Bot, module_name)))
 
 def GetUserInfo(a_Bot, a_UserID):

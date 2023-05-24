@@ -7,6 +7,9 @@ from bot_sys import keyboard, user_access, bd_table, bot_bd
 from bot_modules import access_utils, mod_simple_message
 from template import simple_message, bd_item, bd_item_select, bd_item_view, bd_item_delete, bd_item_add, bd_item_edit
 
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+
 from enum import Enum
 from enum import auto
 
@@ -48,11 +51,49 @@ class FSMs(Enum):
     EDIT_ACCESS = auto() 
     EDIT_DEFAULT_ACCESS = auto() 
 
+create_fsms_cmd = '''
+class FSMCreate{a_ModName}(StatesGroup):
+    name = State()
+    desc = State()
+    photo = State()
+
+class FSMEdit{a_ModName}PhotoItem(StatesGroup):
+    item_field = State()
+
+class FSMEdit{a_ModName}NameItem(StatesGroup):
+    item_field = State()
+
+class FSMEdit{a_ModName}DescItem(StatesGroup):
+    item_field = State()
+
+class FSMEdit{a_ModName}AccessItem(StatesGroup):
+    item_field = State()
+
+class FSMEdit{a_ModName}DefaultAccessItem(StatesGroup):
+    item_field = State()
+
+fsm = {
+    FSMs.CREATE: FSMCreate{a_ModName},
+    FSMs.EDIT_NAME: FSMEdit{a_ModName}NameItem,
+    FSMs.EDIT_DESC: FSMEdit{a_ModName}DescItem,
+    FSMs.EDIT_PHOTO: FSMEdit{a_ModName}PhotoItem,
+    FSMs.EDIT_ACCESS: FSMEdit{a_ModName}AccessItem,
+    FSMs.EDIT_DEFAULT_ACCESS: FSMEdit{a_ModName}DefaultAccessItem,
+}
+'''
+
+def MakeFSMs(a_ModName):
+    cmd = create_fsms_cmd.replace("{a_ModName}", a_ModName)
+    _locals = locals()
+    exec(cmd, globals(), _locals)
+    return _locals['fsm']
+
+
 class TableOperateModule(mod_simple_message.SimpleMessageModule):
-    def __init__(self, a_Table, a_Messages, a_Buttons, a_FSMs, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         super().__init__(a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_Table = a_Table
-        self.m_FSMs = a_FSMs
+        self.m_FSMs = MakeFSMs(self.GetName()) 
         self.m_EditModuleNameList = a_EditModuleNameList
         self.m_ChildModName = a_ChildModName
         self.m_ParentModName = a_ParentModName

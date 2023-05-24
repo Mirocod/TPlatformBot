@@ -15,7 +15,7 @@ class FSMRequestToBD(StatesGroup):
 
 # ---------------------------------------------------------
 # БД
-module_name = 'groups'
+module_name = 'users_groups_agregator'
 
 table_groups_name = 'user_groups'
 table_user_in_groups_name = 'user_in_groups'
@@ -64,7 +64,7 @@ messages = {
 
 init_access = f'{user_access.user_access_group_new}=-'
 
-class ModuleGroups(mod_simple_message.SimpleMessageModule):
+class ModuleUsersGroupsAgregator(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
@@ -110,7 +110,7 @@ class ModuleGroups(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.m_SqlRequestButtonName, user_access.AccessMode.EDIT, self.GetAccess()), 
                 keyboard.ButtonWithAccess(self.m_HelpButtonName , user_access.AccessMode.VIEW, self.GetAccess())
                 ]
-        return mod_buttons + keyboard.MakeButtons(cur_buttons, a_UserGroups)
+        return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def RegisterHandlers(self):
         super().RegisterHandlers()

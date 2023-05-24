@@ -65,14 +65,14 @@ class SimpleMessageModule(mod_interface.IModule):
         return self.m_Messages.get(a_MessageNames, None)
 
     def CreateMessage(self, a_MessageName, a_MessageDesc):
-        msg = self.m_BotMessages.CreateMessage(f'{self.GetName()} {a_MessageName}', a_MessageDesc, self.m_Log.GetTimeNow())
+        msg = self.m_BotMessages.CreateMessage(f'{self.GetName()} {str(a_MessageName).replace("Messages.", "")}', a_MessageDesc, self.m_Log.GetTimeNow())
         return msg
 
     def CreateButton(self, a_ButtonName, a_ButtonDesc):
         assert len(a_ButtonDesc) < 41 # Телеграм не поддерживает больше
         assert a_ButtonDesc[0] != ' ' # Телеграм не поддерживает пробелы в начале
         assert a_ButtonDesc[-1:] != ' ' # Телеграм не поддерживает пробелы в конце
-        btn = self.m_BotButtons.CreateMessage(f'{self.GetName()} {a_ButtonName}', a_ButtonDesc, self.m_Log.GetTimeNow())
+        btn = self.m_BotButtons.CreateMessage(f'{self.GetName()} {str(a_ButtonName).replace("ButtonNames.", "")}', a_ButtonDesc, self.m_Log.GetTimeNow())
         return btn
 
     def GetModule(self, a_ModName):

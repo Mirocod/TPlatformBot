@@ -1,21 +1,21 @@
 # -*- coding: utf8 -*-
 # Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
-log_start_message = 'Бот успешно запущен!'
-
 import os
 
 from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_access
-from bot_modules import mod_agregator, start, profile, backup, groups, access, projects, tasks, needs, comments, languages, messages, buttons
+from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments, languages, messages, buttons
+
+log_start_message = 'Бот успешно запущен!'
 
 bd_file_name = 'bot.db'
 
 log_file_name = 'log.txt'
 
+default_language = 'ru'
+
 g_Log = log.Log(log_file_name)
 g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bd_file_name, config.GetRootIDs(), g_Log)
-
-default_language = 'ru'
 
 g_BotMessages = bot_messages.BotMessages(default_language)
 g_BotButtons = bot_messages.BotMessages(default_language)
@@ -32,13 +32,14 @@ mod_messages_name = messages.module_name
 mod_buttons_name = buttons.module_name
 
 start_mod_list = [mod_start_name]
-
 mod_access = access.ModuleAccess(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_access)
 
-mod_groups = groups.ModuleGroups(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+start_mod_name_list = [mod_start_name]
+mod_groups = users_groups_agregator.ModuleUsersGroupsAgregator(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_groups)
 
+start_mod_list = [mod_start_name]
 mod_profile = profile.ModuleProfile(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_profile)
 

@@ -7,25 +7,6 @@ from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message, access_utils
 from template import bd_item
 
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-
-class FSMCreateLanguage(StatesGroup):
-    name = State()
-    desc = State()
-    photo = State()
-    
-class FSMEditLanguagePhotoItem(StatesGroup):
-    item_field = State()
-
-class FSMEditLanguageNameItem(StatesGroup):
-    item_field = State()
-
-class FSMEditLanguageDescItem(StatesGroup):
-    item_field = State()
-
-class FSMEditLanguageAccessItem(StatesGroup):
-    item_field = State()
 # ---------------------------------------------------------
 # БД
 module_name = 'languages'
@@ -54,14 +35,6 @@ table = bd_table.Table(table_name, [
 )
 
 init_access = f'{user_access.user_access_group_all}=-'
-
-fsm = {
-    mod_table_operate.FSMs.CREATE: FSMCreateLanguage,
-    mod_table_operate.FSMs.EDIT_NAME: FSMEditLanguageNameItem,
-    mod_table_operate.FSMs.EDIT_DESC: FSMEditLanguageDescItem,
-    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditLanguagePhotoItem,
-    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditLanguageAccessItem,
-    }
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
@@ -153,7 +126,7 @@ messages = {
 
 class ModuleLanguages(mod_table_operate.TableOperateModule):
     def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, fsm, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_LanguageIDs = {}
 
     def GetName(self):

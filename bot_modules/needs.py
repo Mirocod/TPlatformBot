@@ -6,25 +6,6 @@
 from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message
 
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-
-class FSMCreateNeed(StatesGroup):
-    name = State()
-    desc = State()
-    photo = State()
-    
-class FSMEditNeedPhotoItem(StatesGroup):
-    item_field = State()
-
-class FSMEditNeedNameItem(StatesGroup):
-    item_field = State()
-
-class FSMEditNeedDescItem(StatesGroup):
-    item_field = State()
-
-class FSMEditNeedAccessItem(StatesGroup):
-    item_field = State()
 # ---------------------------------------------------------
 # БД
 module_name = 'needs'
@@ -49,14 +30,6 @@ table = bd_table.Table(table_name, [
         ])
 
 init_access = f'{user_access.user_access_group_new}=va'
-
-fsm = {
-    mod_table_operate.FSMs.CREATE: FSMCreateNeed,
-    mod_table_operate.FSMs.EDIT_NAME: FSMEditNeedNameItem,
-    mod_table_operate.FSMs.EDIT_DESC: FSMEditNeedDescItem,
-    mod_table_operate.FSMs.EDIT_PHOTO: FSMEditNeedPhotoItem,
-    mod_table_operate.FSMs.EDIT_ACCESS: FSMEditNeedAccessItem,
-    }
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
@@ -148,7 +121,7 @@ messages = {
 
 class ModuleNeeds(mod_table_operate.TableOperateModule):
     def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, fsm, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetName(self):
         return module_name
