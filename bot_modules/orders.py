@@ -5,6 +5,7 @@
 
 from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message
+from template import bd_item_select
 
 from enum import Enum
 from enum import auto
@@ -55,7 +56,7 @@ class Messages(Enum):
     EDIT_ADDRESS = auto() 
 
 button_names = {
-    mod_simple_message.ButtonNames.START: "👨‍👨‍👧‍👦 🛒 Заказы",
+    mod_simple_message.ButtonNames.START: "‍🛒 Заказы",
     mod_table_operate.ButtonNames.LIST: "📃 Список текущих заказов",
     ButtonNames.LIST_ALL: "📃 Список всех заказов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить заказ",
@@ -150,12 +151,29 @@ messages = {
     mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Заказ успешно удалён!''',
 }
 
-class ModuleProjects(mod_table_operate.TableOperateModule):
+def GetBDItemsForUserTemplate(a_GetItemsFunc):
+    def GetBDItems(a_Message, a_UserGroups, a_ParentID):
+        def GetBDItem(a_KeyValue):
+            user_id = str(a_Message.from_user.id)
+            return a_GetItemsFunc(a_Message, a_UserGroups, a_ParentID)(user_id)
+        return GetBDItem
+
+        return items
+    return GetBDItems
+
+class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
+    def GetItemsFunc(self):
+        return GetBDItemsForUserTemplate(super().GetItemsFunc())
+
+class ModuleOrders(mod_table_operate.TableOperateModule):
     def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def GetName(self):
         return module_name
 
+    def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
 
 

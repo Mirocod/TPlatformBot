@@ -61,7 +61,7 @@ class ISelectSource(ABC):
     def GetPrefixBase(self):
         pass
 
-class DBItemSelectSource:
+class DBItemSelectSource(ISelectSource):
     def __init__(self, a_Bot, a_TableName, a_ParentIDFieldName, a_PrevPrefix, a_ButtonName):
         self.m_Bot = a_Bot
         self.m_TableName = a_TableName

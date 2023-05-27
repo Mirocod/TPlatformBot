@@ -239,14 +239,11 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         self.OnChange()
         if error:
-            self.m_Log.Error(f'Пользоватлель {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
+            self.m_Log.Error(f'Пользователь {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
         else:
-            self.m_Log.Success(f'Пользоватлель {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
+            self.m_Log.Success(f'Пользователь {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
 
         return res, error
-
-    def SelectItemsTemplate(self):
-        return bd_item_select.GetBDItemsTemplate(self.m_Bot, self.m_Table.GetName(), self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID))
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
