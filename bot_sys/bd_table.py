@@ -19,6 +19,8 @@ class TableFieldDestiny(Enum):
     DEFAULT_ACCESS = auto()
     CREATE_DATE = auto()
     PARENT_ID = auto()
+    STATUS = auto()
+    ADDRESS = auto()
     OTHER = auto()
 
 class TableField:

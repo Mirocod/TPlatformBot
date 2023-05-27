@@ -33,15 +33,12 @@ def FinishEditBDItemTemplate(a_Bot, a_FSM, a_TableName, a_KeyName, a_FieldName, 
     
     return bd_item_add.FinishAddBDItemTemplate(a_Bot, a_FSM, EditBDItemFunc, a_TableName, a_KeyName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, access_mode = access_mode, field_type = field_type)
 
-def EditBDItemRegisterHandlers(a_Bot, a_PrevPrefix, a_FSM, a_StartCheckFunc, a_StartMessage, a_EditMessageFunc, a_FinishMessageFunc, a_TableName : str, a_KeyName, a_ParentIDFieldName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, a_OnChangeFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
-    reg_func = a_Bot.RegisterMessageHandler
-    if a_ParentIDFieldName:
-        reg_func = a_Bot.RegisterCallbackHandler
-
+def EditBDItemRegisterHandlers(a_Bot, a_SelectSource, a_FSM, a_StartMessage, a_EditMessageFunc, a_FinishMessageFunc, a_TableName : str, a_KeyName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, a_OnChangeFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
     keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, access_mode)
     a_Prefix = bd_item.HashPrefix(f'edit_{a_TableName}_{a_KeyName}_{a_FieldName}:')
-    sel_handler = bd_item_select.SelectDBItemTemplate(a_Bot, a_TableName, a_ParentIDFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, a_PrevPrefix, a_Prefix, access_mode)
-    reg_func(sel_handler, a_StartCheckFunc)
+
+    SelectCustomRegisterHandlers(a_Bot, a_SelectSource, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = access_mode)
+
     a_Bot.RegisterCallbackHandler(StartEditBDItemTemplate(a_Bot, a_FSM, a_EditMessageFunc, a_TableName, a_KeyName, a_Prefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), bd_item.GetCheckForPrefixFunc(a_Prefix))
     if field_type == bd_item.FieldType.photo:
         a_Bot.RegisterMessageHandler(FinishEditBDItemTemplate(a_Bot, a_FSM, a_TableName, a_KeyName, a_FieldName, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, a_OnChangeFunc, access_mode, field_type = field_type), content_types = ['photo', 'text'], state = a_FSM.item_field)

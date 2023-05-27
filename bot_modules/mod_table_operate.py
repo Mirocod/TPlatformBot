@@ -245,35 +245,28 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         return res, error
 
+    def SelectItemsTemplate(self):
+        return bd_item_select.GetBDItemsTemplate(self.m_Bot, self.m_Table.GetName(), self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID))
+
+    def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        return DBItemSelectSource(self.m_Bot, self.m_TableName.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
+
     def RegisterSelect(self, a_ButtonName, access_mode, only_parent = False):
         a_Prefix = None
         if self.m_ParentModName:
             parent_mod = self.GetModule(self.m_ParentModName)
             a_Prefix = parent_mod.RegisterSelect(a_ButtonName, access_mode, only_parent = False)
-            if not only_parent:
-                a_Prefix =  bd_item_select.NextSelectBDItemRegisterHandlers(self.m_Bot, \
-                        a_Prefix, \
-                        self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID), \
-                        self.m_Table.GetName(), \
-                        self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY), \
+
+        if not only_parent:
+            a_Prefix =  bd_item_select.SelectRegisterHandlers(self.m_Bot, \
+                        self.SelectSourceTemplate(a_Prefix, a_ButtonName), \
                         self.m_GetButtonNameAndKeyValueAndAccessFunc, \
                         self.GetMessage(Messages.SELECT), \
                         self.m_GetAccessFunc,\
                         access_mode = access_mode\
                         )
-        else:
-            if not only_parent:
-                a_PrefixBase = a_ButtonName.GetDesc()
-                a_Prefix =   bd_item_select.FirstSelectBDItemRegisterHandlers(self.m_Bot, \
-                        a_PrefixBase, \
-                        a_ButtonName, \
-                        self.m_Table.GetName(), \
-                        self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY), \
-                        self.m_GetButtonNameAndKeyValueAndAccessFunc, \
-                        self.GetMessage(Messages.SELECT), \
-                        self.m_GetAccessFunc,\
-                        access_mode = access_mode\
-                        )
+
         return a_Prefix
 
     def RegisterHandlers(self):
@@ -306,30 +299,23 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         a_ButtonName = self.GetButton(ButtonNames.LIST)
         if a_ButtonName:
             a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.VIEW, only_parent = True)
-            if a_Prefix:
-                bd_item_view.LastSelectAndShowBDItemRegisterHandlers(self.m_Bot, \
-                        a_Prefix,\
-                        parent_id_field, \
-                        table_name,\
-                        key_name, \
-                        self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
-                        GetButtonNameAndKeyValueAndAccess, \
-                        self.GetMessage(Messages.SELECT), \
-                        GetAccess, \
-                        defaul_keyboard_func, \
-                        access_mode = user_access.AccessMode.VIEW\
-                        )
-            else:
-                bd_item_view.FirstSelectAndShowBDItemRegisterHandlers(self.m_Bot, \
-                        a_ButtonName, \
-                        table_name, \
-                        key_name, \
-                        self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate), \
-                        GetButtonNameAndKeyValueAndAccess, \
-                        self.GetMessage(Messages.SELECT), \
-                        GetAccess, \
-                        defaul_keyboard_func\
-                        )
+            
+            a_Prefix = bd_item_select.SelectRegisterHandlers(self.m_Bot,\
+                    self.SelectSourceTemplate(a_Prefix, a_ButtonName), \
+                    a_GetButtonNameAndKeyValueAndAccessFunc,\
+                    self.GetMessage(Messages.SELECT),\
+                    GetAccess,\
+                    access_mode = user_access.AccessMode.VIEW\
+                    )
+            bd_item_view.ShowBDItemRegisterHandlers(self.m_Bot,\
+                    a_Prefix,\
+                    table_name,\
+                    key_name,\
+                    self.ShowMessageTemplate(self.GetMessage(Messages.OPEN),GetViewItemInlineKeyboardTemplate),\
+                    GetAccess,\
+                    defaul_keyboard_func,\
+                    access_mode = user_access.AccessMode.VIEW\
+                    )
             self.m_SelectPrefix = a_Prefix
 
         # Удаление 
@@ -387,20 +373,15 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 return self.OnChange()
 
             a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode, only_parent = True)
-            check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
-            if a_Prefix:
-                check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
-            #print(a_ButtonName, a_Prefix, check_func)
+
             bd_item_edit.EditBDItemRegisterHandlers(self.m_Bot, \
-                a_Prefix, \
+                self.SelectSourceTemplate(a_Prefix, a_ButtonName), \
                 a_FSM, \
-                check_func, \
                 self.GetMessage(Messages.SELECT_TO_EDIT), \
                 self.ShowMessageTemplate(a_EditMessage), \
                 self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_EDIT)), \
                 table_name, \
                 key_name, \
-                parent_id_field, \
                 a_FieldName, \
                 GetButtonNameAndKeyValueAndAccess, \
                 GetAccess, \
