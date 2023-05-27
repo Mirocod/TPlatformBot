@@ -250,7 +250,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
-        return DBItemSelectSource(self.m_Bot, self.m_TableName.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
+        return bd_item_select.DBItemSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
 
     def RegisterSelect(self, a_ButtonName, access_mode, only_parent = False):
         a_Prefix = None
@@ -299,10 +299,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         a_ButtonName = self.GetButton(ButtonNames.LIST)
         if a_ButtonName:
             a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.VIEW, only_parent = True)
-            
+            self.m_SelectPrefix = a_Prefix
             a_Prefix = bd_item_select.SelectRegisterHandlers(self.m_Bot,\
                     self.SelectSourceTemplate(a_Prefix, a_ButtonName), \
-                    a_GetButtonNameAndKeyValueAndAccessFunc,\
+                    GetButtonNameAndKeyValueAndAccess,\
                     self.GetMessage(Messages.SELECT),\
                     GetAccess,\
                     access_mode = user_access.AccessMode.VIEW\
@@ -316,7 +316,6 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     defaul_keyboard_func,\
                     access_mode = user_access.AccessMode.VIEW\
                     )
-            self.m_SelectPrefix = a_Prefix
 
         # Удаление 
         a_ButtonName = self.GetButton(ButtonNames.DEL)

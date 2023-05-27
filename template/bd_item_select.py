@@ -63,30 +63,30 @@ class ISelectSource(ABC):
 
 class DBItemSelectSource:
     def __init__(self, a_Bot, a_TableName, a_ParentIDFieldName, a_PrevPrefix, a_ButtonName):
-        self.a_Bot = a_Bot
-        self.a_TableName = a_TableName
-        self.a_ParentIDFieldName = a_ParentIDFieldName
-        self.a_PrevPrefix = a_PrevPrefix
-        self.a_ButtonName = a_ButtonName
+        self.m_Bot = a_Bot
+        self.m_TableName = a_TableName
+        self.m_ParentIDFieldName = a_ParentIDFieldName
+        self.m_PrevPrefix = a_PrevPrefix
+        self.m_ButtonName = a_ButtonName
 
     def IsFirst(self):
-        return not self.a_ParentIDFieldName
+        return not self.m_ParentIDFieldName
 
     def GetItemsFunc(self):
-        return GetBDItemsTemplate(self.a_Bot, self.a_TableName, self.a_ParentIDFieldName)
+        return GetBDItemsTemplate(self.m_Bot, self.m_TableName, self.m_ParentIDFieldName)
 
     def GetCheckFunc(self):
         if self.IsFirst():
-            return bd_item.GetCheckForTextFunc(a_ButtonName)
-        return bd_item.GetCheckForPrefixFunc(a_PrevPrefix)
+            return bd_item.GetCheckForTextFunc(self.m_ButtonName)
+        return bd_item.GetCheckForPrefixFunc(self.m_PrevPrefix)
 
     def GetPrevPrefix(self):
-        return self.a_PrevPrefix
+        return self.m_PrevPrefix
 
     def GetPrefixBase(self):
-        if self.a_PrevPrefix:
-            return self.a_PrevPrefix
-        return self.a_ButtonName
+        if self.m_PrevPrefix:
+            return self.m_PrevPrefix
+        return self.m_ButtonName
 
 def SelectRegisterHandlers(a_Bot, a_SelectSource, a_GetButtonNameAndKeyValueAndAccessFunc, a_StartMessage, a_AccessFunc, access_mode = user_access.AccessMode.VIEW):
     reg_func = a_Bot.RegisterMessageHandler
