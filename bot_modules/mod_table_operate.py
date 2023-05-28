@@ -22,6 +22,7 @@ class ButtonNames(Enum):
     EDIT_DESC = auto() 
     EDIT_ACCESS = auto() 
     EDIT_DEFAULT_ACCESS = auto() 
+    EDIT_ADDRESS = auto()
     DEL = auto() 
 
 class Messages(Enum):
@@ -39,6 +40,7 @@ class Messages(Enum):
     EDIT_DESC = auto() 
     EDIT_ACCESS = auto() 
     EDIT_DEFAULT_ACCESS = auto() 
+    EDIT_ADDRESS = auto()
     SUCCESS_EDIT = auto() 
     SELECT_TO_DELETE = auto() 
     SUCCESS_DELETE = auto() 
@@ -49,7 +51,8 @@ class FSMs(Enum):
     EDIT_NAME = auto() 
     EDIT_DESC = auto() 
     EDIT_ACCESS = auto() 
-    EDIT_DEFAULT_ACCESS = auto() 
+    EDIT_DEFAULT_ACCESS = auto()
+    EDIT_ADDRESS = auto()
 
 create_fsms_cmd = '''
 class FSMCreate{a_ModName}(StatesGroup):
@@ -72,6 +75,9 @@ class FSMEdit{a_ModName}AccessItem(StatesGroup):
 class FSMEdit{a_ModName}DefaultAccessItem(StatesGroup):
     item_field = State()
 
+class FSMEdit{a_ModName}AddressItem(StatesGroup):
+    item_field = State()
+
 fsm = {
     FSMs.CREATE: FSMCreate{a_ModName},
     FSMs.EDIT_NAME: FSMEdit{a_ModName}NameItem,
@@ -79,6 +85,7 @@ fsm = {
     FSMs.EDIT_PHOTO: FSMEdit{a_ModName}PhotoItem,
     FSMs.EDIT_ACCESS: FSMEdit{a_ModName}AccessItem,
     FSMs.EDIT_DEFAULT_ACCESS: FSMEdit{a_ModName}DefaultAccessItem,
+    FSMs.EDIT_ADDRESS: FSMEdit{a_ModName}AddressItem,
 }
 '''
 
@@ -266,6 +273,38 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         return a_Prefix
 
+    def RegisterEdit(self, a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
+            if not a_ButtonName:
+                return
+
+            def OnChange():
+                return self.OnChange()
+
+            table_name = self.m_Table.GetName()
+            key_name = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY)
+            edit_keyboard_func = self.m_GetEditKeyboardButtonsFunc
+            GetButtonNameAndKeyValueAndAccess = self.m_GetButtonNameAndKeyValueAndAccessFunc
+            GetAccess = self.m_GetAccessFunc
+
+            a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode, only_parent = True)
+
+            bd_item_edit.EditBDItemRegisterHandlers(self.m_Bot, \
+                self.SelectSourceTemplate(a_Prefix, a_ButtonName), \
+                a_FSM, \
+                self.GetMessage(Messages.SELECT_TO_EDIT), \
+                self.ShowMessageTemplate(a_EditMessage), \
+                self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_EDIT)), \
+                table_name, \
+                key_name, \
+                a_FieldName, \
+                GetButtonNameAndKeyValueAndAccess, \
+                GetAccess, \
+                edit_keyboard_func, \
+                OnChange,\
+                access_mode = a_AccessMode, \
+                field_type = a_FieldType\
+                )
+
     def RegisterHandlers(self):
         super().RegisterHandlers()
         table_name = self.m_Table.GetName()
@@ -361,32 +400,6 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         # Редактирование
         edit_keyboard_func = self.m_GetEditKeyboardButtonsFunc
-        def RegisterEdit(a_ButtonName, a_FSM, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
-            if not a_ButtonName:
-                return
-
-            def OnChange():
-                return self.OnChange()
-
-            a_Prefix = self.RegisterSelect(a_ButtonName, a_AccessMode, only_parent = True)
-
-            bd_item_edit.EditBDItemRegisterHandlers(self.m_Bot, \
-                self.SelectSourceTemplate(a_Prefix, a_ButtonName), \
-                a_FSM, \
-                self.GetMessage(Messages.SELECT_TO_EDIT), \
-                self.ShowMessageTemplate(a_EditMessage), \
-                self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_EDIT)), \
-                table_name, \
-                key_name, \
-                a_FieldName, \
-                GetButtonNameAndKeyValueAndAccess, \
-                GetAccess, \
-                edit_keyboard_func, \
-                OnChange,\
-                access_mode = a_AccessMode, \
-                field_type = a_FieldType\
-                )
-
         a_ButtonName = self.GetButton(ButtonNames.EDIT)
         if a_ButtonName:
             self.m_Bot.RegisterMessageHandler(\
@@ -400,11 +413,14 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                         bd_item.GetCheckForTextFunc(a_ButtonName)\
                         )
 
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.GetFSM(FSMs.EDIT_NAME), self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.GetFSM(FSMs.EDIT_DESC), self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.GetFSM(FSMs.EDIT_PHOTO), self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.GetFSM(FSMs.EDIT_ACCESS), self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
-        RegisterEdit(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), self.GetFSM(FSMs.EDIT_DEFAULT_ACCESS), self.GetMessage(Messages.EDIT_DEFAULT_ACCESS), def_access_field, bd_item.FieldType.text)
+        address_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ADDRESS)
+
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.GetFSM(FSMs.EDIT_NAME), self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.GetFSM(FSMs.EDIT_DESC), self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.GetFSM(FSMs.EDIT_PHOTO), self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.GetFSM(FSMs.EDIT_ACCESS), self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), self.GetFSM(FSMs.EDIT_DEFAULT_ACCESS), self.GetMessage(Messages.EDIT_DEFAULT_ACCESS), def_access_field, bd_item.FieldType.text)
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_ADDRESS), self.GetFSM(FSMs.EDIT_ADDRESS), self.GetMessage(Messages.EDIT_ADDRESS), address_field, bd_item.FieldType.text)
 
     def OnChange(self):
         pass

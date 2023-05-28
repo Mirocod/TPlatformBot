@@ -10,6 +10,9 @@ from template import simple_message, bd_item_select, bd_item
 cancel_message = '''
 🚫 Добавление отменено
 '''
+error_photo_type_message = '''
+🚫 Неверный формат изображений
+'''
 
 def StartAddBDItemTemplate(a_Bot, a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD):
     async def StartAddBDItem(a_CallbackQuery, state):
