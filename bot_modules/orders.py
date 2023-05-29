@@ -5,7 +5,7 @@
 
 from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message
-from template import bd_item_select, bd_item_view
+from template import bd_item_select, bd_item_view, bd_item
 
 from enum import Enum
 from enum import auto
@@ -61,6 +61,7 @@ button_names = {
     mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название в заказе",
     mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание в заказе",
     mod_table_operate.ButtonNames.EDIT_ADDRESS: "𝌴 Изменить адрес в заказе",
+    mod_table_operate.ButtonNames.EDIT_STATUS: "𝌴 Изменить статус в заказе",
     mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к заказу",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить заказ",
 }
@@ -132,6 +133,12 @@ messages = {
 
 Введите новый адрес доставки заказа (укажите, кто, когда и где его сможет забрать):
 ''',
+    mod_table_operate.Messages.EDIT_STATUS: f'''
+Текущий статус заказа:
+#{status_field}
+
+Введите новый статус заказа:
+''',
     mod_table_operate.Messages.EDIT_ACCESS: f'''
 Текущий доступ к заказу:
 #{access_field}
@@ -149,18 +156,17 @@ messages = {
 }
 
 def GetCurItemsTemplate(a_Bot, a_TableName, a_UserIDFieldName, a_StatusFieldName):
-    def GetBDItem(a_KeyValue):
-        return a_Bot.SQLRequest(f'SELECT * FROM {a_TableName} WHERE {a_UserIDFieldName} = ? AND {a_StatusFieldName} != ?', param = ([a_KeyValue, OrderStatus.FINISH]))
-    return GetBDItem
-
-def GetBDItemsForUserTemplate(a_GetItemsFunc):
     def GetBDItems(a_Message, a_UserGroups, a_ParentID):
-        def GetBDItem(a_KeyValue):
-            user_id = str(a_Message.from_user.id)
-            return a_GetItemsFunc(a_Message, a_UserGroups, a_ParentID)(user_id)
-        return GetBDItem
+        request = f'SELECT * FROM {a_TableName} WHERE {a_UserIDFieldName} = ? AND {a_StatusFieldName} != ?'
+        print('GetCurItemsTemplate', a_TableName, a_UserIDFieldName, a_KeyValue)
+        return a_Bot.SQLRequest(request, param = ([a_KeyValue, OrderStatus.FINISH]))
+    return GetBDItems
 
-        return items
+def GetBDItemsForUserTemplate(a_Bot, a_TableName, a_UserIDFieldName):
+    def GetBDItems(a_Message, a_UserGroups, a_ParentID):
+        user_id = str(a_Message.from_user.id)
+        print('user_id', a_Message, user_id)
+        return bd_item.GetBDItemsTemplate(a_Bot, a_TableName, a_UserIDFieldName)(user_id)
     return GetBDItems
 
 class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
@@ -172,7 +178,10 @@ class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
         get_items_func = super().GetItemsFunc()
         if self.m_OnlyCurent:
             get_items_func = GetCurItemsTemplate(self.m_Bot, self.m_TableName, self.m_ParentIDFieldName, status_field)
-        return GetBDItemsForUserTemplate(get_items_func)
+        return GetBDItemsForUserTemplate(self.m_Bot, self.m_TableName, self.m_ParentIDFieldName)
+
+    def IsFirst(self):
+        return True
 
 class ModuleOrders(mod_table_operate.TableOperateModule):
     def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):

@@ -134,8 +134,8 @@ for m in test_mods:
     m.Test()
 
 if __name__ == '__main__':
-#    os.system('clear')
-#    os.system('cls')
+    #os.system('clear')
+    #os.system('cls')
     g_Log.Success(log_start_message)
 
 g_Bot.StartPolling()

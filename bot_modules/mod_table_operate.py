@@ -23,6 +23,7 @@ class ButtonNames(Enum):
     EDIT_ACCESS = auto() 
     EDIT_DEFAULT_ACCESS = auto() 
     EDIT_ADDRESS = auto()
+    EDIT_STATUS = auto()
     DEL = auto() 
 
 class Messages(Enum):
@@ -41,6 +42,7 @@ class Messages(Enum):
     EDIT_ACCESS = auto() 
     EDIT_DEFAULT_ACCESS = auto() 
     EDIT_ADDRESS = auto()
+    EDIT_STATUS = auto()
     SUCCESS_EDIT = auto() 
     SELECT_TO_DELETE = auto() 
     SUCCESS_DELETE = auto() 
@@ -53,6 +55,7 @@ class FSMs(Enum):
     EDIT_ACCESS = auto() 
     EDIT_DEFAULT_ACCESS = auto()
     EDIT_ADDRESS = auto()
+    EDIT_STATUS = auto()
 
 create_fsms_cmd = '''
 class FSMCreate{a_ModName}(StatesGroup):
@@ -78,6 +81,9 @@ class FSMEdit{a_ModName}DefaultAccessItem(StatesGroup):
 class FSMEdit{a_ModName}AddressItem(StatesGroup):
     item_field = State()
 
+class FSMEdit{a_ModName}StatusItem(StatesGroup):
+    item_field = State()
+
 fsm = {
     FSMs.CREATE: FSMCreate{a_ModName},
     FSMs.EDIT_NAME: FSMEdit{a_ModName}NameItem,
@@ -86,6 +92,7 @@ fsm = {
     FSMs.EDIT_ACCESS: FSMEdit{a_ModName}AccessItem,
     FSMs.EDIT_DEFAULT_ACCESS: FSMEdit{a_ModName}DefaultAccessItem,
     FSMs.EDIT_ADDRESS: FSMEdit{a_ModName}AddressItem,
+    FSMs.EDIT_STATUS: FSMEdit{a_ModName}StatusItem,
 }
 '''
 
@@ -152,6 +159,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DESC), user_access.AccessMode.DELETE, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.DELETE, self.GetAccess()),
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), user_access.AccessMode.EDIT, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ADDRESS), user_access.AccessMode.EDIT, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_STATUS), user_access.AccessMode.EDIT, self.GetAccess()),
                 ]
         return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
@@ -414,6 +423,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                         )
 
         address_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ADDRESS)
+        status_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.STATUS)
 
         self.RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.GetFSM(FSMs.EDIT_NAME), self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
         self.RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.GetFSM(FSMs.EDIT_DESC), self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
@@ -421,6 +431,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         self.RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.GetFSM(FSMs.EDIT_ACCESS), self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
         self.RegisterEdit(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), self.GetFSM(FSMs.EDIT_DEFAULT_ACCESS), self.GetMessage(Messages.EDIT_DEFAULT_ACCESS), def_access_field, bd_item.FieldType.text)
         self.RegisterEdit(self.GetButton(ButtonNames.EDIT_ADDRESS), self.GetFSM(FSMs.EDIT_ADDRESS), self.GetMessage(Messages.EDIT_ADDRESS), address_field, bd_item.FieldType.text)
+        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_STATUS), self.GetFSM(FSMs.EDIT_STATUS), self.GetMessage(Messages.EDIT_STATUS), status_field, bd_item.FieldType.text)
 
     def OnChange(self):
         pass
