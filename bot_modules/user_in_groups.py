@@ -118,19 +118,6 @@ class ModuleUserInGroups(mod_table_operate.TableOperateModule):
                 ]
         return t_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
-    def AddBDItemFunc(self, a_ItemData, a_UserID):
-        def_access = access_utils.GetItemDefaultAccessForModule(self.m_Bot, self.GetName())
-        res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({name_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-                    commit = True, return_error = True, param = (a_ItemData[name_field], def_access + f";{a_UserID}=+", a_ItemData[parent_id_field]))
-
-        self.OnChange()
-        if error:
-            self.m_Log.Error(f'Пользоватлель {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[name_field]}, {def_access}).')
-        else:
-            self.m_Log.Success(f'Пользоватлель {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[name_field]}, {def_access}).')
-
-        return res, error
-
     def RegisterHandlers(self):
         super().RegisterHandlers()
         GetButtonNameAndKeyValueAndAccess = self.m_GetButtonNameAndKeyValueAndAccessFunc

@@ -39,7 +39,7 @@ class Table:
         return self.m_TableName
 
     def GetFields(self):
-        return self.TableFieldType
+        return self.m_Fields
 
     def GetFieldsCount(self):
         return len(self.m_Fields)

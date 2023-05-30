@@ -26,7 +26,7 @@ name_field = 'orderName'
 desc_field = 'orderDesc'
 photo_field = 'orderPhoto'
 status_field = 'orderStatus'
-address_field = 'orderAddres'
+address_field = 'orderAddress'
 access_field = 'orderAccess'
 create_datetime_field = 'orderCreateDateTime'
 parent_id_field = 'userID'
@@ -201,6 +201,8 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
     def AddBDItemFunc(self, a_ItemData, a_UserID):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
         a_ItemData[parent_id_field] = a_UserID
+        a_ItemData[status_field] = str(OrderStatus.NEW)
+        a_ItemData[address_field] = ''
         return super().AddBDItemFunc(a_ItemData, a_UserID)
 
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):

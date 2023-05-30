@@ -217,21 +217,37 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         create_datetime_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.CREATE_DATE)
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
 
-        res, error = None, None
         def_access = access_utils.GetItemDefaultAccessForModule(self.m_Bot, self.GetName())
-        #TODO сделать список полей, чтобы запрос генерировался автоматически.
-        if parent_id_field:
-            res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {parent_id_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-                    commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], def_access + f";{a_UserID}=+", a_ItemData[parent_id_field]))
-        else:
-            res, error = self.m_Bot.SQLRequest(f'INSERT INTO {table_name}({photo_field}, {name_field}, {desc_field}, {access_field}, {create_datetime_field}) VALUES(?, ?, ?, ?, {bot_bd.GetBDDateTimeNow()})', 
-                    commit = True, return_error = True, param = (a_ItemData[photo_field], a_ItemData[name_field], a_ItemData[desc_field], def_access + f";{a_UserID}=+"))
+
+        fields = []
+        values = []
+        param = ()
+        for f in self.m_Table.GetFields():
+            d = f.m_Destiny
+            n = f.m_Name
+            if d == bd_table.TableFieldDestiny.KEY:
+                continue
+            elif d == bd_table.TableFieldDestiny.CREATE_DATE:
+                fields += [n]
+                values += [bot_bd.GetBDDateTimeNow()]
+            elif d == bd_table.TableFieldDestiny.ACCESS:
+                fields += [n]
+                values += ['?']
+                param += (def_access + f";{a_UserID}=+", )
+            else:
+                fields += [n]
+                values += ['?']
+                param += (a_ItemData[n], )
+
+        request = f'INSERT INTO {table_name}({",".join(fields)}) VALUES({",".join(values)})'
+        print('request', request, param)
+        res, error = self.m_Bot.SQLRequest(request, commit = True, return_error = True, param = param)
 
         self.OnChange()
         if error:
-            self.m_Log.Error(f'Пользователь {a_UserID}. Ошибка добавления записи в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
+            self.m_Log.Error(f'Пользователь {a_UserID}. Ошибка добавления записи в таблицу {request} {param}.')
         else:
-            self.m_Log.Success(f'Пользователь {a_UserID}. Добавлена запись в таблицу {table_name} ({a_ItemData[photo_field]}, {a_ItemData[name_field]}, {a_ItemData[desc_field]}, {def_access}).')
+            self.m_Log.Success(f'Пользователь {a_UserID}. Добавлена запись в таблицу {request} {param}.')
 
         return res, error
 
