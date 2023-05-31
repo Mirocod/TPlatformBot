@@ -29,7 +29,7 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(name2_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
         bd_table.TableField(is_bot_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
         bd_table.TableField(language_code_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
-        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.PHOTO),
         bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
         bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
         ])
@@ -44,10 +44,10 @@ button_names = {
     mod_table_operate.ButtonNames.LIST: "📃 Список пользователей",
 #    mod_table_operate.ButtonNames.ADD: "✅ Добавить пользователя",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать пользователя",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение в пользователяе",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название в пользователяе",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание в пользователяе",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к пользователю",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в пользователяе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в пользователяе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в пользователяе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к пользователю",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить пользователя",
 }
 
@@ -72,17 +72,17 @@ messages = {
 <b>Код языка:</b> #{language_code_field}
 <b>Дата добавления:</b> #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание пользователя. Шаг №1
 
 Введите название пользователя:
 ''',
-    mod_table_operate.Messages.CREATE_DESC: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.DESC): '''
 Создание пользователя. Шаг №2
 
 Введите описание пользователя:
 ''',
-    mod_table_operate.Messages.CREATE_PHOTO: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Создание пользователя. Шаг №3
 
 Загрузите обложку для пользователя (Фото):
@@ -95,23 +95,23 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите пользователя, которого вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_PHOTO: '''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для пользователя (Фото):
 Она будет отображаться в его описании.
 ''',
-    mod_table_operate.Messages.EDIT_NAME: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
 Текущее название пользователя:
 #{name_field}
 
 Введите новое название пользователя:
 ''',
-    mod_table_operate.Messages.EDIT_DESC: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DESC): f'''
 Текущее описание пользователя:
 #{name1_field}
 
 Введите новое описание пользователя:
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к пользователю:
 #{access_field}
 

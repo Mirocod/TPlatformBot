@@ -9,6 +9,16 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import executor
 
+def GetPhotoList(a_PhotoIDs):
+    if not a_PhotoIDs or a_PhotoIDs == 0:
+        return []
+    photos = a_PhotoIDs.split(",")
+    result = []
+    for p in photos:
+        if p != '0' and p != '':
+            result += [p]
+    return result
+
 class AiogramBot(interfaces.IBot):
     def __init__(self, a_TelegramBotApiToken, a_BDFileName, a_RootIDs, a_Log):
         self.m_TelegramBotApiToken = a_TelegramBotApiToken
@@ -39,19 +49,27 @@ class AiogramBot(interfaces.IBot):
             base_keyboards = [keyboard.MakeAiogramKeyboard(a_KeyboardButtons)]
         if inline_keyboards:
                 base_keyboards = inline_keyboards
-        if a_PhotoIDs and a_PhotoIDs != 0 and a_PhotoIDs != '0':
+        photos = GetPhotoList(a_PhotoIDs)
+        if len(photos) > 0:
+            for p in photos[:-1]:
+                await self.m_TBot.send_photo(
+                        a_UserID,
+                        p,
+                        ''
+                        )
+            p = photos[-1]
             if base_keyboards:
                 for k in base_keyboards:
                     await self.m_TBot.send_photo(
                         a_UserID,
-                        a_PhotoIDs,
+                        p,
                         a_Message,
                         reply_markup = k
                         )
             else:
                 await self.m_TBot.send_photo(
                         a_UserID,
-                        a_PhotoIDs,
+                        p,
                         a_Message
                         )
         else:

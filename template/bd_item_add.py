@@ -10,6 +10,9 @@ from template import simple_message, bd_item_select, bd_item
 cancel_message = '''
 🚫 Добавление отменено
 '''
+error_photo_type_message = '''
+🚫 Неверный формат изображений
+'''
 
 def StartAddBDItemTemplate(a_Bot, a_FSM, a_FSMStart, a_MessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD):
     async def StartAddBDItem(a_CallbackQuery, state):
@@ -36,13 +39,13 @@ def StartAddBDItemTemplate(a_Bot, a_FSM, a_FSMStart, a_MessageFunc, a_ParentTabl
         return res_of_work_func
     return simple_message.SimpleMessageTemplate(a_Bot, StartAddBDItem, a_ButtonFunc, None, a_AccessFunc, access_mode)
 
-def FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
-    return FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_ButtonFunc, True, access_mode = access_mode, field_type = field_type)
+def FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
+    return FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, a_ButtonFunc, True, access_mode = access_mode, field_type = field_type)
 
-def NextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
-    return FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, False, access_mode = access_mode, field_type = field_type)
+def NextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
+    return FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, False, access_mode = access_mode, field_type = field_type)
 
-def FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, a_Finish, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
+def FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, a_Finish, access_mode = user_access.AccessMode.ADD, field_type = bd_item.FieldType.text):
     async def FinishAddBDItem(a_Message, state):
         state_func = None
         if a_Finish:
@@ -81,10 +84,13 @@ def FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableNa
                         return simple_message.WorkFuncResult(bot_messages.MakeBotMessage(error_photo_type_message), keyboard_func = a_FinishButtonFunc)
                     field_value = a_Message.photo[0].file_id
             else:
-                field_value = a_Message.text
+                result = a_Message.text
+                if a_PostProcessFunc:
+                    result = a_PostProcessFunc(result)
+                field_value = result
             item_data[a_FieldName] = field_value
             if a_Finish:
-                res, error = a_AddBDItemFunc(item_data, user_id)
+                res, error = await a_AddBDItemFunc(item_data, user_id)
         await state_func()
         if error:
             return simple_message.WorkFuncResult(bot_messages.MakeBotMessage(error))
@@ -101,9 +107,9 @@ def AddBDItem3RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_FSMName, a_FSMD
     reg_func(StartAddBDItemTemplate(a_Bot, a_FSM, a_FSMName, a_AddNameMessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), a_StartCheckFunc)
 
     # TODO: Сделать возможность не указывать все поля. пусть a_FSMName и a_NameField например могут быть пустыми. Возможно лучше вообще передавать список полей и их fsm
-    a_Bot.RegisterMessageHandler(NextAddBDItemTemplate(a_Bot, a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_NameField, a_AddDescMessageFunc, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMName)
-    a_Bot.RegisterMessageHandler(NextAddBDItemTemplate(a_Bot, a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_DescField, a_AddPhotoMessageFunc, a_AccessFunc, keyboard_skip_and_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMDesc)
-    a_Bot.RegisterMessageHandler(FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)
+    a_Bot.RegisterMessageHandler(NextAddBDItemTemplate(a_Bot, a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_NameField, a_AddDescMessageFunc, None, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMName)
+    a_Bot.RegisterMessageHandler(NextAddBDItemTemplate(a_Bot, a_FSM, None, a_ParentTableName, a_ParentKeyFieldName, a_DescField, a_AddPhotoMessageFunc, None, a_AccessFunc, keyboard_skip_and_cancel, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.text), state = a_FSMDesc)
+    a_Bot.RegisterMessageHandler(FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_PhotoField, a_FinishMessageFunc, None, a_AccessFunc, a_ButtonFunc, access_mode, field_type = bd_item.FieldType.photo), content_types = ['photo', 'text'], state = a_FSMPhoto)
 
 def AddBDItem1RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_AddBDItemFunc, a_AddMessageFunc, a_FinishMessageFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_FieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, a_FieldType, access_mode = user_access.AccessMode.ADD):
     keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, access_mode)
@@ -111,7 +117,7 @@ def AddBDItem1RegisterHandlers(a_Bot, a_StartCheckFunc, a_FSM, a_AddBDItemFunc, 
     if a_ParentTableName:
         reg_func = a_Bot.RegisterCallbackHandler
     reg_func(StartAddBDItemTemplate(a_Bot, a_FSM, a_FSM.bd_item, a_AddMessageFunc, a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, keyboard_cancel, a_ButtonFunc, access_mode), a_StartCheckFunc)
-    finish_handler = FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_FinishMessageFunc, a_AccessFunc, a_ButtonFunc, access_mode, field_type = a_FieldType)
+    finish_handler = FinishAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, a_FieldName, a_FinishMessageFunc, None, a_AccessFunc, a_ButtonFunc, access_mode, field_type = a_FieldType)
     if a_FieldType == bd_item.FieldType.photo:
         a_Bot.RegisterMessageHandler(finish_handler, content_types = ['photo', 'text'], state = a_FSM.bd_item)
     else:

@@ -42,6 +42,16 @@ def GetKeyDataFromCallbackMessage(a_Message, a_Prefix):
         key_item_id = str(a_Message.data).replace(a_Prefix, '')
     return key_item_id
 
+def MixKeyboardFuncTemplate(a_Func1, a_Func2):
+    def KeyboardButtons(a_Message, a_UserGroups):
+        func = [a_Func1, a_Func2]
+        result = []
+        for f in func:
+            if f:
+                result += f(a_Message, a_UserGroups)
+        return result
+    return KeyboardButtons
+
 def GetCancelKeyboardButtonsTemplate(a_Bot, a_AccessFunc, a_AccessMode):
     def GetCancelKeyboardButtons(a_Message, a_UserGroups):
         cur_buttons = [

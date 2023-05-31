@@ -27,7 +27,7 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
         table_name_field,
         bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
-        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.PHOTO),
         bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
         bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
         table_parent_id_field,
@@ -47,10 +47,10 @@ button_names = {
     mod_table_operate.ButtonNames.LIST: "📃 Список сообщений",
     mod_table_operate.ButtonNames.ADD: "☑ Добавить сообщение",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать сообщение",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у сообщения",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у сообщения",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у сообщения",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к сообщению",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение у сообщения",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название у сообщения",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание у сообщения",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к сообщению",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить сообщение",
 }
 
@@ -72,17 +72,17 @@ messages = {
 
 Время создания: #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание сообщения. Шаг №1
 
 Введите название сообщения:
 ''',
-    mod_table_operate.Messages.CREATE_DESC: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.DESC): '''
 Создание сообщения. Шаг №2
 
 Введите описание сообщения:
 ''',
-    mod_table_operate.Messages.CREATE_PHOTO: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Создание сообщения. Шаг №3
 
 Загрузите обложку для сообщения (Фото):
@@ -95,23 +95,23 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите сообщение, который вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_PHOTO: '''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для сообщения (Фото):
 Она будет отображаться в его описании.
 ''',
-    mod_table_operate.Messages.EDIT_NAME: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
 Текущее название сообщения:
 #{name_field}
 
 Введите новое название сообщения:
 ''',
-    mod_table_operate.Messages.EDIT_DESC: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DESC): f'''
 Текущее описание сообщения:
 #{desc_field}
 
 Введите новое описание сообщения:
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к сообщениеу:
 #{access_field}
 

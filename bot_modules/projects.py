@@ -22,7 +22,7 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
         bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR),
         bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
-        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.PHOTO),
         bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
         bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
         ])
@@ -37,10 +37,10 @@ button_names = {
     mod_table_operate.ButtonNames.LIST: "📃 Список проектов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить проект",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать проект",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение в проекте",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название в проекте",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание в проекте",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к проекту",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в проекте",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в проекте",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в проекте",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к проекту",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить проект",
 }
 
@@ -62,17 +62,17 @@ messages = {
 
 Время создания: #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание проекта. Шаг №1
 
 Введите название проекта:
 ''',
-    mod_table_operate.Messages.CREATE_DESC: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.DESC): '''
 Создание проекта. Шаг №2
 
 Введите описание проекта:
 ''',
-    mod_table_operate.Messages.CREATE_PHOTO: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Создание проекта. Шаг №3
 
 Загрузите обложку для проекта (Фото):
@@ -85,23 +85,23 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите проект, который вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_PHOTO: '''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для проекта (Фото):
 Она будет отображаться в его описании.
 ''',
-    mod_table_operate.Messages.EDIT_NAME: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
 Текущее название проекта:
 #{name_field}
 
 Введите новое название проекта:
 ''',
-    mod_table_operate.Messages.EDIT_DESC: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DESC): f'''
 Текущее описание проекта:
 #{desc_field}
 
 Введите новое описание проекта:
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к проекту:
 #{access_field}
 
@@ -123,10 +123,4 @@ class ModuleProjects(mod_table_operate.TableOperateModule):
 
     def GetName(self):
         return module_name
-
-    def GetModuleButtons(self):
-        return super().GetModuleButtons() + [
-                keyboard.ButtonWithAccess(self.GetButton(mod_table_operate.ButtonNames.LIST), user_access.AccessMode.VIEW, self.GetAccess()),
-                ]
-
 
