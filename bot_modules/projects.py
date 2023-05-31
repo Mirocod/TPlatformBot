@@ -124,9 +124,3 @@ class ModuleProjects(mod_table_operate.TableOperateModule):
     def GetName(self):
         return module_name
 
-    def GetModuleButtons(self):
-        return super().GetModuleButtons() + [
-                keyboard.ButtonWithAccess(self.GetButton(mod_table_operate.ButtonNames.LIST), user_access.AccessMode.VIEW, self.GetAccess()),
-                ]
-
-

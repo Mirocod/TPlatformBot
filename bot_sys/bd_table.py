@@ -6,9 +6,9 @@ from enum import auto
 
 # Тип поля в таблице
 class TableFieldType(Enum):
-    INT = 'INTEGER'
-    STR = 'TEXT'
-    ENUM = 'ENUM'
+    INT = auto()
+    STR = auto()
+    ENUM = auto()
 
 def InitTableType(a_TableFieldType):
     types = {
