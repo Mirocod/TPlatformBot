@@ -76,7 +76,7 @@ messages.update(cur_messages)
 def GetCurItemsTemplate(a_Bot, a_TableName, a_StatusFieldName):
     def GetBDItems(a_Message, a_UserGroups, a_ParentID):
         request = f'SELECT * FROM {a_TableName} WHERE {a_StatusFieldName} != ?'
-        return a_Bot.SQLRequest(request, param = ([user_id, str(OrderStatus.FINISH)]))
+        return a_Bot.SQLRequest(request, param = ([str(orders.OrderStatus.FINISH)]))
     return GetBDItems
 
 def GetBDItemsForUserTemplate(a_Bot, a_TableName):
@@ -116,3 +116,7 @@ class ModuleAllOrders(orders.ModuleOrders):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
         return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName, a_OnlyCurrent = True)
 
+    def GetButtonNameAndKeyValueAndAccess(self, a_Item):
+        parent_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        n, k, a = super().GetButtonNameAndKeyValueAndAccess(a_Item)
+        return n + ":" + str(a_Item[parent_field_id]), k, a
