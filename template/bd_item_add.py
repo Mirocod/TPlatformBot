@@ -90,7 +90,7 @@ def FinishOrNextAddBDItemTemplate(a_Bot, a_FSM, a_AddBDItemFunc, a_ParentTableNa
                 field_value = result
             item_data[a_FieldName] = field_value
             if a_Finish:
-                res, error = a_AddBDItemFunc(item_data, user_id)
+                res, error = await a_AddBDItemFunc(item_data, user_id)
         await state_func()
         if error:
             return simple_message.WorkFuncResult(bot_messages.MakeBotMessage(error))

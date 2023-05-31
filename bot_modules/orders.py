@@ -45,7 +45,7 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(parent_id_field, bd_table.TableFieldDestiny.PARENT_ID, bd_table.TableFieldType.INT),
         ])
 
-init_access = f'{user_access.user_access_group_new}=va'
+init_access = f'{user_access.user_access_group_new}=vea'
 
 # ---------------------------------------------------------
 # Сообщения и кнопки
@@ -59,7 +59,7 @@ button_names = {
     ButtonNames.LIST_ALL: "📃 Список всех моих заказов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить заказ",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать мой заказ",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO_PAY): "☐ Загрузить фото оплаты моего заказа",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO_PAY): "☐ Загрузить чек по оплате моего заказа",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в моём заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в моём заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в моём заказе",
@@ -244,7 +244,7 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
                     a_Prefix,\
                     table_name,\
                     key_name,\
-                    self.ShowMessageTemplate(self.GetMessage(mod_table_operate.Messages.OPEN),GetViewItemInlineKeyboardTemplate),\
+                    self.ShowMessageTemplate(self.GetMessage(mod_table_operate.Messages.OPEN),GetViewItemInlineKeyboardTemplate, a_EnablePhoto = True),\
                     GetAccess,\
                     default_keyboard_func,\
                     access_mode = user_access.AccessMode.VIEW\

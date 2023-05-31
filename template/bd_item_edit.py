@@ -19,7 +19,7 @@ def StartEditBDItemTemplate(a_Bot, a_FSM, a_MessageFunc, a_TableName, a_KeyName,
     return bd_item_add.StartAddBDItemTemplate(a_Bot, a_FSM, a_FSM.item_field, a_MessageFunc, a_TableName, a_KeyName, a_Prefix, a_AccessFunc, a_ButtonFunc, a_FinishButtonFunc, access_mode = access_mode)
 
 def FinishEditBDItemTemplate(a_Bot, a_FSM, a_TableName, a_KeyName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, a_OnChangeFunc, access_mode = user_access.AccessMode.EDIT, field_type = bd_item.FieldType.text):
-    def EditBDItemFunc(a_ItemData, a_UserID):
+    async def EditBDItemFunc(a_ItemData, a_UserID):
         item_id = a_ItemData[a_KeyName]
         field_value = a_ItemData[a_FieldName]
         res, error = bd_item.EditBDItemInTableTemplate(a_Bot, a_TableName, a_KeyName, a_FieldName)(item_id, field_value)
@@ -28,7 +28,7 @@ def FinishEditBDItemTemplate(a_Bot, a_FSM, a_TableName, a_KeyName, a_FieldName, 
         else:
             a_Bot.GetLog().Success(f'Пользователь {a_UserID} изменил поле в таблице {a_TableName} ключу {a_KeyName}={item_id}. Новое значение поля {a_FieldName}={field_value}.')
 
-        a_OnChangeFunc()
+        await a_OnChangeFunc(item_id, a_ItemData, a_UserID)
         return res, error
     
     return bd_item_add.FinishAddBDItemTemplate(a_Bot, a_FSM, EditBDItemFunc, a_TableName, a_KeyName, a_FieldName, a_MessageFunc, a_PostProcessFunc, a_AccessFunc, a_ButtonFunc, access_mode = access_mode, field_type = field_type)

@@ -28,6 +28,9 @@ def CreateMessage(a_BDTableDestiny):
 def EnumMessageForView(a_EnumItem):
     return 'enum ' + str(a_EnumItem)
 
+def NotificationMessage(a_EnumItem):
+    return 'notification ' + str(a_EnumItem)
+
 class ButtonNames(Enum):
     LIST = auto() 
     ADD = auto() 
@@ -107,8 +110,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return await self.PostDelete(a_CallbackQuery, a_ItemID)
         self.m_PostDeleteFunc = PostDelete
 
-        def AddBDItemFunc(a_ItemData, a_UserID):
-            return self.AddBDItemFunc(a_ItemData, a_UserID)
+        async def AddBDItemFunc(a_ItemData, a_UserID):
+            return await self.AddBDItemFunc(a_ItemData, a_UserID)
         self.m_AddBDItemFunc = AddBDItemFunc
  
     def GetFSM(self, a_FSMName):
@@ -133,7 +136,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         mod_buttons = keyboard.MakeButtons(self.m_Bot, self.GetButtons(self.m_EditModuleNameList), a_UserGroups)
         cur_buttons = []
         for f in self.m_Table.GetFields():
-            cur_buttons += [keyboard.ButtonWithAccess(self.GetButton(EditButton(f.m_Destiny)), user_access.AccessMode.EDIT, self.GetAccess()),]
+            access = user_access.AccessMode.EDIT
+            if f.m_Destiny == bd_table.TableFieldDestiny.ACCESS or f.m_Destiny == bd_table.TableFieldDestiny.DEFAULT_ACCESS:
+                access = user_access.AccessMode.ACCEES_EDIT
+            cur_buttons += [keyboard.ButtonWithAccess(self.GetButton(EditButton(f.m_Destiny)), access, self.GetAccess()),]
         return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def GetViewItemInlineKeyboardTemplate(self, a_ItemID):
@@ -165,7 +171,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 a_Item[key_name_id],\
                 a_Item[access_field_id]
 
-    def UpdateMessage(self, a_Msg, a_Lang, a_Item):
+    def UpdateMessage(self, a_Msg, a_Lang, a_Item, a_EnablePhoto = False):
         a_Msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(a_Msg.GetDesc(), a_Item))
         photos = []
         field_id = 0
@@ -178,10 +184,11 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             elif f.m_Type == bd_table.TableFieldType.PHOTO:
                 photos += [str(a_Item[field_id])]
             field_id += 1
-        a_Msg.UpdatePhotoID(','.join(photos))
+        if a_EnablePhoto:
+            a_Msg.UpdatePhotoID(','.join(photos))
         return a_Msg
 
-    def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None):
+    def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None, a_EnablePhoto = False):
         async def ShowMessage(a_CallbackQuery, a_Item):
             msg = a_Message.StaticCopy()
             # TODO: добавить поддержку языка в a_MessageName
@@ -213,7 +220,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         self.OnChange()
         return simple_message.WorkFuncResult(self.GetMessage(Messages.SUCCESS_DELETE))
 
-    def AddBDItemFunc(self, a_ItemData, a_UserID):
+    async def AddBDItemFunc(self, a_ItemData, a_UserID):
         table_name = self.m_Table.GetName()
         name_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.NAME)
         photo_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PHOTO)
@@ -297,6 +304,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return PostProccessing
         return None
 
+    async def OnChangeField(self, a_Field, a_ItemID, a_ItemData, a_EditUserID):
+        pass
+
     def RegisterEdit(self, a_Field, a_AccessMode = user_access.AccessMode.EDIT):
             a_ButtonName = self.GetButton(EditButton(a_Field.m_Destiny))
             a_EditMessage = self.GetMessage(EditMessage(a_Field.m_Destiny))
@@ -309,7 +319,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             if not a_ButtonName or not a_EditMessage:
                 return
 
-            def OnChange():
+            async def OnChange(a_ItemID, a_ItemData, a_EditUserID):
+                await self.OnChangeField(a_Field, a_ItemID, a_ItemData, a_EditUserID)
                 return self.OnChange()
 
             table_name = self.m_Table.GetName()
@@ -381,7 +392,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     a_Prefix,\
                     table_name,\
                     key_name,\
-                    self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate),\
+                    self.ShowMessageTemplate(self.GetMessage(Messages.OPEN), GetViewItemInlineKeyboardTemplate, a_EnablePhoto = True),\
                     GetAccess,\
                     defaul_keyboard_func,\
                     access_mode = user_access.AccessMode.VIEW\

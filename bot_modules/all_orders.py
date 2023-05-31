@@ -7,7 +7,6 @@ from bot_sys import bot_bd, keyboard, user_access, bd_table
 from bot_modules import mod_table_operate, mod_simple_message, orders
 from template import bd_item_select, bd_item_view, bd_item
 
-
 # ---------------------------------------------------------
 # БД
 module_name = 'all_orders'
@@ -28,6 +27,7 @@ cur_button_names = {
     mod_table_operate.ButtonNames.LIST: "📃 Список текущих заказов",
     orders.ButtonNames.LIST_ALL: "📃 Список всех заказов",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать заказ",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO_PAY): "☐ Загрузить чек по оплате заказа",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в заказе",
@@ -70,7 +70,19 @@ cur_messages = {
 ''',
 }
 
+messages_notification = {
+    mod_table_operate.NotificationMessage(orders.OrderStatus.NEW): f'''Статус заказа "#{orders.name_field}" изменён на - ожидает модерации''',
+    mod_table_operate.NotificationMessage(orders.OrderStatus.PAY): f'''Статус заказа "#{orders.name_field}" изменён на - Заказ ожидает оплаты.
+
+Оплатите заказ и прикрепите чек об оплате к заказу. Для этого проследуйте по пути "Заказы"->"Редактировать мой заказ"->"Загрузить чек по оплате моего заказа"''',
+    mod_table_operate.NotificationMessage(orders.OrderStatus.ADDRESS): f'''Статус заказа "#{orders.name_field}" изменён на - Заказ ожидает указания адреса доставки.
+
+Для этого проследуйте по пути "Заказы"->"Редактировать мой заказ"->"Изменить адрес в моём заказе"''',
+    mod_table_operate.NotificationMessage(orders.OrderStatus.FINISH): f'''Статус заказа "#{orders.name_field}" изменён на - Заказ выполнен''',
+}
+
 messages.update(orders.messages_order_status)
+messages.update(messages_notification)
 messages.update(cur_messages)
 
 def GetCurItemsTemplate(a_Bot, a_TableName, a_StatusFieldName):
@@ -120,3 +132,31 @@ class ModuleAllOrders(orders.ModuleOrders):
         parent_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
         n, k, a = super().GetButtonNameAndKeyValueAndAccess(a_Item)
         return n + ":" + str(a_Item[parent_field_id]), k, a
+
+    async def OnChangeField(self, a_Field, a_ItemID, a_ItemData, a_EditUserID):
+        if a_Field.m_Destiny == bd_table.TableFieldDestiny.STATUS:
+            key_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY)
+            item = bd_item.GetBDItemsTemplate(self.m_Bot, self.m_Table.GetName(), key_field)(a_ItemID)
+            if len(item) < 1:
+                self.m_Log.Error(f'Не удалось оповестить по заказу №{a_ItemID}.')
+                return
+
+            item = item[0]
+            parent_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+            status_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.STATUS)
+            print('OnChangeField', item, parent_field_id, status_field_id)
+            owner_id = item[parent_field_id]
+            new_status = item[status_field_id]
+            msg = self.GetMessage(mod_table_operate.NotificationMessage(new_status))
+            if not msg:
+                self.m_Log.Error(f'Не удалось оповестить по заказу №{a_ItemID}. Пустое сообщение для нового статуса {new_status}')
+                return
+            msg = self.UpdateMessage(msg, None, item)
+            await self.m_Bot.SendMessage(
+                    owner_id,
+                    msg.GetDesc(),
+                    msg.GetPhotoID(),
+                    None,
+                    None
+                    )
+
