@@ -9,12 +9,14 @@ class TableFieldType(Enum):
     INT = auto()
     STR = auto()
     ENUM = auto()
+    PHOTO = auto()
 
 def InitTableType(a_TableFieldType):
     types = {
         TableFieldType.INT: 'INTEGER',
         TableFieldType.STR: 'TEXT',
         TableFieldType.ENUM: 'TEXT',
+        TableFieldType.PHOTO: 'TEXT',
     }
     return types.get(a_TableFieldType, None)
 
@@ -24,6 +26,7 @@ class TableFieldDestiny(Enum):
     NAME = auto()
     DESC = auto()
     PHOTO = auto()
+    PHOTO_PAY = auto()
     ACCESS = auto()
     DEFAULT_ACCESS = auto()
     CREATE_DATE = auto()

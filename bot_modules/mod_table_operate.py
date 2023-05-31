@@ -131,15 +131,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
     def GetEditKeyboardButtons(self, a_Message, a_UserGroups):
         mod_buttons = keyboard.MakeButtons(self.m_Bot, self.GetButtons(self.m_EditModuleNameList), a_UserGroups)
-        cur_buttons = [
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.PHOTO)), user_access.AccessMode.VIEW, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.NAME)), user_access.AccessMode.ADD, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.DESC)), user_access.AccessMode.DELETE, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.ACCESS)), user_access.AccessMode.DELETE, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.DEFAULT_ACCESS)), user_access.AccessMode.EDIT, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.ADDRESS)), user_access.AccessMode.EDIT, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.STATUS)), user_access.AccessMode.EDIT, self.GetAccess()),
-                ]
+        cur_buttons = []
+        for f in self.m_Table.GetFields():
+            cur_buttons += [keyboard.ButtonWithAccess(self.GetButton(EditButton(f.m_Destiny)), user_access.AccessMode.EDIT, self.GetAccess()),]
         return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
     def GetViewItemInlineKeyboardTemplate(self, a_ItemID):
@@ -173,17 +167,19 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
     def UpdateMessage(self, a_Msg, a_Lang, a_Item):
         a_Msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(a_Msg.GetDesc(), a_Item))
-        photo_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)
-        if photo_field:
-            a_Msg.UpdatePhotoID(a_Item[photo_field])
+        photos = []
+        field_id = 0
         for f in self.m_Table.GetFields():
             if f.m_Type == bd_table.TableFieldType.ENUM:
                 for s in f.m_Enum:
                     msg = self.GetMessage(EnumMessageForView(s))
                     if msg:
                         a_Msg.UpdateDesc(a_Msg.GetDesc().replace(str(s), str(msg.GetMessageForLang(a_Lang).StaticCopy())))
+            elif f.m_Type == bd_table.TableFieldType.PHOTO:
+                photos += [str(a_Item[field_id])]
+            field_id += 1
+        a_Msg.UpdatePhotoID(','.join(photos))
         return a_Msg
-
 
     def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None):
         async def ShowMessage(a_CallbackQuery, a_Item):
@@ -307,7 +303,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             a_FieldName = a_Field.m_Name
 
             a_FieldType = bd_item.FieldType.text
-            if a_Field.m_Destiny == bd_table.TableFieldDestiny.PHOTO:
+            if a_Field.m_Type == bd_table.TableFieldType.PHOTO:
                 a_FieldType = bd_item.FieldType.photo
 
             if not a_ButtonName or not a_EditMessage:

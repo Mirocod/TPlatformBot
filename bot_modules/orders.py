@@ -25,6 +25,7 @@ key_name = 'orderID'
 name_field = 'orderName'
 desc_field = 'orderDesc'
 photo_field = 'orderPhoto'
+photo_pay_field = 'orderPhotoPay'
 status_field = 'orderStatus'
 address_field = 'orderAddress'
 access_field = 'orderAccess'
@@ -35,7 +36,8 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(key_name, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
         bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR),
         bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
-        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
+        bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.PHOTO),
+        bd_table.TableField(photo_pay_field, bd_table.TableFieldDestiny.PHOTO_PAY, bd_table.TableFieldType.PHOTO),
         bd_table.TableField(status_field, bd_table.TableFieldDestiny.STATUS, bd_table.TableFieldType.ENUM, a_Enum = OrderStatus),
         bd_table.TableField(address_field, bd_table.TableFieldDestiny.ADDRESS, bd_table.TableFieldType.STR),
         bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
@@ -57,6 +59,7 @@ button_names = {
     ButtonNames.LIST_CURRENT: "📃 Список моих текущих заказов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить заказ",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать мой заказ",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO_PAY): "☐ Загрузить фото оплаты моего заказа",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в моём заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в моём заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в моём заказе",
@@ -109,6 +112,9 @@ messages = {
 ''',
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите заказ, который вы хотите отредактировать.
+''',
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO_PAY): '''
+Загрузите чек по оплате заказа (фото):
 ''',
     mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для заказа (Фото):
@@ -200,6 +206,7 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
         a_ItemData[parent_id_field] = a_UserID
         a_ItemData[status_field] = str(OrderStatus.NEW)
         a_ItemData[address_field] = ''
+        a_ItemData[photo_pay_field] = '0'
         return super().AddBDItemFunc(a_ItemData, a_UserID)
 
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):

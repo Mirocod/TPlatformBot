@@ -72,6 +72,7 @@ class SimpleMessageModule(mod_interface.IModule):
         assert len(a_ButtonDesc) < 41 # Телеграм не поддерживает больше
         assert a_ButtonDesc[0] != ' ' # Телеграм не поддерживает пробелы в начале
         assert a_ButtonDesc[-1:] != ' ' # Телеграм не поддерживает пробелы в конце
+        # TODO добавить проверку, что все кнопки (a_ButtonDesc) разные
         btn = self.m_BotButtons.CreateMessage(f'{self.GetName()} {str(a_ButtonName).replace("ButtonNames.", "")}', a_ButtonDesc, self.m_Log.GetTimeNow())
         return btn
 
