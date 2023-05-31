@@ -14,13 +14,19 @@ from enum import Enum
 from enum import auto
 
 def EditButton(a_BDTableDestiny):
-    return 'edit' + str(a_BDTableDestiny)
+    return 'edit ' + str(a_BDTableDestiny)
+
+def EnumButton(a_EnumItem):
+    return 'enum ' + str(a_EnumItem)
 
 def EditMessage(a_BDTableDestiny):
-    return 'edit' + str(a_BDTableDestiny)
+    return 'edit ' + str(a_BDTableDestiny)
 
 def CreateMessage(a_BDTableDestiny):
-    return 'create' + str(a_BDTableDestiny)
+    return 'create ' + str(a_BDTableDestiny)
+
+def EnumMessageForView(a_EnumItem):
+    return 'enum ' + str(a_EnumItem)
 
 class ButtonNames(Enum):
     LIST = auto() 
@@ -170,7 +176,14 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         photo_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)
         if photo_field:
             a_Msg.UpdatePhotoID(a_Item[photo_field])
+        for f in self.m_Table.GetFields():
+            if f.m_Type == bd_table.TableFieldType.ENUM:
+                for s in f.m_Enum:
+                    msg = self.GetMessage(EnumMessageForView(s))
+                    if msg:
+                        a_Msg.UpdateDesc(a_Msg.GetDesc().replace(str(s), str(msg.GetMessageForLang(a_Lang).StaticCopy())))
         return a_Msg
+
 
     def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None):
         async def ShowMessage(a_CallbackQuery, a_Item):
@@ -268,6 +281,26 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         return a_Prefix
 
+    def AdditionalKeyboardForEditTemplate(self, a_Field):
+        if a_Field.m_Type == bd_table.TableFieldType.ENUM:
+            def KeyboardButtons(a_Message, a_UserGroups):
+                cur_buttons = []
+                for s in a_Field.m_Enum:
+                    cur_buttons += [keyboard.ButtonWithAccess(self.GetButton(EnumButton(s)), user_access.AccessMode.EDIT, self.GetAccess()),]
+                return keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
+            return KeyboardButtons
+        return None
+
+    def PostProccessingForFieldForEditTemplate(self, a_Field):
+        if a_Field.m_Type == bd_table.TableFieldType.ENUM:
+            def PostProccessing(a_Message):
+                for s in a_Field.m_Enum:
+                    if a_Message == str(self.GetButton(EnumButton(s))):
+                        return str(s)
+                return a_Message
+            return PostProccessing
+        return None
+
     def RegisterEdit(self, a_Field, a_AccessMode = user_access.AccessMode.EDIT):
             a_ButtonName = self.GetButton(EditButton(a_Field.m_Destiny))
             a_EditMessage = self.GetMessage(EditMessage(a_Field.m_Destiny))
@@ -300,8 +333,10 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 table_name, \
                 key_name, \
                 a_FieldName, \
+                self.PostProccessingForFieldForEditTemplate(a_Field),\
                 GetButtonNameAndKeyValueAndAccess, \
                 GetAccess, \
+                self.AdditionalKeyboardForEditTemplate(a_Field),\
                 edit_keyboard_func, \
                 OnChange,\
                 access_mode = a_AccessMode, \

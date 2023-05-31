@@ -8,6 +8,15 @@ from enum import auto
 class TableFieldType(Enum):
     INT = 'INTEGER'
     STR = 'TEXT'
+    ENUM = 'ENUM'
+
+def InitTableType(a_TableFieldType):
+    types = {
+        TableFieldType.INT: 'INTEGER',
+        TableFieldType.STR: 'TEXT',
+        TableFieldType.ENUM: 'TEXT',
+    }
+    return types.get(a_TableFieldType, None)
 
 # Предназначение поля в таблице
 class TableFieldDestiny(Enum):
@@ -24,10 +33,11 @@ class TableFieldDestiny(Enum):
     OTHER = auto()
 
 class TableField:
-    def __init__(self, a_Name, a_Destiny : TableFieldDestiny, a_Type : TableFieldType):
+    def __init__(self, a_Name, a_Destiny : TableFieldDestiny, a_Type : TableFieldType, a_Enum = None):
         self.m_Name = a_Name
         self.m_Destiny = a_Destiny
         self.m_Type = a_Type
+        self.m_Enum = a_Enum
 
 class Table:
     def __init__(self, a_TableName, a_Fields : [TableField], a_UniqueFields = None):
@@ -67,7 +77,7 @@ class Table:
         request = f'CREATE TABLE IF NOT EXISTS {self.GetName()}('
         items = []
         for f in self.m_Fields:
-            item = f.m_Name + ' ' + str(f.m_Type.value)
+            item = f.m_Name + ' ' + str(InitTableType(f.m_Type))
             if f.m_Destiny == TableFieldDestiny.KEY:
                 item += ' PRIMARY KEY'
             items += [item]
@@ -86,14 +96,20 @@ class Table:
             result = result.replace(f'#{f.m_Name}', str(a_BDItem[i]))
         return result
 
+class Status(Enum):
+    NEW = auto()
+    FINISH = auto()
+
 def Test():
     f1 = TableField('f1', TableFieldDestiny.KEY, TableFieldType.INT)
     f2 = TableField('f2', TableFieldDestiny.NAME, TableFieldType.STR)
     f3 = TableField('f3', TableFieldDestiny.DESC, TableFieldType.STR)
+    f4 = TableField('f4', TableFieldDestiny.STATUS, TableFieldType.ENUM, a_Enum = Status)
     table = Table('tname', [
             f1,
             f2,
-            f3
+            f3,
+            f4,
             ],
             [[f1], [f2, f3]]
             )
@@ -113,16 +129,21 @@ def Test():
     assert table.GetFieldByDestiny(TableFieldDestiny.DESC).m_Destiny == TableFieldDestiny.DESC
     assert table.GetFieldByDestiny(TableFieldDestiny.DESC).m_Type == TableFieldType.STR
     assert table.GetFieldIDByDestiny(TableFieldDestiny.DESC) == 2
+    assert table.GetFieldByDestiny(TableFieldDestiny.STATUS).m_Name == 'f4'
+    assert table.GetFieldNameByDestiny(TableFieldDestiny.STATUS) == 'f4'
+    assert table.GetFieldByDestiny(TableFieldDestiny.STATUS).m_Destiny == TableFieldDestiny.STATUS
+    assert table.GetFieldByDestiny(TableFieldDestiny.STATUS).m_Type == TableFieldType.ENUM
+    assert table.GetFieldIDByDestiny(TableFieldDestiny.STATUS) == 3
 
     assert table.GetFieldByDestiny(TableFieldDestiny.PHOTO) == None
     assert table.GetFieldIDByDestiny(TableFieldDestiny.PHOTO) == None
     assert table.GetFieldNameByDestiny(TableFieldDestiny.PHOTO) == None
 
-    assert table.GetFieldsCount() == 3
-    assert len(table.GetFields()) == 3
+    assert table.GetFieldsCount() == 4
+    assert len(table.GetFields()) == 4
 
     print(table.GetInitTableRequest())
-    assert table.GetInitTableRequest() == 'CREATE TABLE IF NOT EXISTS tname(f1 INTEGER PRIMARY KEY, f2 TEXT, f3 TEXT, UNIQUE(f1), UNIQUE(f2, f3));'
+    assert table.GetInitTableRequest() == 'CREATE TABLE IF NOT EXISTS tname(f1 INTEGER PRIMARY KEY, f2 TEXT, f3 TEXT, f4 TEXT, UNIQUE(f1), UNIQUE(f2, f3));'
 
-    item = [10, 'i1', 'i2']
-    assert table.ReplaceAllFieldTags('#f1 #f2 #f3', item) == '10 i1 i2'
+    item = [10, 'i2', 'i3', 'i4']
+    assert table.ReplaceAllFieldTags('#f1 #f2 #f3 #f4', item) == '10 i2 i3 i4'

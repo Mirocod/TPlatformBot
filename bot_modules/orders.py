@@ -36,7 +36,7 @@ table = bd_table.Table(table_name, [
         bd_table.TableField(name_field, bd_table.TableFieldDestiny.NAME, bd_table.TableFieldType.STR),
         bd_table.TableField(desc_field, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldType.STR),
         bd_table.TableField(photo_field, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldType.STR),
-        bd_table.TableField(status_field, bd_table.TableFieldDestiny.STATUS, bd_table.TableFieldType.STR),
+        bd_table.TableField(status_field, bd_table.TableFieldDestiny.STATUS, bd_table.TableFieldType.ENUM, a_Enum = OrderStatus),
         bd_table.TableField(address_field, bd_table.TableFieldDestiny.ADDRESS, bd_table.TableFieldType.STR),
         bd_table.TableField(access_field, bd_table.TableFieldDestiny.ACCESS, bd_table.TableFieldType.STR),
         bd_table.TableField(create_datetime_field, bd_table.TableFieldDestiny.CREATE_DATE, bd_table.TableFieldType.STR),
@@ -63,6 +63,10 @@ button_names = {
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.ADDRESS): "𝌴 Изменить адрес в заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.STATUS): "𝌴 Изменить статус в заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к заказу",
+    mod_table_operate.EnumButton(OrderStatus.NEW): "Заказ ожидает модерации",
+    mod_table_operate.EnumButton(OrderStatus.PAY): "Заказ ожидает оплаты",
+    mod_table_operate.EnumButton(OrderStatus.ADDRESS): "Заказ ожидает уточнения адреса",
+    mod_table_operate.EnumButton(OrderStatus.FINISH): "Заказ выполнен",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить заказ",
 }
 
@@ -156,37 +160,35 @@ messages = {
 }
 
 messages_order_status = {
-    OrderStatus.NEW: f'''Заказ создан, ожидает модерации''',
-    OrderStatus.PAY: f'''Заказ ожидает оплаты''',
-    OrderStatus.ADDRESS: f'''Заказ ожидает указания адреса доставки''',
-    OrderStatus.FINISH: f'''Заказ выполнен''',
+    mod_table_operate.EnumMessageForView(OrderStatus.NEW): f'''Заказ создан, ожидает модерации''',
+    mod_table_operate.EnumMessageForView(OrderStatus.PAY): f'''Заказ ожидает оплаты''',
+    mod_table_operate.EnumMessageForView(OrderStatus.ADDRESS): f'''Заказ ожидает указания адреса доставки''',
+    mod_table_operate.EnumMessageForView(OrderStatus.FINISH): f'''Заказ выполнен''',
 }
 
 messages.update(messages_order_status)
 
 def GetCurItemsTemplate(a_Bot, a_TableName, a_UserIDFieldName, a_StatusFieldName):
     def GetBDItems(a_Message, a_UserGroups, a_ParentID):
+        user_id = str(a_Message.from_user.id)
         request = f'SELECT * FROM {a_TableName} WHERE {a_UserIDFieldName} = ? AND {a_StatusFieldName} != ?'
-        print('GetCurItemsTemplate', a_TableName, a_UserIDFieldName, a_KeyValue)
-        return a_Bot.SQLRequest(request, param = ([a_KeyValue, OrderStatus.FINISH]))
+        return a_Bot.SQLRequest(request, param = ([user_id, str(OrderStatus.FINISH)]))
     return GetBDItems
 
 def GetBDItemsForUserTemplate(a_Bot, a_TableName, a_UserIDFieldName):
     def GetBDItems(a_Message, a_UserGroups, a_ParentID):
         user_id = str(a_Message.from_user.id)
-        print('user_id', a_Message, user_id)
         return bd_item.GetBDItemsTemplate(a_Bot, a_TableName, a_UserIDFieldName)(user_id)
     return GetBDItems
 
 class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
-    def __init__(self, a_Bot, a_TableName, a_ParentIDFieldName, a_PrevPrefix, a_ButtonName, a_OnlyCurent = False):
+    def __init__(self, a_Bot, a_TableName, a_ParentIDFieldName, a_PrevPrefix, a_ButtonName, a_OnlyCurrent = False):
         super().__init__(a_Bot, a_TableName, a_ParentIDFieldName, a_PrevPrefix, a_ButtonName)
-        self.m_OnlyCurent = a_OnlyCurent
+        self.m_OnlyCurrent = a_OnlyCurrent
 
     def GetItemsFunc(self):
-        get_items_func = super().GetItemsFunc()
-        if self.m_OnlyCurent:
-            get_items_func = GetCurItemsTemplate(self.m_Bot, self.m_TableName, self.m_ParentIDFieldName, status_field)
+        if self.m_OnlyCurrent:
+            return GetCurItemsTemplate(self.m_Bot, self.m_TableName, self.m_ParentIDFieldName, status_field)
         return GetBDItemsForUserTemplate(self.m_Bot, self.m_TableName, self.m_ParentIDFieldName)
 
     def IsFirst(self):
@@ -205,7 +207,7 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
 
     def SelectSourceForCurrentTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
-        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName, a_OnlyCurent = True)
+        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName, a_OnlyCurrent = True)
 
     def AddBDItemFunc(self, a_ItemData, a_UserID):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
@@ -220,12 +222,6 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST_CURRENT), user_access.AccessMode.VIEW, self.GetAccess()),
                 ]
         return parent_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
-
-    def UpdateMessage(self, a_Msg, a_Lang, a_Item):
-        a_Msg = super().UpdateMessage(a_Msg, a_Lang, a_Item)
-        for s in OrderStatus:
-            a_Msg.UpdateDesc(a_Msg.GetDesc().replace(str(s), str(self.GetMessage(s).GetMessageForLang(a_Lang).StaticCopy())))
-        return a_Msg
 
     def RegisterHandlers(self):
         super().RegisterHandlers()
