@@ -200,7 +200,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 elif len(a_Item) == self.m_Table.GetFieldsCount():
                     lang = str(a_CallbackQuery.from_user.language_code)
                     msg = msg.GetMessageForLang(lang).StaticCopy()
-                    msg = self.UpdateMessage(msg, lang, a_Item)
+                    msg = self.UpdateMessage(msg, lang, a_Item, a_EnablePhoto = a_EnablePhoto)
                 item_access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
                 if Inline_keyboard_template_func:
                     Inline_keyboard_func = Inline_keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
