@@ -57,12 +57,12 @@ button_names = {
     ButtonNames.LIST_CURRENT: "📃 Список текущих заказов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить заказ",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать заказ",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение в заказе",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название в заказе",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание в заказе",
-    mod_table_operate.ButtonNames.EDIT_ADDRESS: "𝌴 Изменить адрес в заказе",
-    mod_table_operate.ButtonNames.EDIT_STATUS: "𝌴 Изменить статус в заказе",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к заказу",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ADDRESS): "𝌴 Изменить адрес в заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.STATUS): "𝌴 Изменить статус в заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к заказу",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить заказ",
 }
 
@@ -78,27 +78,27 @@ messages = {
 ❌ Ошибка, заказ не найден
 ''',
     mod_table_operate.Messages.OPEN: f'''
-<b>Заказ:  #{name_field}</b>
+<b>Заказ: #{name_field}</b>
 
-#{desc_field}
+<b>Описание и состав заказа:</b> #{desc_field}
 
-<b>Статус:</b>#{status_field}
+<b>Статус:</b> #{status_field}
 
-<b>Адрес доставки:</b>#{address_field}
+<b>Адрес доставки:</b> #{address_field}
 
 <b>Время создания:</b> #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание заказа. Шаг №1
 
 Введите название заказа:
 ''',
-    mod_table_operate.Messages.CREATE_DESC: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.DESC): '''
 Создание заказа. Шаг №2
 
 Введите описание заказа:
 ''',
-    mod_table_operate.Messages.CREATE_PHOTO: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Создание заказа. Шаг №3
 
 Загрузите обложку для заказа (Фото):
@@ -111,35 +111,35 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите заказ, который вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_PHOTO: '''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для заказа (Фото):
 Она будет отображаться в его описании.
 ''',
-    mod_table_operate.Messages.EDIT_NAME: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
 Текущее название заказа:
 #{name_field}
 
 Введите новое название заказа:
 ''',
-    mod_table_operate.Messages.EDIT_DESC: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DESC): f'''
 Текущее описание заказа:
 #{desc_field}
 
 Введите новое описание заказа:
 ''',
-    mod_table_operate.Messages.EDIT_ADDRESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ADDRESS): f'''
 Текущий адрес заказа:
 #{desc_field}
 
 Введите новый адрес доставки заказа (укажите, кто, когда и где его сможет забрать):
 ''',
-    mod_table_operate.Messages.EDIT_STATUS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.STATUS): f'''
 Текущий статус заказа:
 #{status_field}
 
 Введите новый статус заказа:
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к заказу:
 #{access_field}
 
@@ -154,6 +154,15 @@ messages = {
 ''',
     mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Заказ успешно удалён!''',
 }
+
+messages_order_status = {
+    OrderStatus.NEW: f'''Заказ создан, ожидает модерации''',
+    OrderStatus.PAY: f'''Заказ ожидает оплаты''',
+    OrderStatus.ADDRESS: f'''Заказ ожидает указания адреса доставки''',
+    OrderStatus.FINISH: f'''Заказ выполнен''',
+}
+
+messages.update(messages_order_status)
 
 def GetCurItemsTemplate(a_Bot, a_TableName, a_UserIDFieldName, a_StatusFieldName):
     def GetBDItems(a_Message, a_UserGroups, a_ParentID):
@@ -211,6 +220,12 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
                 keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST_CURRENT), user_access.AccessMode.VIEW, self.GetAccess()),
                 ]
         return parent_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
+
+    def UpdateMessage(self, a_Msg, a_Lang, a_Item):
+        a_Msg = super().UpdateMessage(a_Msg, a_Lang, a_Item)
+        for s in OrderStatus:
+            a_Msg.UpdateDesc(a_Msg.GetDesc().replace(str(s), str(self.GetMessage(s).GetMessageForLang(a_Lang).StaticCopy())))
+        return a_Msg
 
     def RegisterHandlers(self):
         super().RegisterHandlers()

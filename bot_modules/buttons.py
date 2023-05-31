@@ -47,10 +47,10 @@ button_names = {
     mod_table_operate.ButtonNames.LIST: "📃 Список названий кнопок",
     mod_table_operate.ButtonNames.ADD: "☑ Добавить название кнопки",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать названия кнопок",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у названия кнопок",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у названия кнопок",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у названия кнопок",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к названию кнопки",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение у названия кнопок",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название у названия кнопок",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание у названия кнопок",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к названию кнопки",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить название кнопки",
 }
 
@@ -72,17 +72,17 @@ messages = {
 
 Время создания: #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание названия кнопки Шаг №1
 
 Введите название название кнопки:
 ''',
-    mod_table_operate.Messages.CREATE_DESC: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.DESC): '''
 Создание названия кнопки. Шаг №2
 
 Введите описание название кнопки:
 ''',
-    mod_table_operate.Messages.CREATE_PHOTO: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Создание названия кнопки
 Загрузите обложку для названия кнопок (Фото):
 На данный момент не поддерживается!
@@ -95,23 +95,23 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите название кнопки, который вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_PHOTO: '''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для названия кнопок (Фото):
 Она будет отображаться в его описании.
 ''',
-    mod_table_operate.Messages.EDIT_NAME: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
 Текущее название названия кнопок:
 #{name_field}
 
 Введите новое название названия кнопки:
 ''',
-    mod_table_operate.Messages.EDIT_DESC: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DESC): f'''
 Текущее описание названия кнопок:
 #{desc_field}
 
 Введите новое описание названия кнопки:
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к названию кнопки:
 #{access_field}
 

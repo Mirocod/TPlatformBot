@@ -55,7 +55,7 @@ button_names = {
     mod_simple_message.ButtonNames.START: "🗫 Пользователи в группах",
     mod_table_operate.ButtonNames.LIST: "📃 Список пользователей в группах",
     ButtonNames.ADD_USER: "✅ Добавить пользователя в группу",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Доступ к пользователю в группе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Доступ к пользователю в группе",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить пользователя из группы",
 }
 
@@ -77,7 +77,7 @@ messages = {
 
 Время создания: #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание пользователя в группе.
 
 Укажите ID пользователя:
@@ -89,7 +89,7 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите пользователя в группе, которого вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к пользователю в группе:
 #{access_field}
 
@@ -145,7 +145,7 @@ class ModuleUserInGroups(mod_table_operate.TableOperateModule):
                     check_func,\
                     FSMAddUserInGroups,\
                     self.m_AddBDItemFunc,\
-                    self.ShowMessageTemplate(self.GetMessage(mod_table_operate.Messages.CREATE_NAME)),\
+                    self.ShowMessageTemplate(self.GetMessage(mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME))),\
                     self.ShowMessageTemplate(self.GetMessage(mod_table_operate.Messages.SUCCESS_CREATE)),\
                     a_Prefix,\
                     parent_table_name,\

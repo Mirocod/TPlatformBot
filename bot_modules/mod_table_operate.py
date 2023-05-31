@@ -13,36 +13,28 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from enum import Enum
 from enum import auto
 
+def EditButton(a_BDTableDestiny):
+    return 'edit' + str(a_BDTableDestiny)
+
+def EditMessage(a_BDTableDestiny):
+    return 'edit' + str(a_BDTableDestiny)
+
+def CreateMessage(a_BDTableDestiny):
+    return 'create' + str(a_BDTableDestiny)
+
 class ButtonNames(Enum):
     LIST = auto() 
     ADD = auto() 
     EDIT = auto() 
-    EDIT_PHOTO = auto() 
-    EDIT_NAME = auto() 
-    EDIT_DESC = auto() 
-    EDIT_ACCESS = auto() 
-    EDIT_DEFAULT_ACCESS = auto() 
-    EDIT_ADDRESS = auto()
-    EDIT_STATUS = auto()
     DEL = auto() 
 
 class Messages(Enum):
     SELECT = auto() 
     ERROR_FIND = auto() 
     OPEN = auto() 
-    CREATE_NAME = auto() 
-    CREATE_DESC = auto() 
-    CREATE_PHOTO = auto() 
     SUCCESS_CREATE = auto() 
     START_EDIT = auto() 
     SELECT_TO_EDIT = auto() 
-    EDIT_PHOTO = auto() 
-    EDIT_NAME = auto() 
-    EDIT_DESC = auto() 
-    EDIT_ACCESS = auto() 
-    EDIT_DEFAULT_ACCESS = auto() 
-    EDIT_ADDRESS = auto()
-    EDIT_STATUS = auto()
     SUCCESS_EDIT = auto() 
     SELECT_TO_DELETE = auto() 
     SUCCESS_DELETE = auto() 
@@ -134,13 +126,13 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
     def GetEditKeyboardButtons(self, a_Message, a_UserGroups):
         mod_buttons = keyboard.MakeButtons(self.m_Bot, self.GetButtons(self.m_EditModuleNameList), a_UserGroups)
         cur_buttons = [
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_PHOTO), user_access.AccessMode.VIEW, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_NAME), user_access.AccessMode.ADD, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DESC), user_access.AccessMode.DELETE, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ACCESS), user_access.AccessMode.DELETE, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), user_access.AccessMode.EDIT, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_ADDRESS), user_access.AccessMode.EDIT, self.GetAccess()),
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.EDIT_STATUS), user_access.AccessMode.EDIT, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.PHOTO)), user_access.AccessMode.VIEW, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.NAME)), user_access.AccessMode.ADD, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.DESC)), user_access.AccessMode.DELETE, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.ACCESS)), user_access.AccessMode.DELETE, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.DEFAULT_ACCESS)), user_access.AccessMode.EDIT, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.ADDRESS)), user_access.AccessMode.EDIT, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(EditButton(bd_table.TableFieldDestiny.STATUS)), user_access.AccessMode.EDIT, self.GetAccess()),
                 ]
         return mod_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
@@ -173,6 +165,13 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 a_Item[key_name_id],\
                 a_Item[access_field_id]
 
+    def UpdateMessage(self, a_Msg, a_Lang, a_Item):
+        a_Msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(a_Msg.GetDesc(), a_Item))
+        photo_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)
+        if photo_field:
+            a_Msg.UpdatePhotoID(a_Item[photo_field])
+        return a_Msg
+
     def ShowMessageTemplate(self, a_Message, Inline_keyboard_template_func = None):
         async def ShowMessage(a_CallbackQuery, a_Item):
             msg = a_Message.StaticCopy()
@@ -185,10 +184,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 elif len(a_Item) == self.m_Table.GetFieldsCount():
                     lang = str(a_CallbackQuery.from_user.language_code)
                     msg = msg.GetMessageForLang(lang).StaticCopy()
-                    msg.UpdateDesc(self.m_Table.ReplaceAllFieldTags(msg.GetDesc(), a_Item))
-                    photo_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PHOTO)
-                    if photo_field:
-                        msg.UpdatePhotoID(a_Item[photo_field])
+                    msg = self.UpdateMessage(msg, lang, a_Item)
                 item_access = a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ACCESS)]
                 if Inline_keyboard_template_func:
                     Inline_keyboard_func = Inline_keyboard_template_func(a_Item[self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.KEY)])
@@ -272,8 +268,16 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
 
         return a_Prefix
 
-    def RegisterEdit(self, a_ButtonName, a_EditMessage, a_FieldName, a_FieldType, a_AccessMode = user_access.AccessMode.EDIT):
-            if not a_ButtonName:
+    def RegisterEdit(self, a_Field, a_AccessMode = user_access.AccessMode.EDIT):
+            a_ButtonName = self.GetButton(EditButton(a_Field.m_Destiny))
+            a_EditMessage = self.GetMessage(EditMessage(a_Field.m_Destiny))
+            a_FieldName = a_Field.m_Name
+
+            a_FieldType = bd_item.FieldType.text
+            if a_Field.m_Destiny == bd_table.TableFieldDestiny.PHOTO:
+                a_FieldType = bd_item.FieldType.photo
+
+            if not a_ButtonName or not a_EditMessage:
                 return
 
             def OnChange():
@@ -382,9 +386,9 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                     self.GetFSM(FSMs.CREATE).desc, \
                     self.GetFSM(FSMs.CREATE).photo,\
                     self.m_AddBDItemFunc, \
-                    self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_NAME)), \
-                    self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_DESC)), \
-                    self.ShowMessageTemplate(self.GetMessage(Messages.CREATE_PHOTO)), \
+                    self.ShowMessageTemplate(self.GetMessage(CreateMessage(bd_table.TableFieldDestiny.NAME))), \
+                    self.ShowMessageTemplate(self.GetMessage(CreateMessage(bd_table.TableFieldDestiny.DESC))), \
+                    self.ShowMessageTemplate(self.GetMessage(CreateMessage(bd_table.TableFieldDestiny.PHOTO))), \
                     self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_CREATE)), \
                     a_Prefix,\
                     parent_table_name, \
@@ -415,13 +419,8 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         address_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.ADDRESS)
         status_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.STATUS)
 
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_NAME), self.GetMessage(Messages.EDIT_NAME), name_field, bd_item.FieldType.text)
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_DESC), self.GetMessage(Messages.EDIT_DESC), desc_field, bd_item.FieldType.text)
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_PHOTO), self.GetMessage(Messages.EDIT_PHOTO), photo_field, bd_item.FieldType.photo)
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_ACCESS), self.GetMessage(Messages.EDIT_ACCESS), access_field, bd_item.FieldType.text)
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_DEFAULT_ACCESS), self.GetMessage(Messages.EDIT_DEFAULT_ACCESS), def_access_field, bd_item.FieldType.text)
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_ADDRESS), self.GetMessage(Messages.EDIT_ADDRESS), address_field, bd_item.FieldType.text)
-        self.RegisterEdit(self.GetButton(ButtonNames.EDIT_STATUS), self.GetMessage(Messages.EDIT_STATUS), status_field, bd_item.FieldType.text)
+        for f in self.m_Table.GetFields():
+            self.RegisterEdit(f)
 
     def OnChange(self):
         pass

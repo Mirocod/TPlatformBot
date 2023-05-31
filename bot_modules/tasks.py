@@ -39,10 +39,10 @@ button_names = {
     mod_table_operate.ButtonNames.LIST: "📃 Список задач",
     mod_table_operate.ButtonNames.ADD: "☑ Добавить задачу",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать задачу",
-    mod_table_operate.ButtonNames.EDIT_PHOTO: "☐ Изменить изображение у задачи",
-    mod_table_operate.ButtonNames.EDIT_NAME: "≂ Изменить название у задачи",
-    mod_table_operate.ButtonNames.EDIT_DESC: "𝌴 Изменить описание у задачи",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: "✋ Изменить доступ к задаче",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение у задачи",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название у задачи",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание у задачи",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к задаче",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить задачу",
 }
 
@@ -64,17 +64,17 @@ messages = {
 
 Время создания: #{create_datetime_field}
 ''',
-    mod_table_operate.Messages.CREATE_NAME: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME): '''
 Создание задачи. Шаг №1
 
 Введите название задачи:
 ''',
-    mod_table_operate.Messages.CREATE_DESC: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.DESC): '''
 Создание задачи. Шаг №2
 
 Введите описание задачи:
 ''',
-    mod_table_operate.Messages.CREATE_PHOTO: '''
+    mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Создание задачи. Шаг №3
 
 Загрузите обложку для задачи (Фото):
@@ -87,23 +87,23 @@ messages = {
     mod_table_operate.Messages.SELECT_TO_EDIT: '''
 Выберите задачу, которую вы хотите отредактировать.
 ''',
-    mod_table_operate.Messages.EDIT_PHOTO: '''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.PHOTO): '''
 Загрузите новую обложку для задачи (Фото):
 Она будет отображаться в её описании.
 ''',
-    mod_table_operate.Messages.EDIT_NAME: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
 Текущее название задачи:
 #{name_field}
 
 Введите новое название задачи:
 ''',
-    mod_table_operate.Messages.EDIT_DESC: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DESC): f'''
 Текущее описание задачи:
 #{desc_field}
 
 Введите новое описание задачи:
 ''',
-    mod_table_operate.Messages.EDIT_ACCESS: f'''
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к задаче:
 #{access_field}
 

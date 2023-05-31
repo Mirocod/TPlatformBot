@@ -87,8 +87,8 @@ moduleaccess_success_edit_message = '''✅ Доступ к модулю успе
 button_names = {
     mod_simple_message.ButtonNames.START: start_button_name,
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать доступ",
-    mod_table_operate.ButtonNames.EDIT_ACCESS: edit_moduleaccess_access_button_name,
-    mod_table_operate.ButtonNames.EDIT_DEFAULT_ACCESS: edit_moduleaccess_default_access_button_name,
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): edit_moduleaccess_access_button_name,
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DEFAULT_ACCESS): edit_moduleaccess_default_access_button_name,
     }
 
 messages = {
@@ -97,8 +97,8 @@ messages = {
 Пожалуйста, выберите действие:
 ''',
     mod_table_operate.Messages.SELECT_TO_EDIT: moduleaccess_select_to_edit_message,
-    mod_table_operate.Messages.EDIT_ACCESS: moduleaccess_edit_access_message,
-    mod_table_operate.Messages.EDIT_DEFAULT_ACCESS: moduleaccess_edit_default_access_message,
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): moduleaccess_edit_access_message,
+    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.DEFAULT_ACCESS): moduleaccess_edit_default_access_message,
     mod_table_operate.Messages.SUCCESS_EDIT: moduleaccess_success_edit_message,
 }
 

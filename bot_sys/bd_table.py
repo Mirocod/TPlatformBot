@@ -119,6 +119,7 @@ def Test():
     assert table.GetFieldNameByDestiny(TableFieldDestiny.PHOTO) == None
 
     assert table.GetFieldsCount() == 3
+    assert len(table.GetFields()) == 3
 
     print(table.GetInitTableRequest())
     assert table.GetInitTableRequest() == 'CREATE TABLE IF NOT EXISTS tname(f1 INTEGER PRIMARY KEY, f2 TEXT, f3 TEXT, UNIQUE(f1), UNIQUE(f2, f3));'
