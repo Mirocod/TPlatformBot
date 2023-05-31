@@ -25,8 +25,8 @@ button_names.pop(mod_table_operate.ButtonNames.ADD)
 
 cur_button_names = {
     mod_simple_message.ButtonNames.START: "‍🛒 Все заказы",
-    mod_table_operate.ButtonNames.LIST: "📃 Список всех заказов",
-    orders.ButtonNames.LIST_CURRENT: "📃 Список текущих заказов",
+    mod_table_operate.ButtonNames.LIST: "📃 Список текущих заказов",
+    orders.ButtonNames.LIST_ALL: "📃 Список всех заказов",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать заказ",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в заказе",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в заказе",
@@ -110,11 +110,11 @@ class ModuleAllOrders(orders.ModuleOrders):
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
-        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
-
-    def SelectSourceForCurrentTemplate(self, a_PrevPrefix, a_ButtonName):
-        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
         return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName, a_OnlyCurrent = True)
+
+    def SelectSourceForAllTemplate(self, a_PrevPrefix, a_ButtonName):
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
 
     def GetButtonNameAndKeyValueAndAccess(self, a_Item):
         parent_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PARENT_ID)

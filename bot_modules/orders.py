@@ -51,12 +51,12 @@ init_access = f'{user_access.user_access_group_new}=va'
 # Сообщения и кнопки
 
 class ButtonNames(Enum):
-    LIST_CURRENT = auto() 
+    LIST_ALL = auto() 
 
 button_names = {
     mod_simple_message.ButtonNames.START: "‍🛒 Заказы",
-    mod_table_operate.ButtonNames.LIST: "📃 Список всех моих заказов",
-    ButtonNames.LIST_CURRENT: "📃 Список моих текущих заказов",
+    mod_table_operate.ButtonNames.LIST: "📃 Список моих текущих заказов",
+    ButtonNames.LIST_ALL: "📃 Список всех моих заказов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить заказ",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать мой заказ",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO_PAY): "☐ Загрузить фото оплаты моего заказа",
@@ -195,11 +195,11 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
-        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
-
-    def SelectSourceForCurrentTemplate(self, a_PrevPrefix, a_ButtonName):
-        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
         return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName, a_OnlyCurrent = True)
+
+    def SelectSourceForAllTemplate(self, a_PrevPrefix, a_ButtonName):
+        parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+        return DBItemForUserSelectSource(self.m_Bot, self.m_Table.GetName(), parent_id_field, a_PrevPrefix, a_ButtonName)
 
     def AddBDItemFunc(self, a_ItemData, a_UserID):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
@@ -212,7 +212,7 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
     def GetStartKeyboardButtons(self, a_Message, a_UserGroups):
         parent_buttons = super().GetStartKeyboardButtons(a_Message, a_UserGroups)
         cur_buttons = [
-                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST_CURRENT), user_access.AccessMode.VIEW, self.GetAccess()),
+                keyboard.ButtonWithAccess(self.GetButton(ButtonNames.LIST_ALL), user_access.AccessMode.VIEW, self.GetAccess()),
                 ]
         return parent_buttons + keyboard.MakeButtons(self.m_Bot, cur_buttons, a_UserGroups)
 
@@ -229,12 +229,12 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
 
         default_keyboard_func = self.m_GetStartKeyboardButtonsFunc
 
-        # Список текущих, открытых заказов
-        a_ButtonName = self.GetButton(ButtonNames.LIST_CURRENT)
+        # Список всех заказов
+        a_ButtonName = self.GetButton(ButtonNames.LIST_ALL)
         if a_ButtonName:
             a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.VIEW, only_parent = True)
             a_Prefix = bd_item_select.SelectRegisterHandlers(self.m_Bot,\
-                    self.SelectSourceForCurrentTemplate(a_Prefix, a_ButtonName), \
+                    self.SelectSourceForAllTemplate(a_Prefix, a_ButtonName), \
                     GetButtonNameAndKeyValueAndAccess,\
                     self.GetMessage(mod_table_operate.Messages.SELECT),\
                     GetAccess,\
