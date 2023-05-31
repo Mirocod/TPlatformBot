@@ -6,7 +6,7 @@ import os
 from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_access
 from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments
 from bot_modules import languages, messages, buttons, users, groups, user_in_groups
-from bot_modules import orders
+from bot_modules import orders, all_orders
 
 log_start_message = 'Бот успешно запущен!'
 
@@ -36,6 +36,7 @@ mod_users_name = users.module_name
 mod_groups_name = groups.module_name
 mod_user_in_groups_name = user_in_groups.module_name
 mod_orders_name = orders.module_name
+mod_all_orders_name = all_orders.module_name
 
 start_mod_list = [mod_start_name]
 mod_access = access.ModuleAccess(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
@@ -90,8 +91,12 @@ mod_buttons = buttons.ModuleButtons(mod_languages_name, None, child_mod_name_lis
 g_ModuleAgregator.AddModule(mod_buttons)
 
 child_mod_name_list = [mod_start_name]
-mod_orders = orders.ModuleOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_orders = orders.ModuleUserOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_orders)
+
+child_mod_name_list = [mod_start_name]
+mod_all_orders = all_orders.ModuleAllOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_all_orders)
 
 child_mod_name_list = [
         mod_profile.GetName(),
@@ -101,6 +106,7 @@ child_mod_name_list = [
         mod_project.GetName(),
         mod_languages.GetName(),
         mod_orders.GetName(),
+        mod_all_orders.GetName(),
         ]
 mod_start = start.ModuleStart(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_start)

@@ -53,21 +53,16 @@ class ButtonNames(Enum):
 
 button_names = {
     mod_simple_message.ButtonNames.START: "‍🛒 Заказы",
-    mod_table_operate.ButtonNames.LIST: "📃 Список всех заказов",
-    ButtonNames.LIST_CURRENT: "📃 Список текущих заказов",
+    mod_table_operate.ButtonNames.LIST: "📃 Список всех моих заказов",
+    ButtonNames.LIST_CURRENT: "📃 Список моих текущих заказов",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить заказ",
-    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать заказ",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в заказе",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в заказе",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в заказе",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ADDRESS): "𝌴 Изменить адрес в заказе",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.STATUS): "𝌴 Изменить статус в заказе",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к заказу",
-    mod_table_operate.EnumButton(OrderStatus.NEW): "Заказ ожидает модерации",
-    mod_table_operate.EnumButton(OrderStatus.PAY): "Заказ ожидает оплаты",
-    mod_table_operate.EnumButton(OrderStatus.ADDRESS): "Заказ ожидает уточнения адреса",
-    mod_table_operate.EnumButton(OrderStatus.FINISH): "Заказ выполнен",
-    mod_table_operate.ButtonNames.DEL: "❌ Удалить заказ",
+    mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать мой заказ",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.PHOTO): "☐ Изменить изображение в моём заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название в моём заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.DESC): "𝌴 Изменить описание в моём заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ADDRESS): "𝌴 Изменить адрес в моём заказе",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к моему заказу",
+    mod_table_operate.ButtonNames.DEL: "❌ Удалить мой заказ",
 }
 
 messages = {
@@ -137,12 +132,6 @@ messages = {
 
 Введите новый адрес доставки заказа (укажите, кто, когда и где его сможет забрать):
 ''',
-    mod_table_operate.EditMessage(bd_table.TableFieldDestiny.STATUS): f'''
-Текущий статус заказа:
-#{status_field}
-
-Введите новый статус заказа:
-''',
     mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
 Текущий доступ к заказу:
 #{access_field}
@@ -195,11 +184,8 @@ class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
         return True
 
 class ModuleOrders(mod_table_operate.TableOperateModule):
-    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
-
-    def GetName(self):
-        return module_name
+    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
@@ -257,3 +243,9 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
                     access_mode = user_access.AccessMode.VIEW\
                     )
 
+class ModuleUserOrders(ModuleOrders):
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+
+    def GetName(self):
+        return module_name
