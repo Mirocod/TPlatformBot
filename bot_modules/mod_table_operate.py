@@ -48,23 +48,19 @@ class Messages(Enum):
     SELECT_TO_DELETE = auto() 
     SUCCESS_DELETE = auto() 
 
-class FSMs(Enum):
-    CREATE = auto() 
-
-create_fsms_cmd = '''
+create_fsm_create_cmd = '''
 class FSMCreate{a_ModName}(StatesGroup):
-    name = State()
-    desc = State()
-    photo = State()
+{items}
 
-
-fsm = {
-    FSMs.CREATE: FSMCreate{a_ModName},
-}
+fsm = FSMCreate{a_ModName}
 '''
 
-def MakeFSMs(a_ModName):
-    cmd = create_fsms_cmd.replace("{a_ModName}", a_ModName)
+def MakeFSMForAdd(a_ModName, a_Fields):
+    cmd = create_fsm_create_cmd.replace("{a_ModName}", a_ModName)
+    items = ""
+    for i in range(len(a_Fields)):
+        items += f"\titem{i} = State()\n"
+    cmd = cmd.replace("{items}", items)
     _locals = locals()
     exec(cmd, globals(), _locals)
     return _locals['fsm']
@@ -79,7 +75,6 @@ fsm = FSMEdit{a_ModName}_{a_FieldName}_Item
 
 def MakeFSMForEdit(a_ModName, a_FieldName):
     cmd = edit_fsm_cmd.replace("{a_ModName}", a_ModName).replace("{a_FieldName}", a_FieldName)
-    print ('cmd', cmd)
     _locals = locals()
     exec(cmd, globals(), _locals)
     return _locals['fsm']
@@ -88,7 +83,6 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
     def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         super().__init__(a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
         self.m_Table = a_Table
-        self.m_FSMs = MakeFSMs(self.GetName()) 
         self.m_EditModuleNameList = a_EditModuleNameList
         self.m_ChildModName = a_ChildModName
         self.m_ParentModName = a_ParentModName
@@ -114,9 +108,6 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             return await self.AddBDItemFunc(a_ItemData, a_UserID)
         self.m_AddBDItemFunc = AddBDItemFunc
  
-    def GetFSM(self, a_FSMName):
-        return self.m_FSMs.get(a_FSMName, None)
-
     def GetInitBDCommands(self):
         return  [
             self.m_Table.GetInitTableRequest(),
@@ -350,6 +341,58 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 field_type = a_FieldType\
                 )
 
+    def GetAddFields(self):
+        fields = []
+        for f in self.m_Table.GetFields():
+            if f.m_Destiny in (bd_table.TableFieldDestiny.NAME, bd_table.TableFieldDestiny.DESC, bd_table.TableFieldDestiny.PHOTO, bd_table.TableFieldDestiny.SUBSCRIBE_TYPE, bd_table.TableFieldDestiny.ITEM_ID, ):
+                fields += [f]
+        return fields
+
+    def AddBDItem3RegisterHandlers(self, a_StartCheckFunc, a_AddBDItemFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD):
+        fields = self.GetAddFields()
+        if len(fields) == 0:
+            return
+        fsm = MakeFSMForAdd(self.GetName(), fields)
+
+        keyboard_cancel = bd_item.GetCancelKeyboardButtonsTemplate(self.m_Bot, a_AccessFunc, access_mode)
+        keyboard_skip_and_cancel = bd_item.GetSkipAndCancelKeyboardButtonsTemplate(self.m_Bot, a_AccessFunc, access_mode)
+        reg_func = self.m_Bot.RegisterMessageHandler
+
+        if a_ParentTableName:
+            reg_func = self.m_Bot.RegisterCallbackHandler
+
+        def GetFieldType(a_Field):
+            if a_Field.m_Type == bd_table.TableFieldType.PHOTO:
+                return bd_item.FieldType.photo
+            return bd_item.FieldType.text
+
+        def GetContentTypes(a_Field):
+            if a_Field.m_Type == bd_table.TableFieldType.PHOTO:
+                return ['photo', 'text']
+            return ['text']
+
+        def GetKeyboard(a_Field):
+            if a_Field.m_Type == bd_table.TableFieldType.PHOTO:
+                return keyboard_skip_and_cancel
+            return keyboard_cancel
+
+        print ('fields', fields)
+        f_id = 0
+        f = fields[f_id]
+        print ('f', f, f.m_Type, f.m_Destiny, GetFieldType(f))
+        reg_func(bd_item_add.StartAddBDItemTemplate(self.m_Bot, fsm, getattr(fsm, f'item{f_id}'), self.ShowMessageTemplate(self.GetMessage(CreateMessage(f.m_Destiny))), a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, GetKeyboard(f), a_ButtonFunc, access_mode), a_StartCheckFunc)
+
+        for i in range(len(fields) - 1):
+            f = fields[i]
+            next_f = fields[i + 1]
+            print ('f', f, f.m_Type, f.m_Destiny, GetFieldType(f))
+            self.m_Bot.RegisterMessageHandler(bd_item_add.NextAddBDItemTemplate(self.m_Bot, fsm, None, a_ParentTableName, a_ParentKeyFieldName, f.m_Name, self.ShowMessageTemplate(self.GetMessage(CreateMessage(next_f.m_Destiny))), None, a_AccessFunc, GetKeyboard(next_f), a_ButtonFunc, access_mode, field_type = GetFieldType(f)), content_types = GetContentTypes(f), state = getattr(fsm, f'item{i}'))
+
+        f_id = len(fields) - 1
+        f = fields[f_id]
+        print ('f', f, f.m_Type, f.m_Destiny, GetFieldType(f))
+        self.m_Bot.RegisterMessageHandler(bd_item_add.FinishAddBDItemTemplate(self.m_Bot, fsm, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, f.m_Name, self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_CREATE)), None, a_AccessFunc, a_ButtonFunc, access_mode, field_type = GetFieldType(f)), content_types = GetContentTypes(f), state = getattr(fsm, f'item{f_id}'))
+
     def RegisterHandlers(self):
         super().RegisterHandlers()
         table_name = self.m_Table.GetName()
@@ -421,23 +464,12 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             if a_Prefix:
                 check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
 
-            bd_item_add.AddBDItem3RegisterHandlers(self.m_Bot, \
+            self.AddBDItem3RegisterHandlers(\
                     check_func, \
-                    self.GetFSM(FSMs.CREATE), \
-                    self.GetFSM(FSMs.CREATE).name,\
-                    self.GetFSM(FSMs.CREATE).desc, \
-                    self.GetFSM(FSMs.CREATE).photo,\
                     self.m_AddBDItemFunc, \
-                    self.ShowMessageTemplate(self.GetMessage(CreateMessage(bd_table.TableFieldDestiny.NAME))), \
-                    self.ShowMessageTemplate(self.GetMessage(CreateMessage(bd_table.TableFieldDestiny.DESC))), \
-                    self.ShowMessageTemplate(self.GetMessage(CreateMessage(bd_table.TableFieldDestiny.PHOTO))), \
-                    self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_CREATE)), \
                     a_Prefix,\
                     parent_table_name, \
                     parent_key_name, \
-                    name_field, \
-                    desc_field, \
-                    photo_field, \
                     GetButtonNameAndKeyValueAndAccess, \
                     GetAccess, \
                     self.m_GetStartKeyboardButtonsFunc\

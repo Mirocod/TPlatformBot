@@ -7,6 +7,7 @@ from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_acces
 from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments
 from bot_modules import languages, messages, buttons, users, groups, user_in_groups
 from bot_modules import orders, all_orders
+from bot_sys import bot_subscribes
 
 log_start_message = 'Бот успешно запущен!'
 
@@ -135,7 +136,7 @@ for m in modules:
     m.RegisterHandlers()
 
 # Юнит тесты модулей и файлов
-test_mods = [user_access, bd_table]
+test_mods = [user_access, bd_table, bot_subscribes]
 for m in test_mods:
     m.Test()
 

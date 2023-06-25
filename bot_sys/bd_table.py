@@ -32,6 +32,8 @@ class TableFieldDestiny(Enum):
     CREATE_DATE = auto()
     PARENT_ID = auto()
     STATUS = auto()
+    SUBSCRIBE_TYPE = auto()
+    ITEM_ID = auto()
     ADDRESS = auto()
     OTHER = auto()
 
