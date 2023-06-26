@@ -348,7 +348,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 fields += [f]
         return fields
 
-    def AddBDItem3RegisterHandlers(self, a_StartCheckFunc, a_AddBDItemFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD):
+    def AddBDItemRegisterHandlers(self, a_StartCheckFunc, a_AddBDItemFunc, a_ParentPrefix, a_ParentTableName : str, a_ParentKeyFieldName, a_GetButtonNameAndKeyValueAndAccessFunc, a_AccessFunc, a_ButtonFunc, access_mode = user_access.AccessMode.ADD):
         fields = self.GetAddFields()
         if len(fields) == 0:
             return
@@ -376,21 +376,19 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
                 return keyboard_skip_and_cancel
             return keyboard_cancel
 
-        print ('fields', fields)
         f_id = 0
         f = fields[f_id]
-        print ('f', f, f.m_Type, f.m_Destiny, GetFieldType(f))
-        reg_func(bd_item_add.StartAddBDItemTemplate(self.m_Bot, fsm, getattr(fsm, f'item{f_id}'), self.ShowMessageTemplate(self.GetMessage(CreateMessage(f.m_Destiny))), a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, GetKeyboard(f), a_ButtonFunc, access_mode), a_StartCheckFunc)
+        keyboard = bd_item.MixKeyboardFuncTemplate(self.AdditionalKeyboardForEditTemplate(f), GetKeyboard(f))
+        reg_func(bd_item_add.StartAddBDItemTemplate(self.m_Bot, fsm, getattr(fsm, f'item{f_id}'), self.ShowMessageTemplate(self.GetMessage(CreateMessage(f.m_Destiny))), a_ParentTableName, a_ParentKeyFieldName, a_ParentPrefix, a_AccessFunc, keyboard, a_ButtonFunc, access_mode), a_StartCheckFunc)
 
         for i in range(len(fields) - 1):
             f = fields[i]
             next_f = fields[i + 1]
-            print ('f', f, f.m_Type, f.m_Destiny, GetFieldType(f))
-            self.m_Bot.RegisterMessageHandler(bd_item_add.NextAddBDItemTemplate(self.m_Bot, fsm, None, a_ParentTableName, a_ParentKeyFieldName, f.m_Name, self.ShowMessageTemplate(self.GetMessage(CreateMessage(next_f.m_Destiny))), None, a_AccessFunc, GetKeyboard(next_f), a_ButtonFunc, access_mode, field_type = GetFieldType(f)), content_types = GetContentTypes(f), state = getattr(fsm, f'item{i}'))
+            keyboard = bd_item.MixKeyboardFuncTemplate(self.AdditionalKeyboardForEditTemplate(next_f), GetKeyboard(next_f))
+            self.m_Bot.RegisterMessageHandler(bd_item_add.NextAddBDItemTemplate(self.m_Bot, fsm, None, a_ParentTableName, a_ParentKeyFieldName, f.m_Name, self.ShowMessageTemplate(self.GetMessage(CreateMessage(next_f.m_Destiny))), None, a_AccessFunc, keyboard, a_ButtonFunc, access_mode, field_type = GetFieldType(f)), content_types = GetContentTypes(f), state = getattr(fsm, f'item{i}'))
 
         f_id = len(fields) - 1
         f = fields[f_id]
-        print ('f', f, f.m_Type, f.m_Destiny, GetFieldType(f))
         self.m_Bot.RegisterMessageHandler(bd_item_add.FinishAddBDItemTemplate(self.m_Bot, fsm, a_AddBDItemFunc, a_ParentTableName, a_ParentKeyFieldName, f.m_Name, self.ShowMessageTemplate(self.GetMessage(Messages.SUCCESS_CREATE)), None, a_AccessFunc, a_ButtonFunc, access_mode, field_type = GetFieldType(f)), content_types = GetContentTypes(f), state = getattr(fsm, f'item{f_id}'))
 
     def RegisterHandlers(self):
@@ -464,7 +462,7 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
             if a_Prefix:
                 check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
 
-            self.AddBDItem3RegisterHandlers(\
+            self.AddBDItemRegisterHandlers(\
                     check_func, \
                     self.m_AddBDItemFunc, \
                     a_Prefix,\

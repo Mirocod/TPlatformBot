@@ -7,7 +7,9 @@ from bot_sys import config, log, aiogram_bot, bot_messages, bd_table, user_acces
 from bot_modules import mod_agregator, start, profile, backup, users_groups_agregator, access, projects, tasks, needs, comments
 from bot_modules import languages, messages, buttons, users, groups, user_in_groups
 from bot_modules import orders, all_orders
+
 from bot_sys import bot_subscribes
+from bot_modules import subscribes
 
 log_start_message = 'Бот успешно запущен!'
 
@@ -99,6 +101,10 @@ child_mod_name_list = [mod_start_name]
 mod_all_orders = all_orders.ModuleAllOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_all_orders)
 
+child_mod_name_list = [mod_start_name]
+mod_subscribe = subscribes.ModuleUserSubscribe(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+g_ModuleAgregator.AddModule(mod_subscribe)
+
 child_mod_name_list = [
         mod_profile.GetName(),
         mod_backup.GetName(),
@@ -108,6 +114,7 @@ child_mod_name_list = [
         mod_languages.GetName(),
         mod_orders.GetName(),
         mod_all_orders.GetName(),
+        mod_subscribe.GetName(),
         ]
 mod_start = start.ModuleStart(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
 g_ModuleAgregator.AddModule(mod_start)

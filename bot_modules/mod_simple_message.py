@@ -69,7 +69,9 @@ class SimpleMessageModule(mod_interface.IModule):
         return msg
 
     def CreateButton(self, a_ButtonName, a_ButtonDesc):
-        assert len(a_ButtonDesc) < 41 # Телеграм не поддерживает больше
+        if len(a_ButtonDesc) >= 41:
+            print('ButtonDesc:', a_ButtonDesc)
+            assert False # Телеграм не поддерживает больше
         assert a_ButtonDesc[0] != ' ' # Телеграм не поддерживает пробелы в начале
         assert a_ButtonDesc[-1:] != ' ' # Телеграм не поддерживает пробелы в конце
         # TODO добавить проверку, что все кнопки (a_ButtonDesc) разные

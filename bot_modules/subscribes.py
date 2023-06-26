@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 # Общественное достояние, 2023, Алексей Безбородов (Alexei Bezborodov) <AlexeiBv+mirocod_platform_bot@narod.ru> 
 
-# Заказы
+# Подписки
 
 from bot_sys import bot_bd, keyboard, user_access, bd_table, bot_subscribes
 from bot_modules import mod_table_operate, mod_simple_message
@@ -9,6 +9,9 @@ from template import bd_item_select, bd_item_view, bd_item
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+
+from enum import Enum
+from enum import auto
 
 class FSMAddSubsType(StatesGroup):
     bd_item = State()
@@ -18,6 +21,7 @@ class FSMAddSubsType(StatesGroup):
 module_name = 'subscribes'
 
 table_name = module_name
+key_field = 'subsKey'
 mod_name_field = 'modName'
 type_field = 'subsType'
 item_id_field = 'itemID'
@@ -31,6 +35,7 @@ table_item_id_field = bd_table.TableField(item_id_field, bd_table.TableFieldDest
 table_user_id_field = bd_table.TableField(parent_id_field, bd_table.TableFieldDestiny.PARENT_ID, bd_table.TableFieldType.STR)
 
 table = bd_table.Table(table_name, [
+        bd_table.TableField(key_field, bd_table.TableFieldDestiny.KEY, bd_table.TableFieldType.INT),
         table_mod_name_field,
         table_type_field,
         table_item_id_field,
@@ -39,24 +44,26 @@ table = bd_table.Table(table_name, [
         table_user_id_field,
         ],
         [
-         [table_mod_name_field, table_type_field, table_user_id_field, table_item_id_field],
+            [table_mod_name_field, table_type_field, table_user_id_field, table_item_id_field],
         ]
         )
 
-init_access = f'{user_access.user_access_group_new}=vea'
-
-class ButtonNames(Enum):
-    ADD_SUBS = auto() 
+init_access = f'{user_access.user_access_group_new}=-'
 
 button_names = {
     mod_simple_message.ButtonNames.START: "‍🛒 Подписки",
     mod_table_operate.ButtonNames.LIST: "📃 Список моих текущих подписок",
-    mod_table_operate.ButtonNames.ADD_SUBS: "✅ Добавить подписку",
+    mod_table_operate.ButtonNames.ADD: "✅ Добавить подписку",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать мою подписку",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить название модуля в моей подписке",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.NAME): "≂ Изменить модуль в моей подписке",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.SUBSCRIBE_TYPE): "𝌴 Изменить тип в моей подписке",
-    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ITEM_ID): "𝌴 Изменить номер элемента в моей подписке",
+    mod_table_operate.EditButton(bd_table.TableFieldDestiny.ITEM_ID): "𝌴 Изменить элемент в моей подписке",
     mod_table_operate.EditButton(bd_table.TableFieldDestiny.ACCESS): "✋ Изменить доступ к моей подписке",
+    mod_table_operate.EnumButton(bot_subscribes.SubscribeType.ADD): "Добавление элемента",
+    mod_table_operate.EnumButton(bot_subscribes.SubscribeType.ANY_ITEM_DEL): "Удаление какого либо элемента",
+    mod_table_operate.EnumButton(bot_subscribes.SubscribeType.ANY_ITEM_EDIT): "Редактирование какого либо элемента",
+    mod_table_operate.EnumButton(bot_subscribes.SubscribeType.ITEM_DEL): "Удаление определённого элемента",
+    mod_table_operate.EnumButton(bot_subscribes.SubscribeType.ITEM_EDIT): "Редактирование определённого элемента",
     mod_table_operate.ButtonNames.DEL: "❌ Удалить мою подписку",
 }
 
@@ -72,13 +79,13 @@ messages = {
 ❌ Ошибка, подписку не найден
 ''',
     mod_table_operate.Messages.OPEN: f'''
-<b>Подписку: #{name_field}</b>
+<b>Подписку:</b>
 
-<b>Описание и состав подписки:</b> #{desc_field}
+<b>Название модуля:</b> #{mod_name_field}
 
-<b>Статус:</b> #{status_field}
+<b>Тип:</b> #{type_field}
 
-<b>Адрес доставки:</b> #{address_field}
+<b>Номер элемента:</b> #{item_id_field}
 
 <b>Время создания:</b> #{create_datetime_field}
 ''',
@@ -97,7 +104,7 @@ messages = {
 
 Номер элемента, на который нужно подписаться (-1, если элемента нет):
 ''',
-    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Подписку успешно добавлен!''',
+    mod_table_operate.Messages.SUCCESS_CREATE: '''✅ Подписка успешно добавлена!''',
     mod_table_operate.Messages.START_EDIT: '''
 Пожалуйста, выберите действие:
 ''',
@@ -105,32 +112,31 @@ messages = {
 Выберите подписку, который вы хотите отредактировать.
 ''',
     mod_table_operate.EditMessage(bd_table.TableFieldDestiny.NAME): f'''
-Текущее название подписки:
-#{name_field}
+Текущее название модуля:
+#{mod_name_field}
 
-Введите новое название подписки:
+Введите новое название модуля:
 ''',
     mod_table_operate.EditMessage(bd_table.TableFieldDestiny.SUBSCRIBE_TYPE): f'''
-Текущее описание подписки:
-#{desc_field}
+Текущий тип подписки:
+#{type_field}
 
 Введите новый тип подписки:
 ''',
     mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ITEM_ID): f'''
-Текущий адрес подписки:
-#{desc_field}
+Текущий номер элемента: #{item_id_field}
 
 Введите новый номер элемента:
 ''',
     mod_table_operate.EditMessage(bd_table.TableFieldDestiny.ACCESS): f'''
-Текущий доступ к подпискуу:
+Текущий доступ к подписке:
 #{access_field}
 
 {user_access.user_access_readme}
 
 Введите новую строку доступа:
 ''',
-    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Подписку успешно отредактировано!''',
+    mod_table_operate.Messages.SUCCESS_EDIT: '''✅ Подписка успешно отредактирована!''',
     mod_table_operate.Messages.SELECT_TO_DELETE: '''
 Выберите подписку, которую вы хотите удалить.
 ''',
@@ -197,33 +203,13 @@ class ModuleSubscribe(mod_table_operate.TableOperateModule):
             parent_table_name = parent_mod.m_Table.GetName()
             parent_key_name = parent_mod.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.KEY)
 
-        # Добавление 
-        a_ButtonName = self.GetButton(ButtonNames.ADD_SUBS)
-        if a_ButtonName:
-            a_Prefix = self.RegisterSelect(a_ButtonName, user_access.AccessMode.ADD, only_parent = True)
+    def GetButtonNameAndKeyValueAndAccess(self, a_Item):
+        type_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.SUBSCRIBE_TYPE)
+        item_id_field_id = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ITEM_ID)
+        n, k, a = super().GetButtonNameAndKeyValueAndAccess(a_Item)
+        return n + ":" + str(a_Item[type_field_id]) + ":" + str(a_Item[item_id_field_id]), k, a
 
-            check_func = bd_item.GetCheckForTextFunc(a_ButtonName)
-            if a_Prefix:
-                check_func = bd_item.GetCheckForPrefixFunc(a_Prefix)
-
-            bd_item_add.AddBDItem1RegisterHandlers(self.m_Bot,\
-                    check_func,\
-                    FSMAddSubsType,\
-                    self.m_AddBDItemFunc,\
-                    self.ShowMessageTemplate(self.GetMessage(mod_table_operate.CreateMessage(bd_table.TableFieldDestiny.NAME))),\
-                    self.ShowMessageTemplate(self.GetMessage(mod_table_operate.Messages.SUCCESS_CREATE)),\
-                    a_Prefix,\
-                    parent_table_name,\
-                    parent_key_name,\
-                    name_field,\
-                    GetButtonNameAndKeyValueAndAccess,\
-                    GetAccess,\
-                    defaul_keyboard_func,\
-                    bd_item.FieldType.text,\
-                    access_mode = user_access.AccessMode.ADD\
-                    )
-
-class ModuleUserSubscribe(ModuleOrders):
+class ModuleUserSubscribe(ModuleSubscribe):
     def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
         super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
 
