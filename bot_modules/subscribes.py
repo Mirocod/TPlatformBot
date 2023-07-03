@@ -177,8 +177,8 @@ class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
         return True
 
 class ModuleSubscribe(mod_table_operate.TableOperateModule):
-    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
@@ -210,8 +210,37 @@ class ModuleSubscribe(mod_table_operate.TableOperateModule):
         return n + ":" + str(a_Item[type_field_id]) + ":" + str(a_Item[item_id_field_id]), k, a
 
 class ModuleUserSubscribe(ModuleSubscribe):
-    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
+        self.UpdateSubscribes()
 
     def GetName(self):
         return module_name
+
+    def UpdateSubscribes(self):
+        self.m_BotSubscribes.Clear()
+
+        mod_name_id_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.NAME)
+        subscribe_type_id_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.SUBSCRIBE_TYPE)
+        item_id_id_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.ITEM_ID)
+        user_id_id_field = self.m_Table.GetFieldIDByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
+
+        table_name = self.m_Table.GetName()
+        s_bd = bd_item.GetAllItemsTemplate(self.m_Bot, table_name)()
+        if s_bd:
+            for s in s_bd:
+                a_ModuleName = s[mod_name_id_field]
+                a_Type = s[subscribe_type_id_field]
+                a_ItemID = s[item_id_id_field]
+                a_UserID = s[user_id_id_field]
+                for t in bot_subscribes.SubscribeType:
+                    k = mod_table_operate.EnumMessageForView(t)
+                    m = messages_subs_type_status.get(k, None)
+                    if m and m == a_Type:
+                        a_Type = t
+                        break
+
+                self.m_BotSubscribes.AddSubscribe(a_UserID, a_ModuleName, a_Type, a_ItemID)
+
+    def OnChange(self):
+        self.UpdateSubscribes()

@@ -17,13 +17,14 @@ class Messages(Enum):
     START = auto() 
 
 class SimpleMessageModule(mod_interface.IModule):
-    def __init__(self, a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
+    def __init__(self, a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
         self.m_ChildModuleNameList = a_ChildModuleNameList
         self.m_InitAccess = a_InitAccess
         self.m_Bot = a_Bot
         self.m_ModuleAgregator = a_ModuleAgregator
         self.m_BotMessages = a_BotMessages
         self.m_BotButtons = a_BotButtons
+        self.m_BotSubscribes = a_BotSubscribes
         self.m_Log = a_Log
 
         self.m_Buttons = {}

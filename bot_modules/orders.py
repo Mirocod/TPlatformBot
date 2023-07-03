@@ -3,7 +3,7 @@
 
 # Заказы
 
-from bot_sys import bot_bd, keyboard, user_access, bd_table
+from bot_sys import bot_bd, keyboard, user_access, bd_table, bot_subscribes
 from bot_modules import mod_table_operate, mod_simple_message
 from template import bd_item_select, bd_item_view, bd_item
 
@@ -163,6 +163,16 @@ messages_order_status = {
 
 messages.update(messages_order_status)
 
+messages_subscribes = {
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ADD):f'''Заказ создан''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ANY_ITEM_EDIT):f'''Заказ отредактирован''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ANY_ITEM_DEL):f'''Заказ удалён''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ITEM_EDIT):f'''Заказ отредактирован #item_id''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ITEM_DEL):f'''Заказ удалён #item_id''',
+}
+
+messages.update(messages_subscribes)
+
 def GetCurItemsTemplate(a_Bot, a_TableName, a_UserIDFieldName, a_StatusFieldName):
     def GetBDItems(a_Message, a_UserGroups, a_ParentID):
         user_id = str(a_Message.from_user.id)
@@ -190,8 +200,8 @@ class DBItemForUserSelectSource(bd_item_select.DBItemSelectSource):
         return True
 
 class ModuleOrders(mod_table_operate.TableOperateModule):
-    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
@@ -251,8 +261,8 @@ class ModuleOrders(mod_table_operate.TableOperateModule):
                     )
 
 class ModuleUserOrders(ModuleOrders):
-    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
 
     def GetName(self):
         return module_name

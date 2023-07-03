@@ -105,8 +105,8 @@ messages = {
 init_access = f'{user_access.user_access_group_new}=-'
 
 class ModuleAccess(mod_table_operate.TableOperateModule):
-    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, None, None, init_access, a_ChildModuleNameList, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(table, messages, button_names, None, None, init_access, a_ChildModuleNameList, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
         self.m_SqlRequestButtonName = self.CreateButton('sql request', sql_request_button_name)
         self.m_RequestStartMessage = self.CreateMessage('equest start', request_start_message)
 

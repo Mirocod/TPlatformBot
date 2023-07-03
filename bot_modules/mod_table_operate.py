@@ -3,7 +3,7 @@
 
 # Модуль для редактирования и просмотра таблицы в БД
 
-from bot_sys import keyboard, user_access, bd_table, bot_bd
+from bot_sys import keyboard, user_access, bd_table, bot_bd, bot_subscribes
 from bot_modules import access_utils, mod_simple_message
 from template import simple_message, bd_item, bd_item_select, bd_item_view, bd_item_delete, bd_item_add, bd_item_edit
 
@@ -30,6 +30,9 @@ def EnumMessageForView(a_EnumItem):
 
 def NotificationMessage(a_EnumItem):
     return 'notification ' + str(a_EnumItem)
+
+def SubscribeMessage(a_EnumItem):
+    return 'subscribe ' + str(a_EnumItem)
 
 class ButtonNames(Enum):
     LIST = auto() 
@@ -80,8 +83,8 @@ def MakeFSMForEdit(a_ModName, a_FieldName):
     return _locals['fsm']
 
 class TableOperateModule(mod_simple_message.SimpleMessageModule):
-    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_Table, a_Messages, a_Buttons, a_ParentModName, a_ChildModName, a_InitAccess, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(a_Messages, a_Buttons, a_InitAccess, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
         self.m_Table = a_Table
         self.m_EditModuleNameList = a_EditModuleNameList
         self.m_ChildModName = a_ChildModName
@@ -206,9 +209,19 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         return simple_message.WorkFuncResult(self.GetMessage(Messages.SUCCESS_DELETE), None, item_access = access)
 
     async def PostDelete(self, a_CallbackQuery, a_ItemID):
-        self.m_Log.Success(f'Задача №{a_ItemID} была удалена пользователем {a_CallbackQuery.from_user.id}.')
+        user_id = a_CallbackQuery.from_user.id
+        self.m_Log.Success(f'Задача №{a_ItemID} была удалена пользователем {user_id}.')
         #TODO: удалить вложенные 
         self.OnChange()
+
+        subscribe_type = bot_subscribes.SubscribeType.ANY_ITEM_DEL
+        item_id = -1
+        await self.SendSubscribe(subscribe_type, item_id, user_id)
+
+        subscribe_type = bot_subscribes.SubscribeType.ITEM_DEL
+        item_id = a_ItemID
+        await self.SendSubscribe(subscribe_type, item_id, user_id)
+
         return simple_message.WorkFuncResult(self.GetMessage(Messages.SUCCESS_DELETE))
 
     async def AddBDItemFunc(self, a_ItemData, a_UserID):
@@ -252,7 +265,28 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         else:
             self.m_Log.Success(f'Пользователь {a_UserID}. Добавлена запись в таблицу {request} {param}.')
 
+        subscribe_type = bot_subscribes.SubscribeType.ADD
+        item_id = -1
+        await self.SendSubscribe(subscribe_type, item_id, a_UserID)
+
         return res, error
+
+    async def SendSubscribe(self, a_Type, a_ItemID, a_OwnerUserID):
+        for s_user_id in self.m_BotSubscribes.GetUserIDs(self.GetName(), a_Type, a_ItemID = a_ItemID):
+            a_BotMessage = self.GetMessage(SubscribeMessage(a_Type))
+            if not a_BotMessage:
+                continue
+            if s_user_id == a_OwnerUserID:
+                continue
+            a_BotMessage = a_BotMessage.StaticCopy()
+            a_BotMessage.UpdateDesc(a_BotMessage.GetDesc().replace("#item_id", str(a_ItemID)))
+            a_GetButtonsFunc = None
+            a_GetInlineButtonsFunc = None
+            a_UserID = s_user_id
+            a_Message = None
+            user_groups = None
+            parse_mode = None
+            await simple_message.SendMessage(self.m_Bot, a_BotMessage, a_GetButtonsFunc, a_GetInlineButtonsFunc, a_UserID, a_Message, user_groups, parse_mode=parse_mode)
 
     def SelectSourceTemplate(self, a_PrevPrefix, a_ButtonName):
         parent_id_field = self.m_Table.GetFieldNameByDestiny(bd_table.TableFieldDestiny.PARENT_ID)
@@ -296,7 +330,14 @@ class TableOperateModule(mod_simple_message.SimpleMessageModule):
         return None
 
     async def OnChangeField(self, a_Field, a_ItemID, a_ItemData, a_EditUserID):
-        pass
+        subscribe_type = bot_subscribes.SubscribeType.ANY_ITEM_EDIT
+        item_id = -1
+        await self.SendSubscribe(subscribe_type, item_id, a_EditUserID)
+
+        subscribe_type = bot_subscribes.SubscribeType.ITEM_EDIT
+        item_id = a_ItemID
+        await self.SendSubscribe(subscribe_type, item_id, a_EditUserID)
+
 
     def RegisterEdit(self, a_Field, a_AccessMode = user_access.AccessMode.EDIT):
             a_ButtonName = self.GetButton(EditButton(a_Field.m_Destiny))

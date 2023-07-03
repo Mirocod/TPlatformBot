@@ -3,7 +3,7 @@
 
 # Проекты
 
-from bot_sys import bot_bd, keyboard, user_access, bd_table
+from bot_sys import bot_bd, keyboard, user_access, bd_table, bot_subscribes
 from bot_modules import mod_table_operate, mod_simple_message
 
 # ---------------------------------------------------------
@@ -117,9 +117,19 @@ messages = {
     mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Проект успешно удалён!''',
 }
 
+messages_subscribes = {
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ADD):f'''Проект создан''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ANY_ITEM_EDIT):f'''Проект отредактирован''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ANY_ITEM_DEL):f'''Проект удалён''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ITEM_EDIT):f'''Проект отредактирован #item_id''',
+    mod_table_operate.SubscribeMessage(bot_subscribes.SubscribeType.ITEM_DEL):f'''Проект удалён #item_id''',
+}
+
+messages.update(messages_subscribes)
+
 class ModuleProjects(mod_table_operate.TableOperateModule):
-    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_ParentModName, a_ChildModName, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(table, messages, button_names, a_ParentModName, a_ChildModName, init_access, a_ChildModuleNameList, a_EditModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
 
     def GetName(self):
         return module_name

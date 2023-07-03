@@ -30,7 +30,7 @@ class BotSubscribes:
         for user_id, su in s.items():
             sub_um = su.get(a_ModuleName, None)
             if sub_um:
-                t = sub_um.get(a_ItemID, None)
+                t = sub_um.get(str(a_ItemID), None)
                 if t == a_Type:
                     ids.add(user_id)
         return ids
@@ -41,7 +41,7 @@ class BotSubscribes:
             s[a_UserID] = {}
         if not s[a_UserID].get(a_ModuleName, None):
             s[a_UserID][a_ModuleName] = {}
-        s[a_UserID][a_ModuleName][a_ItemID] = a_Type
+        s[a_UserID][a_ModuleName][str(a_ItemID)] = a_Type
 
 def Test():
     a = set()

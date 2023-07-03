@@ -24,6 +24,7 @@ g_Bot = aiogram_bot.AiogramBot(config.GetTelegramBotApiToken(), bd_file_name, co
 
 g_BotMessages = bot_messages.BotMessages(default_language)
 g_BotButtons = bot_messages.BotMessages(default_language)
+g_BotSubscribes = bot_subscribes.BotSubscribes()
 
 g_ModuleAgregator = mod_agregator.ModuleAgregator()
 
@@ -42,67 +43,67 @@ mod_orders_name = orders.module_name
 mod_all_orders_name = all_orders.module_name
 
 start_mod_list = [mod_start_name]
-mod_access = access.ModuleAccess(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_access = access.ModuleAccess(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_access)
 
-mod_users = users.ModuleUsers(None, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_users = users.ModuleUsers(None, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_users)
 
 child_mod_name_list = [mod_start_name, mod_users_name, mod_user_in_groups_name]
-mod_groups = groups.ModuleGroups(None, mod_user_in_groups_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_groups = groups.ModuleGroups(None, mod_user_in_groups_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_groups)
 
-mod_user_in_groups = user_in_groups.ModuleUserInGroups(mod_groups_name, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_user_in_groups = user_in_groups.ModuleUserInGroups(mod_groups_name, None, start_mod_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_user_in_groups)
 
 child_mod_name_list = [mod_start_name, mod_users_name, mod_groups_name, mod_user_in_groups_name]
-mod_users_groups_agregator = users_groups_agregator.ModuleUsersGroupsAgregator(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_users_groups_agregator = users_groups_agregator.ModuleUsersGroupsAgregator(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_users_groups_agregator)
 
-mod_profile = profile.ModuleProfile(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_profile = profile.ModuleProfile(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_profile)
 
-mod_backup = backup.ModuleBackup(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_backup = backup.ModuleBackup(start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_backup)
 
 child_mod_name_list = [mod_start_name, mod_tasks_name, mod_needs_name, mod_comments_name]
-mod_project = projects.ModuleProjects(None, mod_tasks_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_project = projects.ModuleProjects(None, mod_tasks_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_project)
 
 child_mod_name_list = [mod_start_name]#, mod_projects_name, mod_needs_name, mod_comments_name]
-mod_tasks = tasks.ModuleTasks(mod_projects_name, mod_needs_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_tasks = tasks.ModuleTasks(mod_projects_name, mod_needs_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_tasks)
 
 child_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_comments_name]
-mod_needs= needs.ModuleNeeds(mod_tasks_name, mod_comments_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_needs= needs.ModuleNeeds(mod_tasks_name, mod_comments_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_needs)
 
 child_mod_name_list = [mod_start_name]#, mod_projects_name, mod_tasks_name, mod_needs_name]
-mod_comments= comments.ModuleComments(mod_needs_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_comments= comments.ModuleComments(mod_needs_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_comments)
 
 child_mod_name_list = [mod_start_name, mod_messages_name, mod_buttons_name]
-mod_languages = languages.ModuleLanguages(None, mod_messages_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_languages = languages.ModuleLanguages(None, mod_messages_name, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_languages)
 
 child_mod_name_list = [mod_start_name]
-mod_messages = messages.ModuleMessages(mod_languages_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_messages = messages.ModuleMessages(mod_languages_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_messages)
 
 child_mod_name_list = [mod_start_name]
-mod_buttons = buttons.ModuleButtons(mod_languages_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_buttons = buttons.ModuleButtons(mod_languages_name, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_buttons)
 
 child_mod_name_list = [mod_start_name]
-mod_orders = orders.ModuleUserOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_orders = orders.ModuleUserOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_orders)
 
 child_mod_name_list = [mod_start_name]
-mod_all_orders = all_orders.ModuleAllOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_all_orders = all_orders.ModuleAllOrders(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_all_orders)
 
 child_mod_name_list = [mod_start_name]
-mod_subscribe = subscribes.ModuleUserSubscribe(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_subscribe = subscribes.ModuleUserSubscribe(None, None, child_mod_name_list, start_mod_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_subscribe)
 
 child_mod_name_list = [
@@ -116,7 +117,7 @@ child_mod_name_list = [
         mod_all_orders.GetName(),
         mod_subscribe.GetName(),
         ]
-mod_start = start.ModuleStart(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_Log)
+mod_start = start.ModuleStart(child_mod_name_list, g_Bot, g_ModuleAgregator, g_BotMessages, g_BotButtons, g_BotSubscribes, g_Log)
 g_ModuleAgregator.AddModule(mod_start)
 
 # Первичная инициализация модулей.

@@ -47,8 +47,8 @@ messages = {
 init_access = f'{user_access.user_access_group_new}=-'
 
 class ModuleBackup(mod_simple_message.SimpleMessageModule):
-    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log):
-        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_Log)
+    def __init__(self, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log):
+        super().__init__(messages, button_names, init_access, a_ChildModuleNameList, a_Bot, a_ModuleAgregator, a_BotMessages, a_BotButtons, a_BotSubscribes, a_Log)
         self.m_BackupBDButtonName = self.CreateButton('backup bd', backup_bd_button_name)
         self.m_BackupBDMessage = self.CreateMessage('backup bd', backup_bd_message)
 
