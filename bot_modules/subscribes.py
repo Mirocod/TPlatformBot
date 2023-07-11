@@ -51,7 +51,7 @@ table = bd_table.Table(table_name, [
 init_access = f'{user_access.user_access_group_new}=-'
 
 button_names = {
-    mod_simple_message.ButtonNames.START: "‍🛒 Подписки",
+    mod_simple_message.ButtonNames.START: "⚡ Подписки",
     mod_table_operate.ButtonNames.LIST: "📃 Список моих текущих подписок",
     mod_table_operate.ButtonNames.ADD: "✅ Добавить подписку",
     mod_table_operate.ButtonNames.EDIT: "🛠 Редактировать мою подписку",
