@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.46235269"
+     inkscape:cx="392.55746"
+     inkscape:cy="561.25984"
+     inkscape:window-width="1366"
+     inkscape:window-height="704"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="272.52362"
+       y="455.61329"
+       width="305.51046"
+       height="95.272684"
+       id="rect2623" />
+    <clipPath
+       id="clipPath18"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path16"
+         d="M 0,283.465 H 283.465 V 0 H 0 Z" />
+    </clipPath>
+  </defs>
+  <g
+     inkscape:label="Слой 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       clip-path="url(#clipPath18)"
+       id="g14"
+       transform="matrix(0.12603901,0,0,-0.12603901,40.634086,141.93678)"
+       inkscape:export-filename="/home/alexei/CurProject/МИРОКОД/PlatformBot/logo.png"
+       inkscape:export-xdpi="363.41403"
+       inkscape:export-ydpi="363.41403">
+      <g
+         transform="translate(141.7347,229.1228)"
+         id="g20">
+        <path
+           id="path22"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           d="m 0,0 c 13.018,-5.541 25.524,-12.205 37.383,-19.879 l 2.053,19.527 C 26.921,7.161 13.747,13.687 0,19.08 -13.796,13.667 -27.015,7.114 -39.57,-0.433 l 2.053,-19.533 C -25.619,-12.256 -13.067,-5.562 0,0" />
+      </g>
+      <g
+         transform="translate(197.2625,58.1423)"
+         id="g24">
+        <path
+           id="path26"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           d="m 0,0 c -13.756,-3.155 -27.811,-5.12 -41.983,-5.889 l 9.81,-16.991 c 14.84,1.298 29.335,3.794 43.372,7.436 7.89,12.312 14.762,25.332 20.555,38.923 L 18.613,38.074 C 13.521,24.892 7.301,12.143 0,0" />
+      </g>
+      <g
+         transform="translate(231.5555,163.7942)"
+         id="g28">
+        <path
+           id="path30"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           d="m 0,0 c -1.231,-14.124 -3.684,-28.09 -7.295,-41.733 l 19.22,4.085 c 3.228,14.124 5.34,28.673 6.213,43.556 -9.351,11.365 -19.647,21.919 -30.739,31.583 l -17.923,-7.98 C -19.559,20.584 -9.334,10.716 0,0" />
+      </g>
+      <g
+         transform="translate(51.909,163.7956)"
+         id="g32">
+        <path
+           id="path34"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           d="M 0,0 C 9.318,10.697 19.524,20.551 30.468,29.465 L 12.547,37.444 C 1.476,27.793 -8.802,17.255 -18.138,5.908 c 0.872,-14.863 2.979,-29.393 6.2,-43.498 L 7.28,-41.675 C 3.676,-28.05 1.229,-14.103 0,0" />
+      </g>
+      <g
+         transform="translate(86.2034,58.1433)"
+         id="g36">
+        <path
+           id="path38"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           d="M 0,0 C -7.321,12.177 -13.553,24.963 -18.654,38.184 L -31.798,23.585 c 5.802,-13.629 12.689,-26.686 20.599,-39.029 14.035,-3.641 28.53,-6.139 43.366,-7.437 L 41.978,-5.89 C 27.808,-5.121 13.756,-3.155 0,0" />
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.45291788,0,0,0.89570042,-46.556351,-302.5624)"
+       id="text2621"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:cmr10;-inkscape-font-specification:'cmr10, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;white-space:pre;shape-inside:url(#rect2623)"
+       inkscape:export-filename="/home/alexei/CurProject/МИРОКОД/PlatformBot/logo.png"
+       inkscape:export-xdpi="363.41403"
+       inkscape:export-ydpi="363.41403"><tspan
+         x="272.52344"
+         y="490.61328"
+         id="tspan5179">TPlatformBot</tspan></text>
+  </g>
+</svg>
