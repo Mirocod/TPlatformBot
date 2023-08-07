@@ -1,4 +1,9 @@
 from django.contrib import admin
-from .models import Content
+from .models import Orders
 
-admin.site.register(Content)
+
+class OrdersAdmin(admin.ModelAdmin):
+    list_display = ('name', 'time_create')
+
+
+admin.site.register(Orders, OrdersAdmin,)
