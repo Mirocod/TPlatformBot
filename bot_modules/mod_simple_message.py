@@ -84,6 +84,8 @@ class SimpleMessageModule(mod_interface.IModule):
 
     def GetButtons(self, a_ModNameList):
         buttons = []
+        if not a_ModNameList:
+            return buttons
         for n in a_ModNameList:
             m = self.m_ModuleAgregator.GetModule(n)
             b = m.GetModuleButtons()

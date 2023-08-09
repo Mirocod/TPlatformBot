@@ -36,6 +36,8 @@ class TableFieldDestiny(Enum):
     ITEM_ID = auto()
     ADDRESS = auto()
     OTHER = auto()
+    VERSION_NUMBER = auto()
+    SUB_VERSION_NUMBER = auto()
 
 class TableField:
     def __init__(self, a_Name, a_Destiny : TableFieldDestiny, a_Type : TableFieldType, a_Enum = None):
