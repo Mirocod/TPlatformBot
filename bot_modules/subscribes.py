@@ -143,6 +143,7 @@ messages = {
     mod_table_operate.Messages.SUCCESS_DELETE: '''✅ Подписка успешно удалёна!''',
 }
 
+# TODO Возможно это не нужно есть же mod_table_operate.EnumButton(bot_subscribes.SubscribeType.ADD) см. выше
 messages_subs_type_status = {
     mod_table_operate.EnumMessageForView(bot_subscribes.SubscribeType.ADD): f'''Добавление элемента''',
     mod_table_operate.EnumMessageForView(bot_subscribes.SubscribeType.ANY_ITEM_DEL): f'''Удаление элемента''',
@@ -234,8 +235,8 @@ class ModuleUserSubscribe(ModuleSubscribe):
                 a_ItemID = s[item_id_id_field]
                 a_UserID = s[user_id_id_field]
                 for t in bot_subscribes.SubscribeType:
-                    k = mod_table_operate.EnumMessageForView(t)
-                    m = messages_subs_type_status.get(k, None)
+                    k = mod_table_operate.EnumButton(t)
+                    m = button_names.get(k, None)
                     if m and m == a_Type:
                         a_Type = t
                         break
